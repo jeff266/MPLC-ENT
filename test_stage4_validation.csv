@@ -1,0 +1,4 @@
+18 Digit Account ID,Account Name,Website,Account Street,Account State/Province,BillingPostalCode,Industry_Bucket,Capacity_Numeric,Capacity Type,Segment
+TEST001HOOTERS01,Hooters,https://www.hooters.com,"1234 Sports Way, Las Vegas",NV,89101,Restaurants Clubs Pubs,85,Employees,MM
+TEST002DAVEBUSTR,Dave & Busters,https://www.daveandbusters.com,"5678 Arcade Blvd, Dallas",TX,75201,Restaurants Clubs Pubs,200,Employees,MM
+TEST003TOPGOLF01,Topgolf,https://www.topgolf.com,"9012 Golf Drive, Austin",TX,78701,Restaurants Clubs Pubs,150,Employees,MM

@@ -1,0 +1,6 @@
+18 Digit Account ID,Account Name,Website,Account Street,Account State/Province,BillingPostalCode,Industry_Bucket,Capacity_Numeric,Capacity Type,Segment
+001MM001TESTID123,Buffalo Wild Wings,https://www.buffalowildwings.com,"123 Main St, San Francisco",CA,94102,Restaurants Clubs Pubs,150,Employees,MM
+001MM002TESTID456,LA Fitness,https://www.lafitness.com,"456 Oak Ave, Los Angeles",CA,90001,Fitness Centers,200,Employees,MM
+001ENT01TESTID789,Hilton Hotels,https://www.hilton.com,"789 Park Blvd, New York",NY,10001,Short-term Lodging,5000,Employees,ENT
+001MM003TESTID321,Courtyard by Marriott,https://www.marriott.com/courtyard,"321 Beach Dr, Miami",FL,33101,Short-term Lodging,85,Rooms,MM
+001MM004TESTID555,TechCorp Systems,https://www.techcorp.com,"555 Tech Way, Austin",TX,78701,Corporations,300,Employees,MM

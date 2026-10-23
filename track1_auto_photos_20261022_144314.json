@@ -1,0 +1,14 @@
+[
+  {
+    "name": "AutoNation Ford Miami",
+    "error": "Request not authenticated. Add your Apify API token, or a PAYMENT-SIGNATURE header for x402 payment. See https://docs.apify.com/api/v2#/introduction/authentication"
+  },
+  {
+    "name": "CarMax Richmond",
+    "error": "Request not authenticated. Add your Apify API token, or a PAYMENT-SIGNATURE header for x402 payment. See https://docs.apify.com/api/v2#/introduction/authentication"
+  },
+  {
+    "name": "Ron Tonkin Honda Portland",
+    "error": "Request not authenticated. Add your Apify API token, or a PAYMENT-SIGNATURE header for x402 payment. See https://docs.apify.com/api/v2#/introduction/authentication"
+  }
+]
