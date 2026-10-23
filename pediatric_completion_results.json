@@ -1,0 +1,42 @@
+[
+  {
+    "chain": "Mortenson Family Dental",
+    "practices": 50,
+    "type": "Family/Pediatric",
+    "tier": "REJECTED",
+    "reviews_with_tv": 0,
+    "vlm_analyzed": 0,
+    "cost": 0.02,
+    "time": 85.67512273788452
+  },
+  {
+    "chain": "Sunshine Smiles Pediatric Dentistry",
+    "practices": 25,
+    "type": "Pediatric",
+    "tier": "REJECTED",
+    "reviews_with_tv": 0,
+    "vlm_analyzed": 0,
+    "cost": 0.02,
+    "time": 26.340384006500244
+  },
+  {
+    "chain": "Cavity Busters Pediatric Dental",
+    "practices": 15,
+    "type": "Pediatric",
+    "tier": "REJECTED",
+    "reviews_with_tv": 0,
+    "vlm_analyzed": 0,
+    "cost": 0.02,
+    "time": 39.537683963775635
+  },
+  {
+    "chain": "Smile Doctors",
+    "practices": 550,
+    "type": "Orthodontics (kids-adjacent)",
+    "tier": "REJECTED",
+    "reviews_with_tv": 0,
+    "vlm_analyzed": 0,
+    "cost": 0.02,
+    "time": 85.41618204116821
+  }
+]

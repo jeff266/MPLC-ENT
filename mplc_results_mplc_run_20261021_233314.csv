@@ -1,0 +1,9 @@
+account_id,MPLC_EvidenceStrength,MPLC_EvidenceReason,evidence_source_urls,model_provider,resolution_stage,text_matches_count,images_collected,total_cost_usd,yolo_passed_count,vlm_analyzed_count
+001MM001SPBAR0001,Very Strong,Direct evidence from text,['https://www.buffalowildwings.com'],none,stage_2_text_gate,1,40,0.0,,
+001MM002FITNESS01,Not Applicable,"Insufficient data, needs manual research",[],none,stage_3_yolo,0,6,0.0,0.0,0.0
+001ENT01HOTEL001,Not Applicable,"Insufficient data, needs manual research",[],none,stage_3_yolo,0,14,0.0,0.0,0.0
+001MM003HOTEL002,Not Applicable,"Insufficient data, needs manual research",[],none,stage_3_yolo,0,0,0.0,0.0,0.0
+001MM004CORP0001,Not Applicable,"Insufficient data, needs manual research",[],none,stage_3_yolo,0,0,0.0,0.0,0.0
+001MM005HEALTH01,Not Applicable,"Insufficient data, needs manual research",[],none,stage_3_yolo,0,41,0.0,0.0,0.0
+001MM006BARREST1,Not Applicable,"Insufficient data, needs manual research",[],none,stage_3_yolo,0,50,0.0,0.0,0.0
+001ENT02FITNESS2,Not Applicable,"Insufficient data, needs manual research",[],none,stage_3_yolo,0,60,0.0,0.0,0.0

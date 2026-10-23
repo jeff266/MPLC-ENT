@@ -1,0 +1,82 @@
+[
+  {
+    "business": "Buffalo Wild Wings",
+    "chain": "Buffalo Wild Wings",
+    "city": "San Francisco",
+    "state": "CA",
+    "tier": "REJECTED",
+    "photos": 8,
+    "yolo_detections": 0,
+    "vlm_calls": 0,
+    "cost_breakdown": {
+      "search": 0.0025,
+      "photo_scrape": 0.016,
+      "vlm": 0,
+      "total": 0.0185
+    }
+  },
+  {
+    "business": "Dave & Buster's Daly City",
+    "chain": "Dave & Buster's",
+    "city": "Daly City",
+    "state": "CA",
+    "tier": "PROSPECT",
+    "photos": 88,
+    "yolo_detections": 5,
+    "vlm_calls": 5,
+    "cost_breakdown": {
+      "search": 0.0025,
+      "photo_scrape": 0.176,
+      "vlm": 0.02271,
+      "total": 0.20121
+    }
+  },
+  {
+    "business": "Hooters",
+    "chain": "Hooters",
+    "city": "Rohnert Park",
+    "state": "CA",
+    "tier": "PROSPECT",
+    "photos": 91,
+    "yolo_detections": 3,
+    "vlm_calls": 3,
+    "cost_breakdown": {
+      "search": 0.0025,
+      "photo_scrape": 0.182,
+      "vlm": 0.011412,
+      "total": 0.195912
+    }
+  },
+  {
+    "business": "Twin Peaks",
+    "chain": "Twin Peaks",
+    "city": "Dallas",
+    "state": "TX",
+    "tier": "PROSPECT",
+    "photos": 93,
+    "yolo_detections": 5,
+    "vlm_calls": 5,
+    "cost_breakdown": {
+      "search": 0.0025,
+      "photo_scrape": 0.186,
+      "vlm": 0.02334,
+      "total": 0.21184
+    }
+  },
+  {
+    "business": "Yard House",
+    "chain": "Yard House",
+    "city": "Glenview",
+    "state": "IL",
+    "tier": "PROSPECT",
+    "photos": 97,
+    "yolo_detections": 2,
+    "vlm_calls": 2,
+    "cost_breakdown": {
+      "search": 0.0025,
+      "photo_scrape": 0.194,
+      "vlm": 0.009159,
+      "total": 0.205659
+    }
+  }
+]

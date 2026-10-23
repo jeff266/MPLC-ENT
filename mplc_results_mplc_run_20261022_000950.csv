@@ -1,0 +1,2 @@
+account_id,MPLC_EvidenceStrength,MPLC_EvidenceReason,evidence_source_urls,model_provider,resolution_stage,text_matches_count,images_collected,total_cost_usd
+TEST001HOOTERS01,Very Strong,Direct evidence from text,"['https://www.yelp.com/nearme/hooters', 'https://www.yelp.com/nearme/hooters', 'https://www.yelp.com/nearme/hooters']",none,stage_2_text_gate,6,68,0.0
