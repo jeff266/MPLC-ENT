@@ -1,0 +1,6 @@
+18 Digit Account ID,Account Name,Website,Industry_Bucket,Segment,Account Street,Account State/Province
+TEST_VERIFY_BWW,Buffalo Wild Wings Times Square,https://www.buffalowildwings.com,"Restaurants, Clubs, Pubs",MM,"1412 Broadway, New York",NY
+TEST_VERIFY_HOOTERS,Hooters Manhattan,https://www.hooters.com,"Restaurants, Clubs, Pubs",MM,"211 West 56th Street, New York",NY
+TEST_VERIFY_APPLEBEES,Applebees Times Square,https://www.applebees.com,"Restaurants, Clubs, Pubs",MM,"234 West 42nd Street, New York",NY
+TEST_VERIFY_DAVEBUSTERS,Dave and Busters Times Square,https://www.daveandbusters.com,"Restaurants, Clubs, Pubs",MM,"234 West 42nd Street, New York",NY
+TEST_VERIFY_TOPGOLF,Topgolf Las Vegas,https://topgolf.com,"Restaurants, Clubs, Pubs",ENT,"4627 Koval Lane, Las Vegas",NV

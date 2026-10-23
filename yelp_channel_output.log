@@ -1,0 +1,569 @@
+[36m[apify.yelp-business-scraper runId:3LMlf6g4DgjDBILs7][0m -> Status: RUNNING, Message: 
+[36m[apify.yelp-business-scraper runId:3LMlf6g4DgjDBILs7][0m -> 2026-10-23T04:06:29.691Z [33mACTOR: [39mPulling container image of build gTP8VYGd7koebou1p from registry.
+[36m[apify.yelp-business-scraper runId:3LMlf6g4DgjDBILs7][0m -> 2026-10-23T04:06:29.694Z [33mACTOR: [39mCreating container.
+[36m[apify.yelp-business-scraper runId:3LMlf6g4DgjDBILs7][0m -> 2026-10-23T04:06:29.752Z [33mACTOR: [39mStarting container.
+[36m[apify.yelp-business-scraper runId:3LMlf6g4DgjDBILs7][0m -> 2026-10-23T04:06:29.755Z [33mACTOR: [39mRunning under "LIMITED_PERMISSIONS".
+[36m[apify.yelp-business-scraper runId:3LMlf6g4DgjDBILs7][0m -> 2026-10-23T04:06:32.280Z Actor is running on the Apify platform, `disable_browser_sandbox` was changed to True.
+[36m[apify.yelp-business-scraper runId:3LMlf6g4DgjDBILs7][0m -> 2026-10-23T04:06:32.284Z [90m[apify][0m [32mINFO [0m Initializing Actor [90m({"apify_sdk_version": "3.4.0", "apify_client_version": "2.5.0", "crawlee_version": "1.6.3", "python_version": "3.14.8", "os": "linux", "is_running_in_ipython": false})[0m
+[36m[apify.yelp-business-scraper runId:3LMlf6g4DgjDBILs7][0m -> 2026-10-23T04:06:32.507Z [90m[apify][0m [32mINFO [0m Searching 'AutoNation USA Houston' in 'Houston, TX', page 1
+[36m[apify.yelp-business-scraper runId:3LMlf6g4DgjDBILs7][0m -> 2026-10-23T04:06:42.186Z [90m[apify][0m [32mINFO [0m ⭐ If this actor saved you time, a quick rating on the Apify page helps others find it. Thanks!
+[36m[apify.yelp-business-scraper runId:3LMlf6g4DgjDBILs7][0m -> 2026-10-23T04:06:42.189Z [90m[apify][0m [32mINFO [0m Exiting Actor [90m({"exit_code": 0})[0m
+[36m[apify.yelp-business-scraper runId:3LMlf6g4DgjDBILs7][0m -> Status: SUCCEEDED, Message: 
+[36m[apify.yelp-photos-scraper runId:fkffsXxmwIsmbdnys][0m -> Status: RUNNING, Message: 
+[36m[apify.yelp-photos-scraper runId:fkffsXxmwIsmbdnys][0m -> 2026-10-23T04:06:52.403Z [33mACTOR: [39mPulling container image of build NrMpZxschgy3paudZ from registry.
+[36m[apify.yelp-photos-scraper runId:fkffsXxmwIsmbdnys][0m -> 2026-10-23T04:06:54.077Z [33mACTOR: [39mCreating container.
+[36m[apify.yelp-photos-scraper runId:fkffsXxmwIsmbdnys][0m -> 2026-10-23T04:06:54.185Z [33mACTOR: [39mStarting container.
+[36m[apify.yelp-photos-scraper runId:fkffsXxmwIsmbdnys][0m -> 2026-10-23T04:06:54.195Z [33mACTOR: [39mRunning under "LIMITED_PERMISSIONS".
+[36m[apify.yelp-photos-scraper runId:fkffsXxmwIsmbdnys][0m -> 2026-10-23T04:06:57.106Z Actor is running on the Apify platform, `disable_browser_sandbox` was changed to True.
+[36m[apify.yelp-photos-scraper runId:fkffsXxmwIsmbdnys][0m -> 2026-10-23T04:06:57.108Z [90m[apify][0m [32mINFO [0m Initializing Actor [90m({"apify_sdk_version": "3.4.0", "apify_client_version": "2.5.0", "crawlee_version": "1.6.3", "python_version": "3.14.8", "os": "linux", "is_running_in_ipython": false})[0m
+[36m[apify.yelp-photos-scraper runId:fkffsXxmwIsmbdnys][0m -> 2026-10-23T04:06:59.314Z [90m[apify][0m [32mINFO [0m Scraping media for auto-nation-usa-houston-2 (OLROYHzNwX0awXySosDvNw), page 1
+[36m[apify.yelp-photos-scraper runId:fkffsXxmwIsmbdnys][0m -> 2026-10-23T04:07:03.122Z [90m[apify][0m [32mINFO [0m ⭐ If this actor saved you time, a quick rating on the Apify page helps others find it. Thanks!
+[36m[apify.yelp-photos-scraper runId:fkffsXxmwIsmbdnys][0m -> 2026-10-23T04:07:03.123Z [90m[apify][0m [32mINFO [0m Exiting Actor [90m({"exit_code": 0})[0m
+[36m[apify.yelp-photos-scraper runId:fkffsXxmwIsmbdnys][0m -> Status: SUCCEEDED, Message: 
+[36m[apify.yelp-business-scraper runId:ImuohH85KxeU1Gjn2][0m -> Status: RUNNING, Message: 
+[36m[apify.yelp-business-scraper runId:ImuohH85KxeU1Gjn2][0m -> 2026-10-23T04:07:23.027Z [33mACTOR: [39mPulling container image of build gTP8VYGd7koebou1p from registry.
+[36m[apify.yelp-business-scraper runId:ImuohH85KxeU1Gjn2][0m -> 2026-10-23T04:07:23.029Z [33mACTOR: [39mCreating container.
+[36m[apify.yelp-business-scraper runId:ImuohH85KxeU1Gjn2][0m -> 2026-10-23T04:07:23.082Z [33mACTOR: [39mStarting container.
+[36m[apify.yelp-business-scraper runId:ImuohH85KxeU1Gjn2][0m -> 2026-10-23T04:07:23.085Z [33mACTOR: [39mRunning under "LIMITED_PERMISSIONS".
+[36m[apify.yelp-business-scraper runId:ImuohH85KxeU1Gjn2][0m -> 2026-10-23T04:07:24.974Z Actor is running on the Apify platform, `disable_browser_sandbox` was changed to True.
+[36m[apify.yelp-business-scraper runId:ImuohH85KxeU1Gjn2][0m -> 2026-10-23T04:07:24.976Z [90m[apify][0m [32mINFO [0m Initializing Actor [90m({"apify_sdk_version": "3.4.0", "apify_client_version": "2.5.0", "crawlee_version": "1.6.3", "python_version": "3.14.8", "os": "linux", "is_running_in_ipython": false})[0m
+[36m[apify.yelp-business-scraper runId:ImuohH85KxeU1Gjn2][0m -> 2026-10-23T04:07:25.287Z [90m[apify][0m [32mINFO [0m Searching 'AutoNation Toyota Hayward' in 'Hayward, CA', page 1
+[36m[apify.yelp-business-scraper runId:ImuohH85KxeU1Gjn2][0m -> 2026-10-23T04:07:30.608Z [90m[apify][0m [32mINFO [0m ⭐ If this actor saved you time, a quick rating on the Apify page helps others find it. Thanks!
+[36m[apify.yelp-business-scraper runId:ImuohH85KxeU1Gjn2][0m -> 2026-10-23T04:07:30.609Z [90m[apify][0m [32mINFO [0m Exiting Actor [90m({"exit_code": 0})[0m
+[36m[apify.yelp-business-scraper runId:ImuohH85KxeU1Gjn2][0m -> Status: SUCCEEDED, Message: 
+[36m[apify.yelp-photos-scraper runId:cRDW8uVnO6QMfJz4Y][0m -> Status: RUNNING, Message: 
+[36m[apify.yelp-photos-scraper runId:cRDW8uVnO6QMfJz4Y][0m -> 2026-10-23T04:07:38.094Z [33mACTOR: [39mPulling container image of build NrMpZxschgy3paudZ from registry.
+[36m[apify.yelp-photos-scraper runId:cRDW8uVnO6QMfJz4Y][0m -> 2026-10-23T04:07:38.096Z [33mACTOR: [39mCreating container.
+[36m[apify.yelp-photos-scraper runId:cRDW8uVnO6QMfJz4Y][0m -> 2026-10-23T04:07:38.187Z [33mACTOR: [39mStarting container.
+[36m[apify.yelp-photos-scraper runId:cRDW8uVnO6QMfJz4Y][0m -> 2026-10-23T04:07:38.202Z [33mACTOR: [39mRunning under "LIMITED_PERMISSIONS".
+[36m[apify.yelp-photos-scraper runId:cRDW8uVnO6QMfJz4Y][0m -> 2026-10-23T04:07:39.681Z Actor is running on the Apify platform, `disable_browser_sandbox` was changed to True.
+[36m[apify.yelp-photos-scraper runId:cRDW8uVnO6QMfJz4Y][0m -> 2026-10-23T04:07:39.684Z [90m[apify][0m [32mINFO [0m Initializing Actor [90m({"apify_sdk_version": "3.4.0", "apify_client_version": "2.5.0", "crawlee_version": "1.6.3", "python_version": "3.14.8", "os": "linux", "is_running_in_ipython": false})[0m
+[36m[apify.yelp-photos-scraper runId:cRDW8uVnO6QMfJz4Y][0m -> 2026-10-23T04:07:41.881Z [90m[apify][0m [32mINFO [0m Scraping media for autonation-toyota-hayward-hayward-5 (Qsvrx9kUspEF1J1_OYEDLg), page 1
+[36m[apify.yelp-photos-scraper runId:cRDW8uVnO6QMfJz4Y][0m -> 2026-10-23T04:07:44.698Z [90m[apify][0m [32mINFO [0m ⭐ If this actor saved you time, a quick rating on the Apify page helps others find it. Thanks!
+[36m[apify.yelp-photos-scraper runId:cRDW8uVnO6QMfJz4Y][0m -> 2026-10-23T04:07:44.700Z [90m[apify][0m [32mINFO [0m Exiting Actor [90m({"exit_code": 0})[0m
+[36m[apify.yelp-photos-scraper runId:cRDW8uVnO6QMfJz4Y][0m -> Status: SUCCEEDED, Message: 
+[36m[apify.yelp-business-scraper runId:bHmQyOJwIg4nvW22L][0m -> Status: RUNNING, Message: 
+[36m[apify.yelp-business-scraper runId:bHmQyOJwIg4nvW22L][0m -> 2026-10-23T04:07:52.491Z [33mACTOR: [39mPulling container image of build gTP8VYGd7koebou1p from registry.
+[36m[apify.yelp-business-scraper runId:bHmQyOJwIg4nvW22L][0m -> 2026-10-23T04:07:52.494Z [33mACTOR: [39mCreating container.
+[36m[apify.yelp-business-scraper runId:bHmQyOJwIg4nvW22L][0m -> 2026-10-23T04:07:52.572Z [33mACTOR: [39mStarting container.
+[36m[apify.yelp-business-scraper runId:bHmQyOJwIg4nvW22L][0m -> 2026-10-23T04:07:52.573Z [33mACTOR: [39mRunning under "LIMITED_PERMISSIONS".
+[36m[apify.yelp-business-scraper runId:bHmQyOJwIg4nvW22L][0m -> 2026-10-23T04:07:53.781Z Actor is running on the Apify platform, `disable_browser_sandbox` was changed to True.
+[36m[apify.yelp-business-scraper runId:bHmQyOJwIg4nvW22L][0m -> 2026-10-23T04:07:53.783Z [90m[apify][0m [32mINFO [0m Initializing Actor [90m({"apify_sdk_version": "3.4.0", "apify_client_version": "2.5.0", "crawlee_version": "1.6.3", "python_version": "3.14.8", "os": "linux", "is_running_in_ipython": false})[0m
+[36m[apify.yelp-business-scraper runId:bHmQyOJwIg4nvW22L][0m -> 2026-10-23T04:07:53.914Z [90m[apify][0m [32mINFO [0m Searching 'AutoNation Ford Sanford' in 'Sanford, FL', page 1
+[36m[apify.yelp-business-scraper runId:bHmQyOJwIg4nvW22L][0m -> 2026-10-23T04:07:57.402Z [90m[apify][0m [32mINFO [0m ⭐ If this actor saved you time, a quick rating on the Apify page helps others find it. Thanks!
+[36m[apify.yelp-business-scraper runId:bHmQyOJwIg4nvW22L][0m -> 2026-10-23T04:07:57.402Z [90m[apify][0m [32mINFO [0m Exiting Actor [90m({"exit_code": 0})[0m
+[36m[apify.yelp-business-scraper runId:bHmQyOJwIg4nvW22L][0m -> Status: SUCCEEDED, Message: 
+[36m[apify.yelp-photos-scraper runId:5QSlqZgS7dZCt0tND][0m -> Status: RUNNING, Message: 
+[36m[apify.yelp-photos-scraper runId:5QSlqZgS7dZCt0tND][0m -> 2026-10-23T04:08:04.927Z [33mACTOR: [39mPulling container image of build NrMpZxschgy3paudZ from registry.
+[36m[apify.yelp-photos-scraper runId:5QSlqZgS7dZCt0tND][0m -> 2026-10-23T04:08:07.409Z [33mACTOR: [39mCreating container.
+[36m[apify.yelp-photos-scraper runId:5QSlqZgS7dZCt0tND][0m -> 2026-10-23T04:08:07.481Z [33mACTOR: [39mStarting container.
+[36m[apify.yelp-photos-scraper runId:5QSlqZgS7dZCt0tND][0m -> 2026-10-23T04:08:07.481Z [33mACTOR: [39mRunning under "LIMITED_PERMISSIONS".
+[36m[apify.yelp-photos-scraper runId:5QSlqZgS7dZCt0tND][0m -> 2026-10-23T04:08:08.474Z Actor is running on the Apify platform, `disable_browser_sandbox` was changed to True.
+[36m[apify.yelp-photos-scraper runId:5QSlqZgS7dZCt0tND][0m -> 2026-10-23T04:08:08.476Z [90m[apify][0m [32mINFO [0m Initializing Actor [90m({"apify_sdk_version": "3.4.0", "apify_client_version": "2.5.0", "crawlee_version": "1.6.3", "python_version": "3.14.8", "os": "linux", "is_running_in_ipython": false})[0m
+[36m[apify.yelp-photos-scraper runId:5QSlqZgS7dZCt0tND][0m -> 2026-10-23T04:08:10.491Z [90m[apify][0m [32mINFO [0m Scraping media for autonation-ford-sanford-sanford (pNwDJykzYyS7pkEpai-kNA), page 1
+[36m[apify.yelp-photos-scraper runId:5QSlqZgS7dZCt0tND][0m -> 2026-10-23T04:08:13.804Z [90m[apify][0m [32mINFO [0m ⭐ If this actor saved you time, a quick rating on the Apify page helps others find it. Thanks!
+[36m[apify.yelp-photos-scraper runId:5QSlqZgS7dZCt0tND][0m -> 2026-10-23T04:08:13.804Z [90m[apify][0m [32mINFO [0m Exiting Actor [90m({"exit_code": 0})[0m
+[36m[apify.yelp-photos-scraper runId:5QSlqZgS7dZCt0tND][0m -> Status: SUCCEEDED, Message: 
+[36m[apify.yelp-business-scraper runId:04Vugl6VYjhE08zk5][0m -> Status: RUNNING, Message: 
+[36m[apify.yelp-business-scraper runId:04Vugl6VYjhE08zk5][0m -> 2026-10-23T04:08:22.711Z [33mACTOR: [39mPulling container image of build gTP8VYGd7koebou1p from registry.
+[36m[apify.yelp-business-scraper runId:04Vugl6VYjhE08zk5][0m -> 2026-10-23T04:08:22.719Z [33mACTOR: [39mCreating container.
+[36m[apify.yelp-business-scraper runId:04Vugl6VYjhE08zk5][0m -> 2026-10-23T04:08:22.786Z [33mACTOR: [39mStarting container.
+[36m[apify.yelp-business-scraper runId:04Vugl6VYjhE08zk5][0m -> 2026-10-23T04:08:22.788Z [33mACTOR: [39mRunning under "LIMITED_PERMISSIONS".
+[36m[apify.yelp-business-scraper runId:04Vugl6VYjhE08zk5][0m -> 2026-10-23T04:08:25.384Z Actor is running on the Apify platform, `disable_browser_sandbox` was changed to True.
+[36m[apify.yelp-business-scraper runId:04Vugl6VYjhE08zk5][0m -> 2026-10-23T04:08:25.387Z [90m[apify][0m [32mINFO [0m Initializing Actor [90m({"apify_sdk_version": "3.4.0", "apify_client_version": "2.5.0", "crawlee_version": "1.6.3", "python_version": "3.14.8", "os": "linux", "is_running_in_ipython": false})[0m
+[36m[apify.yelp-business-scraper runId:04Vugl6VYjhE08zk5][0m -> 2026-10-23T04:08:25.597Z [90m[apify][0m [32mINFO [0m Searching 'AutoNation Chevrolet North' in 'Denver, CO', page 1
+[36m[apify.yelp-business-scraper runId:04Vugl6VYjhE08zk5][0m -> 2026-10-23T04:08:29.190Z [90m[apify][0m [32mINFO [0m ⭐ If this actor saved you time, a quick rating on the Apify page helps others find it. Thanks!
+[36m[apify.yelp-business-scraper runId:04Vugl6VYjhE08zk5][0m -> 2026-10-23T04:08:29.192Z [90m[apify][0m [32mINFO [0m Exiting Actor [90m({"exit_code": 0})[0m
+[36m[apify.yelp-business-scraper runId:04Vugl6VYjhE08zk5][0m -> Status: SUCCEEDED, Message: 
+[36m[apify.yelp-photos-scraper runId:YZcwejfv8fm2n8nDh][0m -> Status: RUNNING, Message: 
+[36m[apify.yelp-photos-scraper runId:YZcwejfv8fm2n8nDh][0m -> 2026-10-23T04:08:36.531Z [33mACTOR: [39mPulling container image of build NrMpZxschgy3paudZ from registry.
+[36m[apify.yelp-photos-scraper runId:YZcwejfv8fm2n8nDh][0m -> 2026-10-23T04:08:36.533Z [33mACTOR: [39mCreating container.
+[36m[apify.yelp-photos-scraper runId:YZcwejfv8fm2n8nDh][0m -> 2026-10-23T04:08:36.594Z [33mACTOR: [39mStarting container.
+[36m[apify.yelp-photos-scraper runId:YZcwejfv8fm2n8nDh][0m -> 2026-10-23T04:08:36.595Z [33mACTOR: [39mRunning under "LIMITED_PERMISSIONS".
+[36m[apify.yelp-photos-scraper runId:YZcwejfv8fm2n8nDh][0m -> 2026-10-23T04:08:38.817Z Actor is running on the Apify platform, `disable_browser_sandbox` was changed to True.
+[36m[apify.yelp-photos-scraper runId:YZcwejfv8fm2n8nDh][0m -> 2026-10-23T04:08:38.825Z [90m[apify][0m [32mINFO [0m Initializing Actor [90m({"apify_sdk_version": "3.4.0", "apify_client_version": "2.5.0", "crawlee_version": "1.6.3", "python_version": "3.14.8", "os": "linux", "is_running_in_ipython": false})[0m
+[36m[apify.yelp-photos-scraper runId:YZcwejfv8fm2n8nDh][0m -> 2026-10-23T04:08:41.124Z [90m[apify][0m [32mINFO [0m Scraping media for autonation-chevrolet-north-denver-3 (0-qAs3iaqCaH12hgLxzrMA), page 1
+[36m[apify.yelp-photos-scraper runId:YZcwejfv8fm2n8nDh][0m -> 2026-10-23T04:08:41.747Z [90m[apify][0m [32mINFO [0m Scraping media for autonation-chevrolet-north-denver-3 (0-qAs3iaqCaH12hgLxzrMA), page 2
+[36m[apify.yelp-photos-scraper runId:YZcwejfv8fm2n8nDh][0m -> 2026-10-23T04:08:44.565Z [90m[apify][0m [32mINFO [0m ⭐ If this actor saved you time, a quick rating on the Apify page helps others find it. Thanks!
+[36m[apify.yelp-photos-scraper runId:YZcwejfv8fm2n8nDh][0m -> 2026-10-23T04:08:44.567Z [90m[apify][0m [32mINFO [0m Exiting Actor [90m({"exit_code": 0})[0m
+[36m[apify.yelp-photos-scraper runId:YZcwejfv8fm2n8nDh][0m -> Status: SUCCEEDED, Message: 
+[36m[apify.yelp-business-scraper runId:hgpcoINzMYhJdg7Qf][0m -> Status: RUNNING, Message: 
+[36m[apify.yelp-business-scraper runId:hgpcoINzMYhJdg7Qf][0m -> 2026-10-23T04:08:52.744Z [33mACTOR: [39mPulling container image of build gTP8VYGd7koebou1p from registry.
+[36m[apify.yelp-business-scraper runId:hgpcoINzMYhJdg7Qf][0m -> 2026-10-23T04:08:52.746Z [33mACTOR: [39mCreating container.
+[36m[apify.yelp-business-scraper runId:hgpcoINzMYhJdg7Qf][0m -> 2026-10-23T04:08:52.815Z [33mACTOR: [39mStarting container.
+[36m[apify.yelp-business-scraper runId:hgpcoINzMYhJdg7Qf][0m -> 2026-10-23T04:08:52.816Z [33mACTOR: [39mRunning under "LIMITED_PERMISSIONS".
+[36m[apify.yelp-business-scraper runId:hgpcoINzMYhJdg7Qf][0m -> 2026-10-23T04:08:54.306Z Actor is running on the Apify platform, `disable_browser_sandbox` was changed to True.
+[36m[apify.yelp-business-scraper runId:hgpcoINzMYhJdg7Qf][0m -> 2026-10-23T04:08:54.306Z [90m[apify][0m [32mINFO [0m Initializing Actor [90m({"apify_sdk_version": "3.4.0", "apify_client_version": "2.5.0", "crawlee_version": "1.6.3", "python_version": "3.14.8", "os": "linux", "is_running_in_ipython": false})[0m
+[36m[apify.yelp-business-scraper runId:hgpcoINzMYhJdg7Qf][0m -> 2026-10-23T04:08:54.552Z [90m[apify][0m [32mINFO [0m Searching 'AutoNation Nissan Chandler' in 'Chandler, AZ', page 1
+[36m[apify.yelp-business-scraper runId:hgpcoINzMYhJdg7Qf][0m -> 2026-10-23T04:09:00.241Z [90m[apify][0m [32mINFO [0m ⭐ If this actor saved you time, a quick rating on the Apify page helps others find it. Thanks!
+[36m[apify.yelp-business-scraper runId:hgpcoINzMYhJdg7Qf][0m -> 2026-10-23T04:09:00.242Z [90m[apify][0m [32mINFO [0m Exiting Actor [90m({"exit_code": 0})[0m
+[36m[apify.yelp-business-scraper runId:hgpcoINzMYhJdg7Qf][0m -> Status: SUCCEEDED, Message: 
+[36m[apify.yelp-photos-scraper runId:ms7paKCTfAoSGyywr][0m -> Status: RUNNING, Message: 
+[36m[apify.yelp-photos-scraper runId:ms7paKCTfAoSGyywr][0m -> 2026-10-23T04:09:07.499Z [33mACTOR: [39mPulling container image of build NrMpZxschgy3paudZ from registry.
+[36m[apify.yelp-photos-scraper runId:ms7paKCTfAoSGyywr][0m -> 2026-10-23T04:09:07.502Z [33mACTOR: [39mCreating container.
+[36m[apify.yelp-photos-scraper runId:ms7paKCTfAoSGyywr][0m -> 2026-10-23T04:09:07.664Z [33mACTOR: [39mStarting container.
+[36m[apify.yelp-photos-scraper runId:ms7paKCTfAoSGyywr][0m -> 2026-10-23T04:09:07.689Z [33mACTOR: [39mRunning under "LIMITED_PERMISSIONS".
+[36m[apify.yelp-photos-scraper runId:ms7paKCTfAoSGyywr][0m -> 2026-10-23T04:09:10.833Z Actor is running on the Apify platform, `disable_browser_sandbox` was changed to True.
+[36m[apify.yelp-photos-scraper runId:ms7paKCTfAoSGyywr][0m -> 2026-10-23T04:09:10.859Z [90m[apify][0m [32mINFO [0m Initializing Actor [90m({"apify_sdk_version": "3.4.0", "apify_client_version": "2.5.0", "crawlee_version": "1.6.3", "python_version": "3.14.8", "os": "linux", "is_running_in_ipython": false})[0m
+[36m[apify.yelp-photos-scraper runId:ms7paKCTfAoSGyywr][0m -> 2026-10-23T04:09:13.603Z [90m[apify][0m [32mINFO [0m Scraping media for autonation-nissan-chandler-chandler-4 (t8vT9YRWKT0YifcI9JS7kg), page 1
+[36m[apify.yelp-photos-scraper runId:ms7paKCTfAoSGyywr][0m -> 2026-10-23T04:09:16.833Z [90m[apify][0m [32mINFO [0m ⭐ If this actor saved you time, a quick rating on the Apify page helps others find it. Thanks!
+[36m[apify.yelp-photos-scraper runId:ms7paKCTfAoSGyywr][0m -> 2026-10-23T04:09:16.894Z [90m[apify][0m [32mINFO [0m Exiting Actor [90m({"exit_code": 0})[0m
+[36m[apify.yelp-photos-scraper runId:ms7paKCTfAoSGyywr][0m -> Status: SUCCEEDED, Message: 
+[36m[apify.yelp-business-scraper runId:BHarFrmwB4S6OmzKO][0m -> Status: RUNNING, Message: 
+[36m[apify.yelp-business-scraper runId:BHarFrmwB4S6OmzKO][0m -> 2026-10-23T04:09:26.258Z [33mACTOR: [39mPulling container image of build gTP8VYGd7koebou1p from registry.
+[36m[apify.yelp-business-scraper runId:BHarFrmwB4S6OmzKO][0m -> 2026-10-23T04:09:26.264Z [33mACTOR: [39mCreating container.
+[36m[apify.yelp-business-scraper runId:BHarFrmwB4S6OmzKO][0m -> 2026-10-23T04:09:26.316Z [33mACTOR: [39mStarting container.
+[36m[apify.yelp-business-scraper runId:BHarFrmwB4S6OmzKO][0m -> 2026-10-23T04:09:26.318Z [33mACTOR: [39mRunning under "LIMITED_PERMISSIONS".
+[36m[apify.yelp-business-scraper runId:BHarFrmwB4S6OmzKO][0m -> 2026-10-23T04:09:27.290Z Actor is running on the Apify platform, `disable_browser_sandbox` was changed to True.
+[36m[apify.yelp-business-scraper runId:BHarFrmwB4S6OmzKO][0m -> 2026-10-23T04:09:27.292Z [90m[apify][0m [32mINFO [0m Initializing Actor [90m({"apify_sdk_version": "3.4.0", "apify_client_version": "2.5.0", "crawlee_version": "1.6.3", "python_version": "3.14.8", "os": "linux", "is_running_in_ipython": false})[0m
+[36m[apify.yelp-business-scraper runId:BHarFrmwB4S6OmzKO][0m -> 2026-10-23T04:09:27.460Z [90m[apify][0m [32mINFO [0m Searching 'Lithia Toyota of Medford' in 'Medford, OR', page 1
+[36m[apify.yelp-business-scraper runId:BHarFrmwB4S6OmzKO][0m -> 2026-10-23T04:09:32.665Z [90m[apify][0m [32mINFO [0m ⭐ If this actor saved you time, a quick rating on the Apify page helps others find it. Thanks!
+[36m[apify.yelp-business-scraper runId:BHarFrmwB4S6OmzKO][0m -> 2026-10-23T04:09:32.666Z [90m[apify][0m [32mINFO [0m Exiting Actor [90m({"exit_code": 0})[0m
+[36m[apify.yelp-business-scraper runId:BHarFrmwB4S6OmzKO][0m -> Status: SUCCEEDED, Message: 
+[36m[apify.yelp-photos-scraper runId:e08fQIlddAXI5MFWu][0m -> Status: RUNNING, Message: 
+[36m[apify.yelp-photos-scraper runId:e08fQIlddAXI5MFWu][0m -> 2026-10-23T04:09:40.233Z [33mACTOR: [39mPulling container image of build NrMpZxschgy3paudZ from registry.
+[36m[apify.yelp-photos-scraper runId:e08fQIlddAXI5MFWu][0m -> 2026-10-23T04:09:40.269Z [33mACTOR: [39mCreating container.
+[36m[apify.yelp-photos-scraper runId:e08fQIlddAXI5MFWu][0m -> 2026-10-23T04:09:40.355Z [33mACTOR: [39mStarting container.
+[36m[apify.yelp-photos-scraper runId:e08fQIlddAXI5MFWu][0m -> 2026-10-23T04:09:40.356Z [33mACTOR: [39mRunning under "LIMITED_PERMISSIONS".
+[36m[apify.yelp-photos-scraper runId:e08fQIlddAXI5MFWu][0m -> 2026-10-23T04:09:42.651Z Actor is running on the Apify platform, `disable_browser_sandbox` was changed to True.
+[36m[apify.yelp-photos-scraper runId:e08fQIlddAXI5MFWu][0m -> 2026-10-23T04:09:42.655Z [90m[apify][0m [32mINFO [0m Initializing Actor [90m({"apify_sdk_version": "3.4.0", "apify_client_version": "2.5.0", "crawlee_version": "1.6.3", "python_version": "3.14.8", "os": "linux", "is_running_in_ipython": false})[0m
+[36m[apify.yelp-photos-scraper runId:e08fQIlddAXI5MFWu][0m -> 2026-10-23T04:09:43.974Z [90m[apify][0m [32mINFO [0m Scraping media for lithia-toyota-of-medford-medford (ukWnENmZ-GeVUfE1ec2VLg), page 1
+[36m[apify.yelp-photos-scraper runId:e08fQIlddAXI5MFWu][0m -> 2026-10-23T04:09:46.142Z [90m[apify][0m [32mINFO [0m ⭐ If this actor saved you time, a quick rating on the Apify page helps others find it. Thanks!
+[36m[apify.yelp-photos-scraper runId:e08fQIlddAXI5MFWu][0m -> 2026-10-23T04:09:46.143Z [90m[apify][0m [32mINFO [0m Exiting Actor [90m({"exit_code": 0})[0m
+[36m[apify.yelp-photos-scraper runId:e08fQIlddAXI5MFWu][0m -> Status: SUCCEEDED, Message: 
+[36m[apify.yelp-business-scraper runId:acWYJcuD3HBE3K2rh][0m -> Status: RUNNING, Message: 
+[36m[apify.yelp-business-scraper runId:acWYJcuD3HBE3K2rh][0m -> 2026-10-23T04:09:57.152Z [33mACTOR: [39mPulling container image of build gTP8VYGd7koebou1p from registry.
+[36m[apify.yelp-business-scraper runId:acWYJcuD3HBE3K2rh][0m -> 2026-10-23T04:09:57.157Z [33mACTOR: [39mCreating container.
+[36m[apify.yelp-business-scraper runId:acWYJcuD3HBE3K2rh][0m -> 2026-10-23T04:09:57.242Z [33mACTOR: [39mStarting container.
+[36m[apify.yelp-business-scraper runId:acWYJcuD3HBE3K2rh][0m -> 2026-10-23T04:09:57.243Z [33mACTOR: [39mRunning under "LIMITED_PERMISSIONS".
+[36m[apify.yelp-business-scraper runId:acWYJcuD3HBE3K2rh][0m -> 2026-10-23T04:09:58.433Z Actor is running on the Apify platform, `disable_browser_sandbox` was changed to True.
+[36m[apify.yelp-business-scraper runId:acWYJcuD3HBE3K2rh][0m -> 2026-10-23T04:09:58.435Z [90m[apify][0m [32mINFO [0m Initializing Actor [90m({"apify_sdk_version": "3.4.0", "apify_client_version": "2.5.0", "crawlee_version": "1.6.3", "python_version": "3.14.8", "os": "linux", "is_running_in_ipython": false})[0m
+[36m[apify.yelp-business-scraper runId:acWYJcuD3HBE3K2rh][0m -> 2026-10-23T04:09:58.620Z [90m[apify][0m [32mINFO [0m Searching 'Honda of Downtown Los Angeles' in 'Los Angeles, CA', page 1
+[36m[apify.yelp-business-scraper runId:acWYJcuD3HBE3K2rh][0m -> 2026-10-23T04:10:03.720Z [90m[apify][0m [32mINFO [0m ⭐ If this actor saved you time, a quick rating on the Apify page helps others find it. Thanks!
+[36m[apify.yelp-business-scraper runId:acWYJcuD3HBE3K2rh][0m -> 2026-10-23T04:10:03.721Z [90m[apify][0m [32mINFO [0m Exiting Actor [90m({"exit_code": 0})[0m
+[36m[apify.yelp-business-scraper runId:acWYJcuD3HBE3K2rh][0m -> Status: SUCCEEDED, Message: 
+[36m[apify.yelp-photos-scraper runId:8WcDIjDdgyknIlsxq][0m -> Status: RUNNING, Message: 
+[36m[apify.yelp-photos-scraper runId:8WcDIjDdgyknIlsxq][0m -> 2026-10-23T04:10:11.199Z [33mACTOR: [39mPulling container image of build NrMpZxschgy3paudZ from registry.
+[36m[apify.yelp-photos-scraper runId:8WcDIjDdgyknIlsxq][0m -> 2026-10-23T04:10:12.468Z [33mACTOR: [39mCreating container.
+[36m[apify.yelp-photos-scraper runId:8WcDIjDdgyknIlsxq][0m -> 2026-10-23T04:10:12.546Z [33mACTOR: [39mStarting container.
+[36m[apify.yelp-photos-scraper runId:8WcDIjDdgyknIlsxq][0m -> 2026-10-23T04:10:12.546Z [33mACTOR: [39mRunning under "LIMITED_PERMISSIONS".
+[36m[apify.yelp-photos-scraper runId:8WcDIjDdgyknIlsxq][0m -> 2026-10-23T04:10:14.283Z Actor is running on the Apify platform, `disable_browser_sandbox` was changed to True.
+[36m[apify.yelp-photos-scraper runId:8WcDIjDdgyknIlsxq][0m -> 2026-10-23T04:10:14.284Z [90m[apify][0m [32mINFO [0m Initializing Actor [90m({"apify_sdk_version": "3.4.0", "apify_client_version": "2.5.0", "crawlee_version": "1.6.3", "python_version": "3.14.8", "os": "linux", "is_running_in_ipython": false})[0m
+[36m[apify.yelp-photos-scraper runId:8WcDIjDdgyknIlsxq][0m -> 2026-10-23T04:10:16.842Z [90m[apify][0m [32mINFO [0m Scraping media for honda-of-downtown-los-angeles-4 (Cr6Zs1qEkB5967J7sYmOOQ), page 1
+[36m[apify.yelp-photos-scraper runId:8WcDIjDdgyknIlsxq][0m -> 2026-10-23T04:10:18.797Z [90m[apify][0m [32mINFO [0m Scraping media for honda-of-downtown-los-angeles-4 (Cr6Zs1qEkB5967J7sYmOOQ), page 2
+[36m[apify.yelp-photos-scraper runId:8WcDIjDdgyknIlsxq][0m -> 2026-10-23T04:10:19.495Z [90m[apify][0m [32mINFO [0m Scraping media for honda-of-downtown-los-angeles-4 (Cr6Zs1qEkB5967J7sYmOOQ), page 3
+[36m[apify.yelp-photos-scraper runId:8WcDIjDdgyknIlsxq][0m -> 2026-10-23T04:10:25.974Z [90m[apify][0m [32mINFO [0m ⭐ If this actor saved you time, a quick rating on the Apify page helps others find it. Thanks!
+[36m[apify.yelp-photos-scraper runId:8WcDIjDdgyknIlsxq][0m -> 2026-10-23T04:10:25.974Z [90m[apify][0m [32mINFO [0m Exiting Actor [90m({"exit_code": 0})[0m
+[36m[apify.yelp-photos-scraper runId:8WcDIjDdgyknIlsxq][0m -> Status: SUCCEEDED, Message: 
+[36m[apify.yelp-business-scraper runId:BdLetN2TX9tU5gsFu][0m -> Status: RUNNING, Message: 
+[36m[apify.yelp-business-scraper runId:BdLetN2TX9tU5gsFu][0m -> 2026-10-23T04:10:38.795Z [33mACTOR: [39mPulling container image of build gTP8VYGd7koebou1p from registry.
+[36m[apify.yelp-business-scraper runId:BdLetN2TX9tU5gsFu][0m -> 2026-10-23T04:10:38.798Z [33mACTOR: [39mCreating container.
+[36m[apify.yelp-business-scraper runId:BdLetN2TX9tU5gsFu][0m -> 2026-10-23T04:10:38.891Z [33mACTOR: [39mStarting container.
+[36m[apify.yelp-business-scraper runId:BdLetN2TX9tU5gsFu][0m -> 2026-10-23T04:10:38.893Z [33mACTOR: [39mRunning under "LIMITED_PERMISSIONS".
+[36m[apify.yelp-business-scraper runId:BdLetN2TX9tU5gsFu][0m -> 2026-10-23T04:10:41.464Z Actor is running on the Apify platform, `disable_browser_sandbox` was changed to True.
+[36m[apify.yelp-business-scraper runId:BdLetN2TX9tU5gsFu][0m -> 2026-10-23T04:10:41.468Z [90m[apify][0m [32mINFO [0m Initializing Actor [90m({"apify_sdk_version": "3.4.0", "apify_client_version": "2.5.0", "crawlee_version": "1.6.3", "python_version": "3.14.8", "os": "linux", "is_running_in_ipython": false})[0m
+[36m[apify.yelp-business-scraper runId:BdLetN2TX9tU5gsFu][0m -> 2026-10-23T04:10:41.739Z [90m[apify][0m [32mINFO [0m Searching 'Michael's Subaru of Bellevue' in 'Bellevue, WA', page 1
+[36m[apify.yelp-business-scraper runId:BdLetN2TX9tU5gsFu][0m -> 2026-10-23T04:10:45.493Z [90m[apify][0m [32mINFO [0m ⭐ If this actor saved you time, a quick rating on the Apify page helps others find it. Thanks!
+[36m[apify.yelp-business-scraper runId:BdLetN2TX9tU5gsFu][0m -> 2026-10-23T04:10:45.495Z [90m[apify][0m [32mINFO [0m Exiting Actor [90m({"exit_code": 0})[0m
+[36m[apify.yelp-business-scraper runId:BdLetN2TX9tU5gsFu][0m -> Status: SUCCEEDED, Message: 
+[36m[apify.yelp-photos-scraper runId:3N8Q3TrWl2xuSbwfQ][0m -> Status: RUNNING, Message: 
+[36m[apify.yelp-photos-scraper runId:3N8Q3TrWl2xuSbwfQ][0m -> 2026-10-23T04:10:53.573Z [33mACTOR: [39mPulling container image of build NrMpZxschgy3paudZ from registry.
+[36m[apify.yelp-photos-scraper runId:3N8Q3TrWl2xuSbwfQ][0m -> 2026-10-23T04:10:53.577Z [33mACTOR: [39mCreating container.
+[36m[apify.yelp-photos-scraper runId:3N8Q3TrWl2xuSbwfQ][0m -> 2026-10-23T04:10:53.640Z [33mACTOR: [39mStarting container.
+[36m[apify.yelp-photos-scraper runId:3N8Q3TrWl2xuSbwfQ][0m -> 2026-10-23T04:10:53.640Z [33mACTOR: [39mRunning under "LIMITED_PERMISSIONS".
+[36m[apify.yelp-photos-scraper runId:3N8Q3TrWl2xuSbwfQ][0m -> 2026-10-23T04:10:54.870Z Actor is running on the Apify platform, `disable_browser_sandbox` was changed to True.
+[36m[apify.yelp-photos-scraper runId:3N8Q3TrWl2xuSbwfQ][0m -> 2026-10-23T04:10:54.873Z [90m[apify][0m [32mINFO [0m Initializing Actor [90m({"apify_sdk_version": "3.4.0", "apify_client_version": "2.5.0", "crawlee_version": "1.6.3", "python_version": "3.14.8", "os": "linux", "is_running_in_ipython": false})[0m
+[36m[apify.yelp-photos-scraper runId:3N8Q3TrWl2xuSbwfQ][0m -> 2026-10-23T04:10:56.424Z [90m[apify][0m [32mINFO [0m Scraping media for michaels-subaru-bellevue-4 (8064Pnxr6TlW3LjYZAqGhg), page 1
+[36m[apify.yelp-photos-scraper runId:3N8Q3TrWl2xuSbwfQ][0m -> 2026-10-23T04:10:56.912Z [90m[apify][0m [32mINFO [0m Scraping media for michaels-subaru-bellevue-4 (8064Pnxr6TlW3LjYZAqGhg), page 2
+[36m[apify.yelp-photos-scraper runId:3N8Q3TrWl2xuSbwfQ][0m -> 2026-10-23T04:11:00.379Z [90m[apify][0m [32mINFO [0m ⭐ If this actor saved you time, a quick rating on the Apify page helps others find it. Thanks!
+[36m[apify.yelp-photos-scraper runId:3N8Q3TrWl2xuSbwfQ][0m -> 2026-10-23T04:11:00.382Z [90m[apify][0m [32mINFO [0m Exiting Actor [90m({"exit_code": 0})[0m
+[36m[apify.yelp-photos-scraper runId:3N8Q3TrWl2xuSbwfQ][0m -> Status: SUCCEEDED, Message: 
+[36m[apify.yelp-business-scraper runId:fhw1p0NBnSyA0qL2q][0m -> Status: RUNNING, Message: 
+[36m[apify.yelp-business-scraper runId:fhw1p0NBnSyA0qL2q][0m -> 2026-10-23T04:11:29.632Z [33mACTOR: [39mPulling container image of build gTP8VYGd7koebou1p from registry.
+[36m[apify.yelp-business-scraper runId:fhw1p0NBnSyA0qL2q][0m -> 2026-10-23T04:11:29.635Z [33mACTOR: [39mCreating container.
+[36m[apify.yelp-business-scraper runId:fhw1p0NBnSyA0qL2q][0m -> 2026-10-23T04:11:29.708Z [33mACTOR: [39mStarting container.
+[36m[apify.yelp-business-scraper runId:fhw1p0NBnSyA0qL2q][0m -> 2026-10-23T04:11:29.710Z [33mACTOR: [39mRunning under "LIMITED_PERMISSIONS".
+[36m[apify.yelp-business-scraper runId:fhw1p0NBnSyA0qL2q][0m -> 2026-10-23T04:11:31.840Z Actor is running on the Apify platform, `disable_browser_sandbox` was changed to True.
+[36m[apify.yelp-business-scraper runId:fhw1p0NBnSyA0qL2q][0m -> 2026-10-23T04:11:31.842Z [90m[apify][0m [32mINFO [0m Initializing Actor [90m({"apify_sdk_version": "3.4.0", "apify_client_version": "2.5.0", "crawlee_version": "1.6.3", "python_version": "3.14.8", "os": "linux", "is_running_in_ipython": false})[0m
+[36m[apify.yelp-business-scraper runId:fhw1p0NBnSyA0qL2q][0m -> 2026-10-23T04:11:32.099Z [90m[apify][0m [32mINFO [0m Searching 'Group 1 Toyota Southwest Houston' in 'Houston, TX', page 1
+[36m[apify.yelp-business-scraper runId:fhw1p0NBnSyA0qL2q][0m -> 2026-10-23T04:11:38.232Z [90m[apify][0m [32mINFO [0m ⭐ If this actor saved you time, a quick rating on the Apify page helps others find it. Thanks!
+[36m[apify.yelp-business-scraper runId:fhw1p0NBnSyA0qL2q][0m -> 2026-10-23T04:11:38.234Z [90m[apify][0m [32mINFO [0m Exiting Actor [90m({"exit_code": 0})[0m
+[36m[apify.yelp-business-scraper runId:fhw1p0NBnSyA0qL2q][0m -> Status: SUCCEEDED, Message: 
+[36m[apify.yelp-photos-scraper runId:0gprIUEw1hybzOW0B][0m -> Status: RUNNING, Message: 
+[36m[apify.yelp-photos-scraper runId:0gprIUEw1hybzOW0B][0m -> 2026-10-23T04:11:47.334Z [33mACTOR: [39mPulling container image of build NrMpZxschgy3paudZ from registry.
+[36m[apify.yelp-photos-scraper runId:0gprIUEw1hybzOW0B][0m -> 2026-10-23T04:11:47.339Z [33mACTOR: [39mCreating container.
+[36m[apify.yelp-photos-scraper runId:0gprIUEw1hybzOW0B][0m -> 2026-10-23T04:11:47.449Z [33mACTOR: [39mStarting container.
+[36m[apify.yelp-photos-scraper runId:0gprIUEw1hybzOW0B][0m -> 2026-10-23T04:11:47.454Z [33mACTOR: [39mRunning under "LIMITED_PERMISSIONS".
+[36m[apify.yelp-photos-scraper runId:0gprIUEw1hybzOW0B][0m -> 2026-10-23T04:11:49.595Z Actor is running on the Apify platform, `disable_browser_sandbox` was changed to True.
+[36m[apify.yelp-photos-scraper runId:0gprIUEw1hybzOW0B][0m -> 2026-10-23T04:11:49.600Z [90m[apify][0m [32mINFO [0m Initializing Actor [90m({"apify_sdk_version": "3.4.0", "apify_client_version": "2.5.0", "crawlee_version": "1.6.3", "python_version": "3.14.8", "os": "linux", "is_running_in_ipython": false})[0m
+[36m[apify.yelp-photos-scraper runId:0gprIUEw1hybzOW0B][0m -> 2026-10-23T04:11:52.277Z [90m[apify][0m [32mINFO [0m Scraping media for group-1-toyota-richmond (xpyxFavax1Tutkf_vYZ-UQ), page 1
+[36m[apify.yelp-photos-scraper runId:0gprIUEw1hybzOW0B][0m -> 2026-10-23T04:11:53.823Z [90m[apify][0m [32mINFO [0m Scraping media for group-1-toyota-richmond (xpyxFavax1Tutkf_vYZ-UQ), page 2
+[36m[apify.yelp-photos-scraper runId:0gprIUEw1hybzOW0B][0m -> 2026-10-23T04:11:54.696Z [90m[apify][0m [32mINFO [0m Scraping media for group-1-toyota-richmond (xpyxFavax1Tutkf_vYZ-UQ), page 3
+[36m[apify.yelp-photos-scraper runId:0gprIUEw1hybzOW0B][0m -> 2026-10-23T04:11:59.964Z [90m[apify][0m [32mINFO [0m ⭐ If this actor saved you time, a quick rating on the Apify page helps others find it. Thanks!
+[36m[apify.yelp-photos-scraper runId:0gprIUEw1hybzOW0B][0m -> 2026-10-23T04:11:59.966Z [90m[apify][0m [32mINFO [0m Exiting Actor [90m({"exit_code": 0})[0m
+[36m[apify.yelp-photos-scraper runId:0gprIUEw1hybzOW0B][0m -> Status: SUCCEEDED, Message: 
+[36m[apify.yelp-business-scraper runId:Zn3O7d9bPpKKvaKes][0m -> Status: RUNNING, Message: 
+[36m[apify.yelp-business-scraper runId:Zn3O7d9bPpKKvaKes][0m -> 2026-10-23T04:12:25.742Z [33mACTOR: [39mPulling container image of build gTP8VYGd7koebou1p from registry.
+[36m[apify.yelp-business-scraper runId:Zn3O7d9bPpKKvaKes][0m -> 2026-10-23T04:12:25.746Z [33mACTOR: [39mCreating container.
+[36m[apify.yelp-business-scraper runId:Zn3O7d9bPpKKvaKes][0m -> 2026-10-23T04:12:25.828Z [33mACTOR: [39mStarting container.
+[36m[apify.yelp-business-scraper runId:Zn3O7d9bPpKKvaKes][0m -> 2026-10-23T04:12:25.829Z [33mACTOR: [39mRunning under "LIMITED_PERMISSIONS".
+[36m[apify.yelp-business-scraper runId:Zn3O7d9bPpKKvaKes][0m -> 2026-10-23T04:12:28.806Z Actor is running on the Apify platform, `disable_browser_sandbox` was changed to True.
+[36m[apify.yelp-business-scraper runId:Zn3O7d9bPpKKvaKes][0m -> 2026-10-23T04:12:28.811Z [90m[apify][0m [32mINFO [0m Initializing Actor [90m({"apify_sdk_version": "3.4.0", "apify_client_version": "2.5.0", "crawlee_version": "1.6.3", "python_version": "3.14.8", "os": "linux", "is_running_in_ipython": false})[0m
+[36m[apify.yelp-business-scraper runId:Zn3O7d9bPpKKvaKes][0m -> 2026-10-23T04:12:28.995Z [90m[apify][0m [32mINFO [0m Searching 'Group 1 Ford of Shreveport' in 'Shreveport, LA', page 1
+[36m[apify.yelp-business-scraper runId:Zn3O7d9bPpKKvaKes][0m -> 2026-10-23T04:12:33.584Z [90m[apify][0m [32mINFO [0m ⭐ If this actor saved you time, a quick rating on the Apify page helps others find it. Thanks!
+[36m[apify.yelp-business-scraper runId:Zn3O7d9bPpKKvaKes][0m -> 2026-10-23T04:12:33.585Z [90m[apify][0m [32mINFO [0m Exiting Actor [90m({"exit_code": 0})[0m
+[36m[apify.yelp-business-scraper runId:Zn3O7d9bPpKKvaKes][0m -> Status: SUCCEEDED, Message: 
+[36m[apify.yelp-photos-scraper runId:ldlm6C1XFeIE0AxIa][0m -> Status: RUNNING, Message: 
+[36m[apify.yelp-photos-scraper runId:ldlm6C1XFeIE0AxIa][0m -> 2026-10-23T04:12:41.765Z [33mACTOR: [39mPulling container image of build NrMpZxschgy3paudZ from registry.
+[36m[apify.yelp-photos-scraper runId:ldlm6C1XFeIE0AxIa][0m -> 2026-10-23T04:12:41.768Z [33mACTOR: [39mCreating container.
+[36m[apify.yelp-photos-scraper runId:ldlm6C1XFeIE0AxIa][0m -> 2026-10-23T04:12:41.963Z [33mACTOR: [39mStarting container.
+[36m[apify.yelp-photos-scraper runId:ldlm6C1XFeIE0AxIa][0m -> 2026-10-23T04:12:41.972Z [33mACTOR: [39mRunning under "LIMITED_PERMISSIONS".
+[36m[apify.yelp-photos-scraper runId:ldlm6C1XFeIE0AxIa][0m -> 2026-10-23T04:12:45.542Z Actor is running on the Apify platform, `disable_browser_sandbox` was changed to True.
+[36m[apify.yelp-photos-scraper runId:ldlm6C1XFeIE0AxIa][0m -> 2026-10-23T04:12:45.544Z [90m[apify][0m [32mINFO [0m Initializing Actor [90m({"apify_sdk_version": "3.4.0", "apify_client_version": "2.5.0", "crawlee_version": "1.6.3", "python_version": "3.14.8", "os": "linux", "is_running_in_ipython": false})[0m
+[36m[apify.yelp-photos-scraper runId:ldlm6C1XFeIE0AxIa][0m -> 2026-10-23T04:12:46.761Z [90m[apify][0m [32mINFO [0m Scraping media for group-1-ford-of-shreveport-shreveport (qHbtdT8ASb5UvjJdPcD71w), page 1
+[36m[apify.yelp-photos-scraper runId:ldlm6C1XFeIE0AxIa][0m -> 2026-10-23T04:12:48.444Z [90m[apify][0m [32mINFO [0m ⭐ If this actor saved you time, a quick rating on the Apify page helps others find it. Thanks!
+[36m[apify.yelp-photos-scraper runId:ldlm6C1XFeIE0AxIa][0m -> 2026-10-23T04:12:48.445Z [90m[apify][0m [32mINFO [0m Exiting Actor [90m({"exit_code": 0})[0m
+[36m[apify.yelp-photos-scraper runId:ldlm6C1XFeIE0AxIa][0m -> Status: SUCCEEDED, Message: 
+[36m[apify.yelp-business-scraper runId:Nk2E5X6OnM76LihBE][0m -> Status: RUNNING, Message: 
+[36m[apify.yelp-business-scraper runId:Nk2E5X6OnM76LihBE][0m -> 2026-10-23T04:12:56.385Z [33mACTOR: [39mPulling container image of build gTP8VYGd7koebou1p from registry.
+[36m[apify.yelp-business-scraper runId:Nk2E5X6OnM76LihBE][0m -> 2026-10-23T04:12:56.387Z [33mACTOR: [39mCreating container.
+[36m[apify.yelp-business-scraper runId:Nk2E5X6OnM76LihBE][0m -> 2026-10-23T04:12:56.452Z [33mACTOR: [39mStarting container.
+[36m[apify.yelp-business-scraper runId:Nk2E5X6OnM76LihBE][0m -> 2026-10-23T04:12:56.455Z [33mACTOR: [39mRunning under "LIMITED_PERMISSIONS".
+[36m[apify.yelp-business-scraper runId:Nk2E5X6OnM76LihBE][0m -> 2026-10-23T04:12:57.981Z Actor is running on the Apify platform, `disable_browser_sandbox` was changed to True.
+[36m[apify.yelp-business-scraper runId:Nk2E5X6OnM76LihBE][0m -> 2026-10-23T04:12:57.983Z [90m[apify][0m [32mINFO [0m Initializing Actor [90m({"apify_sdk_version": "3.4.0", "apify_client_version": "2.5.0", "crawlee_version": "1.6.3", "python_version": "3.14.8", "os": "linux", "is_running_in_ipython": false})[0m
+[36m[apify.yelp-business-scraper runId:Nk2E5X6OnM76LihBE][0m -> 2026-10-23T04:12:58.237Z [90m[apify][0m [32mINFO [0m Searching 'McGavock Nissan Lubbock' in 'Lubbock, TX', page 1
+[36m[apify.yelp-business-scraper runId:Nk2E5X6OnM76LihBE][0m -> 2026-10-23T04:13:02.873Z [90m[apify][0m [32mINFO [0m ⭐ If this actor saved you time, a quick rating on the Apify page helps others find it. Thanks!
+[36m[apify.yelp-business-scraper runId:Nk2E5X6OnM76LihBE][0m -> 2026-10-23T04:13:02.875Z [90m[apify][0m [32mINFO [0m Exiting Actor [90m({"exit_code": 0})[0m
+[36m[apify.yelp-business-scraper runId:Nk2E5X6OnM76LihBE][0m -> Status: SUCCEEDED, Message: 
+[36m[apify.yelp-photos-scraper runId:mfkUP00aQDuA88iXN][0m -> Status: RUNNING, Message: 
+[36m[apify.yelp-photos-scraper runId:mfkUP00aQDuA88iXN][0m -> 2026-10-23T04:13:12.484Z [33mACTOR: [39mPulling container image of build NrMpZxschgy3paudZ from registry.
+[36m[apify.yelp-photos-scraper runId:mfkUP00aQDuA88iXN][0m -> 2026-10-23T04:13:12.486Z [33mACTOR: [39mCreating container.
+[36m[apify.yelp-photos-scraper runId:mfkUP00aQDuA88iXN][0m -> 2026-10-23T04:13:12.547Z [33mACTOR: [39mStarting container.
+[36m[apify.yelp-photos-scraper runId:mfkUP00aQDuA88iXN][0m -> 2026-10-23T04:13:12.550Z [33mACTOR: [39mRunning under "LIMITED_PERMISSIONS".
+[36m[apify.yelp-photos-scraper runId:mfkUP00aQDuA88iXN][0m -> 2026-10-23T04:13:15.087Z Actor is running on the Apify platform, `disable_browser_sandbox` was changed to True.
+[36m[apify.yelp-photos-scraper runId:mfkUP00aQDuA88iXN][0m -> 2026-10-23T04:13:15.088Z [90m[apify][0m [32mINFO [0m Initializing Actor [90m({"apify_sdk_version": "3.4.0", "apify_client_version": "2.5.0", "crawlee_version": "1.6.3", "python_version": "3.14.8", "os": "linux", "is_running_in_ipython": false})[0m
+[36m[apify.yelp-photos-scraper runId:mfkUP00aQDuA88iXN][0m -> 2026-10-23T04:13:17.818Z [90m[apify][0m [32mINFO [0m Scraping media for mcgavock-nissan-lubbock-lubbock (nj-gu3x1cp9wU9f4-jbc3A), page 1
+[36m[apify.yelp-photos-scraper runId:mfkUP00aQDuA88iXN][0m -> 2026-10-23T04:13:20.717Z [90m[apify][0m [32mINFO [0m ⭐ If this actor saved you time, a quick rating on the Apify page helps others find it. Thanks!
+[36m[apify.yelp-photos-scraper runId:mfkUP00aQDuA88iXN][0m -> 2026-10-23T04:13:20.718Z [90m[apify][0m [32mINFO [0m Exiting Actor [90m({"exit_code": 0})[0m
+[36m[apify.yelp-photos-scraper runId:mfkUP00aQDuA88iXN][0m -> Status: SUCCEEDED, Message: 
+======================================================================
+AUTO DEALERSHIP PILOT: Yelp Photos Channel
+EXPLORATORY PUBLIC-GROUP SAMPLE (No confirmed MPLC customer)
+======================================================================
+
+Dealerships: 11 verified (5 AutoNation, 3 Lithia, 3 Group 1)
+Geographic spread: TX, CA, FL, CO, AZ, OR, WA, LA
+----------------------------------------------------------------------
+
+AutoNation USA Houston - Houston, TX
+  Group: AutoNation
+----------------------------------------------------------------------
+  Searching Yelp for location...
+  ✓ Found: Auto Nation USA
+    2⭐ (124 reviews)
+  Scraping ALL photos...
+  ✓ Found 35 total photos
+  Facility-captioned photos: 3
+  Sample captions:
+    - "TVs in the waiting area"
+    - "Business development or receptionist?"
+    - "Sleek couches in the waiting area"
+    Photo 1: YOLO detected tv (0.66)
+      → PROSPECT (high)
+  Final tier: PROSPECT
+  Cost: $0.0773
+
+AutoNation Toyota Hayward - Hayward, CA
+  Group: AutoNation
+----------------------------------------------------------------------
+  Searching Yelp for location...
+  ✓ Found: AutoNation Toyota Hayward
+    2.5⭐ (240 reviews)
+  Scraping ALL photos...
+  ✓ Found 49 total photos
+  Facility-captioned photos: 0
+
+AutoNation Ford Sanford - Sanford, FL
+  Group: AutoNation
+----------------------------------------------------------------------
+  Searching Yelp for location...
+  ✓ Found: AutoNation Ford Sanford
+    3⭐ (228 reviews)
+  Scraping ALL photos...
+  ✓ Found 39 total photos
+  Facility-captioned photos: 0
+
+AutoNation Chevrolet North - Denver, CO
+  Group: AutoNation
+----------------------------------------------------------------------
+  Searching Yelp for location...
+  ✓ Found: Autonation Chevrolet North
+    2⭐ (332 reviews)
+  Scraping ALL photos...
+  ✓ Found 56 total photos
+  Facility-captioned photos: 0
+
+AutoNation Nissan Chandler - Chandler, AZ
+  Group: AutoNation
+----------------------------------------------------------------------
+  Searching Yelp for location...
+  ✓ Found: AutoNation Nissan Chandler
+    3⭐ (394 reviews)
+  Scraping ALL photos...
+  ✓ Found 42 total photos
+  Facility-captioned photos: 0
+
+Lithia Toyota of Medford - Medford, OR
+  Group: Lithia Motors
+----------------------------------------------------------------------
+  Searching Yelp for location...
+  ✓ Found: Lithia Toyota of Medford
+    3⭐ (213 reviews)
+  Scraping ALL photos...
+  ✓ Found 48 total photos
+  Facility-captioned photos: 1
+  Sample captions:
+    - "Toyota's highest honor the President's Award has been won by our dealership 17 years in a row!"
+  Final tier: REJECTED
+  Cost: $0.0985
+
+Honda of Downtown Los Angeles - Los Angeles, CA
+  Group: Lithia Motors
+----------------------------------------------------------------------
+  Searching Yelp for location...
+  ✓ Found: Honda of Downtown
+    3⭐ (1897 reviews)
+  Scraping ALL photos...
+  ✓ Found 97 total photos
+  Facility-captioned photos: 1
+  Sample captions:
+    - "Top-down view of their showroom floor. Beautiful new Honda Prelude (grey) and Honda Civic Type R (blue) on display."
+  Final tier: REJECTED
+  Cost: $0.1965
+
+Michael's Subaru of Bellevue - Bellevue, WA
+  Group: Lithia Motors
+----------------------------------------------------------------------
+  Searching Yelp for location...
+  ✓ Found: Michael's Subaru of Bellevue
+    4⭐ (403 reviews)
+  Scraping ALL photos...
+  ✓ Found 55 total photos
+  Facility-captioned photos: 4
+  Sample captions:
+    - "BEST service department in the state! Yep, I said state."
+    - "Service waiting area."
+    - "Service Dept Waiting Area"
+    Photo 1: YOLO detected tv (0.28)
+      → REJECTED (high)
+    Photo 2: YOLO detected tv (0.85)
+      → PROSPECT (high)
+    Photo 3: YOLO detected tv (0.84)
+      → PROSPECT (high)
+  Final tier: PROSPECT
+  Cost: $0.1265
+
+Group 1 Toyota Southwest Houston - Houston, TX
+  Group: Group 1 Automotive
+----------------------------------------------------------------------
+  Searching Yelp for location...
+  ✓ Found: Group 1 Toyota
+    2.5⭐ (333 reviews)
+  Scraping ALL photos...
+  ✓ Found 97 total photos
+  Facility-captioned photos: 5
+  Sample captions:
+    - "Waiting area at Fort Bend Toyota"
+    - "Service area of Fort Bend Toyota"
+    - "Waiting area of Fort Bend Toyota"
+    Photo 1: YOLO detected tv (0.87)
+      → REJECTED (high)
+    Photo 3: YOLO detected tv (0.78)
+      → PROSPECT (high)
+    Photo 4: YOLO detected tv (0.84)
+      → PROSPECT (high)
+    Photo 5: YOLO detected tv (0.80)
+      → PROSPECT (high)
+  Final tier: PROSPECT
+  Cost: $0.2126
+
+Group 1 Ford of Shreveport - Shreveport, LA
+  Group: Group 1 Automotive
+----------------------------------------------------------------------
+  Searching Yelp for location...
+  ✓ Found: Group 1 Ford of Shreveport
+    2⭐ (80 reviews)
+  Scraping ALL photos...
+  ✓ Found 25 total photos
+  Facility-captioned photos: 0
+
+McGavock Nissan Lubbock - Lubbock, TX
+  Group: Group 1 Automotive
+----------------------------------------------------------------------
+  Searching Yelp for location...
+  ✓ Found: McGavock Nissan Lubbock
+    3.5⭐ (93 reviews)
+  Scraping ALL photos...
+  ✓ Found 20 total photos
+  Facility-captioned photos: 1
+  Sample captions:
+    - "Come see our beautiful Dealership"
+  Final tier: REJECTED
+  Cost: $0.0425
+
+======================================================================
+PER-LOCATION RESULTS: Yelp Photos Channel
+======================================================================
+
+AutoNation USA Houston (AutoNation)
+  Location: Houston, TX
+  Tier: PROSPECT
+  Photos: 35 total, 3 facility
+  YOLO hits: 1
+  VLM calls: 1
+  Cost: $0.0773
+
+AutoNation Toyota Hayward (AutoNation)
+  Location: Hayward, CA
+  Tier: REJECTED
+  Photos: 49 total, 0 facility
+  YOLO hits: 0
+  VLM calls: 0
+  Cost: $0.1005
+
+AutoNation Ford Sanford (AutoNation)
+  Location: Sanford, FL
+  Tier: REJECTED
+  Photos: 39 total, 0 facility
+  YOLO hits: 0
+  VLM calls: 0
+  Cost: $0.0805
+
+AutoNation Chevrolet North (AutoNation)
+  Location: Denver, CO
+  Tier: REJECTED
+  Photos: 56 total, 0 facility
+  YOLO hits: 0
+  VLM calls: 0
+  Cost: $0.1145
+
+AutoNation Nissan Chandler (AutoNation)
+  Location: Chandler, AZ
+  Tier: REJECTED
+  Photos: 42 total, 0 facility
+  YOLO hits: 0
+  VLM calls: 0
+  Cost: $0.0865
+
+Lithia Toyota of Medford (Lithia Motors)
+  Location: Medford, OR
+  Tier: REJECTED
+  Photos: 48 total, 1 facility
+  YOLO hits: 0
+  VLM calls: 0
+  Cost: $0.0985
+
+Honda of Downtown Los Angeles (Lithia Motors)
+  Location: Los Angeles, CA
+  Tier: REJECTED
+  Photos: 97 total, 1 facility
+  YOLO hits: 0
+  VLM calls: 0
+  Cost: $0.1965
+
+Michael's Subaru of Bellevue (Lithia Motors)
+  Location: Bellevue, WA
+  Tier: PROSPECT
+  Photos: 55 total, 4 facility
+  YOLO hits: 3
+  VLM calls: 3
+  Cost: $0.1265
+
+Group 1 Toyota Southwest Houston (Group 1 Automotive)
+  Location: Houston, TX
+  Tier: PROSPECT
+  Photos: 97 total, 5 facility
+  YOLO hits: 4
+  VLM calls: 4
+  Cost: $0.2126
+
+Group 1 Ford of Shreveport (Group 1 Automotive)
+  Location: Shreveport, LA
+  Tier: REJECTED
+  Photos: 25 total, 0 facility
+  YOLO hits: 0
+  VLM calls: 0
+  Cost: $0.0525
+
+McGavock Nissan Lubbock (Group 1 Automotive)
+  Location: Lubbock, TX
+  Tier: REJECTED
+  Photos: 20 total, 1 facility
+  YOLO hits: 0
+  VLM calls: 0
+  Cost: $0.0425
+
+======================================================================
+SUMMARY BY DEALERSHIP GROUP
+======================================================================
+
+AutoNation (5 locations):
+  PROSPECT: 1/5
+  SUSPECT: 0/5
+  REJECTED: 4/5
+  Avg photos: 44.2 total, 0.6 facility
+
+Lithia Motors (3 locations):
+  PROSPECT: 1/3
+  SUSPECT: 0/3
+  REJECTED: 2/3
+  Avg photos: 66.7 total, 2.0 facility
+
+Group 1 Automotive (3 locations):
+  PROSPECT: 1/3
+  SUSPECT: 0/3
+  REJECTED: 2/3
+  Avg photos: 47.3 total, 2.0 facility
+
+======================================================================
+OVERALL RESULTS: Yelp Photos Channel
+======================================================================
+
+Locations tested: 11
+  AutoNation: 5
+  Lithia Motors: 3
+  Group 1 Automotive: 3
+
+Coverage:
+  PROSPECT: 3/11 (27.3%)
+  SUSPECT: 0/11 (0.0%)
+  REJECTED: 8/11 (72.7%)
+
+Photos analyzed:
+  Total photos: 563
+  Facility-captioned: 15 (2.7%)
+  YOLO TV detections: 8
+
+======================================================================
+COST BREAKDOWN
+======================================================================
+  Business search: $0.0275
+  Photo scraping: $1.1260
+  VLM classification: $0.0348
+  TOTAL: $1.1883
+
+  Cost per location: $0.1080
+
+Time: 7.0 minutes
+
+Evidence file: auto_dealership_evidence/auto_dealership_yelp_evidence.json
+
+======================================================================
+IMPORTANT: EXPLORATORY SAMPLE CAVEAT
+======================================================================
+This is an EXPLORATORY test of public dealership groups.
+NO confirmed MPLC dealership customer validation.
+Results should NOT be treated with same confidence as:
+  - PDS-anchored dental test (confirmed customer)
+  - Real customer corporate numbers
+Further validation needed with actual MPLC dealership customers.

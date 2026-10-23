@@ -1,0 +1,79 @@
+[
+  {
+    "company": "TJX Companies",
+    "website": "www.tjx.com",
+    "website_amenities": {
+      "cafeteria": 5,
+      "breakroom": 1,
+      "gym": 5,
+      "lobby": 3,
+      "game room": 1,
+      "common area": 5
+    },
+    "glassdoor_amenities": {
+      "cafeteria": 3,
+      "gym": 1
+    },
+    "total_amenity_mentions": 6,
+    "coverage": true
+  },
+  {
+    "company": "Tractor Supply",
+    "website": "www.tractorsupply.com",
+    "website_amenities": {
+      "cafeteria": 5,
+      "breakroom": 5,
+      "break room": 5,
+      "gym": 5,
+      "fitness center": 1,
+      "fitness room": 1,
+      "lobby": 5,
+      "recreation room": 5,
+      "game room": 5,
+      "entertainment area": 5,
+      "common area": 5
+    },
+    "glassdoor_amenities": {
+      "breakroom": 1,
+      "lobby": 3
+    },
+    "total_amenity_mentions": 11,
+    "coverage": true
+  },
+  {
+    "company": "Costco Wholesale",
+    "website": "www.costco.com",
+    "website_amenities": {
+      "cafeteria": 5,
+      "breakroom": 5,
+      "break room": 5,
+      "gym": 5,
+      "fitness center": 5,
+      "fitness room": 5,
+      "lobby": 5,
+      "recreation room": 5,
+      "game room": 5,
+      "entertainment area": 5,
+      "common area": 5
+    },
+    "glassdoor_amenities": {},
+    "total_amenity_mentions": 11,
+    "coverage": true
+  },
+  {
+    "company": "Nutanix",
+    "website": "www.nutanix.com",
+    "website_amenities": {
+      "cafeteria": 1,
+      "gym": 1,
+      "lobby": 4,
+      "game room": 1,
+      "common area": 5
+    },
+    "glassdoor_amenities": {
+      "gym": 1
+    },
+    "total_amenity_mentions": 5,
+    "coverage": true
+  }
+]

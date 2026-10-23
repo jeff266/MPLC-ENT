@@ -1,0 +1,143 @@
+[
+  {
+    "company": "Marathon Petroleum",
+    "final_tier": "REJECTED",
+    "evidence_count": 1,
+    "classifications": [
+      {
+        "full_response": "TIER: REJECTED\nSPACE_TYPE: lobby\nTV_STATUS: not_visible\nPHOTO_TYPE: real_facility\nREASONING: No TV or monitor is visible in this hotel or corporate lobby space featuring yellow seating chairs and a reception area.",
+        "tier": "REJECTED",
+        "space_type": "lobby",
+        "tv_status": "not_visible",
+        "photo_type": "real_facility",
+        "reasoning": "No TV or monitor is visible in this hotel or corporate lobby space featuring yellow seating chairs and a reception area.",
+        "cost": 0.003,
+        "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQB5dJrLo4ya7go1MapweX5gRRZ-TA_xXvao6RPG0eyIA&s=10",
+        "image_title": "Marathon Oil Tower makeover wraps up ahead of namesake's exit"
+      }
+    ]
+  },
+  {
+    "company": "TJX Companies",
+    "final_tier": "SUSPECT",
+    "evidence_count": 2,
+    "classifications": [
+      {
+        "full_response": "TIER: SUSPECT\nSPACE_TYPE: cafeteria\nTV_STATUS: on_but_unclear\nPHOTO_TYPE: real_facility\nREASONING: While there appears to be a dark screen/monitor mounted on the wall in the upper left area near the windows, it's not clearly displaying visible content and could be powered off, and though this appears to be an employee cafeteria space in a real facility, the TV status cannot be confirmed as actively displaying content.",
+        "tier": "SUSPECT",
+        "space_type": "cafeteria",
+        "tv_status": "on_but_unclear",
+        "photo_type": "real_facility",
+        "reasoning": "While there appears to be a dark screen/monitor mounted on the wall in the upper left area near the windows, it's not clearly displaying visible content and could be powered off, and though this appears to be an employee cafeteria space in a real facility, the TV status cannot be confirmed as actively displaying content.",
+        "cost": 0.0037,
+        "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcThVUIpIUVL9KqbKpOp0pq5I-4SOvX5HXKDYxYIxKkbPw&s=10",
+        "image_title": "TJX Offices - Mississauga | Office Snapshots"
+      },
+      {
+        "full_response": "TIER: SUSPECT\nSPACE_TYPE: lobby\nTV_STATUS: on_with_content\nPHOTO_TYPE: real_facility\nREASONING: While the TV is clearly powered on and displaying content, this appears to be a corporate lobby/reception area with a two-story atrium rather than an employee-only amenity space, as evidenced by the reception desk, formal seating arrangement, and prominent company branding.",
+        "tier": "SUSPECT",
+        "space_type": "lobby",
+        "tv_status": "on_with_content",
+        "photo_type": "real_facility",
+        "reasoning": "While the TV is clearly powered on and displaying content, this appears to be a corporate lobby/reception area with a two-story atrium rather than an employee-only amenity space, as evidenced by the reception desk, formal seating arrangement, and prominent company branding.",
+        "cost": 0.0031,
+        "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSvF6S-V4VutG0IbphCBUMXtykUSfx29sPEdFZofN9Dug&s=10",
+        "image_title": "Careers at TJX Companies | Locations CA"
+      }
+    ]
+  },
+  {
+    "company": "PNC Financial Services",
+    "final_tier": "PROSPECT",
+    "evidence_count": 2,
+    "classifications": [
+      {
+        "full_response": "TIER: PROSPECT\nSPACE_TYPE: cafeteria\nTV_STATUS: on_with_content\nPHOTO_TYPE: real_facility\nREASONING: Two monitors are clearly powered on displaying content (one showing a person on what appears to be a sports field, another showing a building exterior) in what is clearly an employee cafeteria or breakroom with casual seating and tables, and the image shows a real facility with authentic workplace characteristics.",
+        "tier": "PROSPECT",
+        "space_type": "cafeteria",
+        "tv_status": "on_with_content",
+        "photo_type": "real_facility",
+        "reasoning": "Two monitors are clearly powered on displaying content (one showing a person on what appears to be a sports field, another showing a building exterior) in what is clearly an employee cafeteria or breakroom with casual seating and tables, and the image shows a real facility with authentic workplace characteristics.",
+        "cost": 0.0032,
+        "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTeU0Y9A4dG2bhvbwZMXwbqFg3v2EquNgvZeoteJZJJ5w&s=10",
+        "image_title": "PNC 15th Floor Caf\u00e9 | DLA+ Architecture & Interior Design"
+      },
+      {
+        "full_response": "TIER: SUSPECT\nSPACE_TYPE: cafeteria\nTV_STATUS: on_with_content\nPHOTO_TYPE: stock_catalog\nREASONING: While a TV displaying content is visible on the wall in what appears to be an employee cafeteria/dining space, the image has the polished, professionally staged appearance characteristic of stock or marketing photography rather than a real facility photo.",
+        "tier": "SUSPECT",
+        "space_type": "cafeteria",
+        "tv_status": "on_with_content",
+        "photo_type": "stock_catalog",
+        "reasoning": "While a TV displaying content is visible on the wall in what appears to be an employee cafeteria/dining space, the image has the polished, professionally staged appearance characteristic of stock or marketing photography rather than a real facility photo.",
+        "cost": 0.003,
+        "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRPtJdqlS2kt0GfCIJKm3l_ZRINYlnjKovttNXsJK_78w&s=10",
+        "image_title": "Two PNC Plaza Various Phases | Mascaro"
+      }
+    ]
+  },
+  {
+    "company": "Eaton",
+    "final_tier": "PROSPECT",
+    "evidence_count": 2,
+    "classifications": [
+      {
+        "full_response": "TIER: SUSPECT\nSPACE_TYPE: cafeteria\nTV_STATUS: not_visible\nPHOTO_TYPE: real_facility\nREASONING: This appears to be a real employee cafeteria with food service counter and dining areas, but no TV or monitor is visible in the image, though the modern amenity space setup suggests one could be present elsewhere in the facility.",
+        "tier": "SUSPECT",
+        "space_type": "cafeteria",
+        "tv_status": "not_visible",
+        "photo_type": "real_facility",
+        "reasoning": "This appears to be a real employee cafeteria with food service counter and dining areas, but no TV or monitor is visible in the image, though the modern amenity space setup suggests one could be present elsewhere in the facility.",
+        "cost": 0.0029,
+        "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSWBRVw6covUH-mqTfWCPs_4VKgV21Skj6l5lCV6nFmng&s=10",
+        "image_title": "K-12 cafeteria interactive"
+      },
+      {
+        "full_response": "TIER: PROSPECT\nSPACE_TYPE: cafeteria\nTV_STATUS: on_with_content\nPHOTO_TYPE: real_facility\nREASONING: The image shows a cafeteria with multiple people dining, a TV mounted on the wall that appears to be powered on with visible content, decorative ceiling elements, and the authentic layout and activity consistent with a real employee dining facility rather than stock photography.",
+        "tier": "PROSPECT",
+        "space_type": "cafeteria",
+        "tv_status": "on_with_content",
+        "photo_type": "real_facility",
+        "reasoning": "The image shows a cafeteria with multiple people dining, a TV mounted on the wall that appears to be powered on with visible content, decorative ceiling elements, and the authentic layout and activity consistent with a real employee dining facility rather than stock photography.",
+        "cost": 0.003,
+        "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTwjSotRWkqrEK30Skolu1TJqlIJXp9KH-pzKKpcfXeow&s=10",
+        "image_title": "Eaton provides restaurant with recipe for uptime"
+      }
+    ]
+  },
+  {
+    "company": "Costco Wholesale",
+    "final_tier": "PROSPECT",
+    "evidence_count": 1,
+    "classifications": [
+      {
+        "full_response": "TIER: PROSPECT\nSPACE_TYPE: cafeteria\nTV_STATUS: on_with_content\nPHOTO_TYPE: real_facility\nREASONING: The image shows a powered-on TV displaying visible content mounted on the wall in what appears to be an employee cafeteria/breakroom with dining tables, stools, and industrial warehouse-style ceiling, consistent with a real facility photo.",
+        "tier": "PROSPECT",
+        "space_type": "cafeteria",
+        "tv_status": "on_with_content",
+        "photo_type": "real_facility",
+        "reasoning": "The image shows a powered-on TV displaying visible content mounted on the wall in what appears to be an employee cafeteria/breakroom with dining tables, stools, and industrial warehouse-style ceiling, consistent with a real facility photo.",
+        "cost": 0.0034,
+        "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRWnlyYitFlzj-gka24kRlTVYWezXysawkFPU11EdVidQ&s=10",
+        "image_title": "The breakeoom is finally done #costco #breakroom #retaillife #makeover  #remodel #bethepersonyouwanttoworkwith"
+      }
+    ]
+  },
+  {
+    "company": "Nutanix",
+    "final_tier": "SUSPECT",
+    "evidence_count": 1,
+    "classifications": [
+      {
+        "full_response": "TIER: SUSPECT\nSPACE_TYPE: cafeteria\nTV_STATUS: off_or_blank\nPHOTO_TYPE: real_facility\nREASONING: A TV/monitor is mounted on the wall in what appears to be an employee cafeteria with casual seating, but the screen appears to be blank or off with no visible content displayed.",
+        "tier": "SUSPECT",
+        "space_type": "cafeteria",
+        "tv_status": "off_or_blank",
+        "photo_type": "real_facility",
+        "reasoning": "A TV/monitor is mounted on the wall in what appears to be an employee cafeteria with casual seating, but the screen appears to be blank or off with no visible content displayed.",
+        "cost": 0.0033,
+        "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRCAB1zhHJbNAVgAriwZTqOB2tlVGkI3Hg247qaW10pdw&s=10",
+        "image_title": "Nutanix \u2013 Durham HQ \u2013 Alliance Architecture"
+      }
+    ]
+  }
+]
