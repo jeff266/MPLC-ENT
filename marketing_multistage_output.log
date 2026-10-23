@@ -1,0 +1,313 @@
+======================================================================
+AUTO DEALERSHIP PILOT: Marketing/Press Channel
+Image search for facility photos + news coverage
+======================================================================
+
+AutoNation USA Houston - Houston, TX
+  Group: AutoNation
+----------------------------------------------------------------------
+  Searching for showroom images...
+  Searching for service lounge images...
+  Searching for grand opening coverage...
+  ✓ Found 30 images across all searches
+    Image 1 (showroom): YOLO tv (0.60)
+      → PROSPECT (high)
+    Image 3 (showroom): YOLO tv (0.60)
+      → PROSPECT (high)
+    Image 5 (showroom): YOLO tv (0.77)
+      → PROSPECT (high)
+    Image 8 (showroom): YOLO tv (0.56)
+      → PROSPECT (high)
+    Image 11 (service_lounge): YOLO tv (0.60)
+      → PROSPECT (high)
+    Image 13 (service_lounge): YOLO tv (0.60)
+      → PROSPECT (high)
+    Image 14 (service_lounge): YOLO tv (0.77)
+      → PROSPECT (high)
+  Final tier: PROSPECT
+  Cost: $0.1009
+
+AutoNation Toyota Hayward - Hayward, CA
+  Group: AutoNation
+----------------------------------------------------------------------
+  Searching for showroom images...
+  Searching for service lounge images...
+  Searching for grand opening coverage...
+  ✓ Found 30 images across all searches
+    Image 1 (showroom): YOLO tv (0.23)
+      → REJECTED (high)
+WARNING ⚠️ Image Read Error /Users/jeffignacio/mplc_pop_engine/auto_dealership_marketing_photos/AutoNation_Toyota_Hayward/image_003.jpg
+    Image 6 (showroom): YOLO tv (0.57)
+      → PROSPECT (high)
+    Image 11 (service_lounge): YOLO tv (0.66)
+      → PROSPECT (high)
+    Image 13 (service_lounge): YOLO tv (0.66)
+      → PROSPECT (high)
+    Image 14 (service_lounge): YOLO tv (0.23)
+      → REJECTED (high)
+  Final tier: PROSPECT
+  Cost: $0.0603
+
+AutoNation Ford Sanford - Sanford, FL
+  Group: AutoNation
+----------------------------------------------------------------------
+  Searching for showroom images...
+  Searching for service lounge images...
+  Searching for grand opening coverage...
+  ✓ Found 30 images across all searches
+    Image 1 (showroom): YOLO tv (0.38)
+      → REJECTED (high)
+    Image 4 (showroom): YOLO tv (0.80)
+      → PROSPECT (high)
+    Image 11 (service_lounge): YOLO tv (0.80)
+      → PROSPECT (high)
+    Image 12 (service_lounge): YOLO tv (0.38)
+      → REJECTED (high)
+  Final tier: PROSPECT
+  Cost: $0.0635
+
+AutoNation Chevrolet North - Denver, CO
+  Group: AutoNation
+----------------------------------------------------------------------
+  Searching for showroom images...
+  Searching for service lounge images...
+  Searching for grand opening coverage...
+  ✓ Found 30 images across all searches
+    Image 5 (showroom): YOLO tv (0.56)
+      → PROSPECT (high)
+    Image 11 (service_lounge): YOLO tv (0.56)
+      → PROSPECT (high)
+    Image 14 (service_lounge): YOLO tv (0.90)
+      → SUSPECT (medium)
+  Final tier: PROSPECT
+  Cost: $0.0499
+
+AutoNation Nissan Chandler - Chandler, AZ
+  Group: AutoNation
+----------------------------------------------------------------------
+  Searching for showroom images...
+  Searching for service lounge images...
+  Searching for grand opening coverage...
+  ✓ Found 30 images across all searches
+    Image 2 (showroom): YOLO tv (0.80)
+      → SUSPECT (high)
+    Image 3 (showroom): YOLO tv (0.28)
+      → REJECTED (high)
+    Image 5 (showroom): YOLO tv (0.50)
+      → REJECTED (high)
+  Final tier: SUSPECT
+  Cost: $0.0474
+
+Lithia Toyota of Medford - Medford, OR
+  Group: Lithia Motors
+----------------------------------------------------------------------
+  Searching for showroom images...
+  Searching for service lounge images...
+  Searching for grand opening coverage...
+  ✓ Found 30 images across all searches
+WARNING ⚠️ Image Read Error /Users/jeffignacio/mplc_pop_engine/auto_dealership_marketing_photos/Lithia_Toyota_of_Medford/image_000.jpg
+WARNING ⚠️ Image Read Error /Users/jeffignacio/mplc_pop_engine/auto_dealership_marketing_photos/Lithia_Toyota_of_Medford/image_010.jpg
+WARNING ⚠️ Image Read Error /Users/jeffignacio/mplc_pop_engine/auto_dealership_marketing_photos/Lithia_Toyota_of_Medford/image_011.jpg
+WARNING ⚠️ Image Read Error /Users/jeffignacio/mplc_pop_engine/auto_dealership_marketing_photos/Lithia_Toyota_of_Medford/image_012.jpg
+  Final tier: REJECTED
+  Cost: $0.0150
+
+Honda of Downtown Los Angeles - Los Angeles, CA
+  Group: Lithia Motors
+----------------------------------------------------------------------
+  Searching for showroom images...
+  Searching for service lounge images...
+  Searching for grand opening coverage...
+  ✓ Found 30 images across all searches
+    Image 2 (showroom): YOLO tv (0.70)
+      → REJECTED (high)
+WARNING ⚠️ Image Read Error /Users/jeffignacio/mplc_pop_engine/auto_dealership_marketing_photos/Honda_of_Downtown_Los_Angeles/image_005.jpg
+WARNING ⚠️ Image Read Error /Users/jeffignacio/mplc_pop_engine/auto_dealership_marketing_photos/Honda_of_Downtown_Los_Angeles/image_011.jpg
+WARNING ⚠️ Image Read Error /Users/jeffignacio/mplc_pop_engine/auto_dealership_marketing_photos/Honda_of_Downtown_Los_Angeles/image_013.jpg
+  Final tier: REJECTED
+  Cost: $0.0269
+
+Michael's Subaru of Bellevue - Bellevue, WA
+  Group: Lithia Motors
+----------------------------------------------------------------------
+  Searching for showroom images...
+  Searching for service lounge images...
+  Searching for grand opening coverage...
+  ✓ Found 30 images across all searches
+    Image 2 (showroom): YOLO tv (0.50)
+      → REJECTED (high)
+WARNING ⚠️ Image Read Error /Users/jeffignacio/mplc_pop_engine/auto_dealership_marketing_photos/Michael's_Subaru_of_Bellevue/image_003.jpg
+WARNING ⚠️ Image Read Error /Users/jeffignacio/mplc_pop_engine/auto_dealership_marketing_photos/Michael's_Subaru_of_Bellevue/image_004.jpg
+    Image 14 (service_lounge): YOLO tv (0.44)
+      → REJECTED (high)
+  Final tier: REJECTED
+  Cost: $0.0245
+
+Group 1 Toyota Southwest Houston - Houston, TX
+  Group: Group 1 Automotive
+----------------------------------------------------------------------
+  Searching for showroom images...
+  Searching for service lounge images...
+  Searching for grand opening coverage...
+  ✓ Found 30 images across all searches
+WARNING ⚠️ Image Read Error /Users/jeffignacio/mplc_pop_engine/auto_dealership_marketing_photos/Group_1_Toyota_Southwest_Houston/image_002.jpg
+WARNING ⚠️ Image Read Error /Users/jeffignacio/mplc_pop_engine/auto_dealership_marketing_photos/Group_1_Toyota_Southwest_Houston/image_003.jpg
+WARNING ⚠️ Image Read Error /Users/jeffignacio/mplc_pop_engine/auto_dealership_marketing_photos/Group_1_Toyota_Southwest_Houston/image_004.jpg
+WARNING ⚠️ Image Read Error /Users/jeffignacio/mplc_pop_engine/auto_dealership_marketing_photos/Group_1_Toyota_Southwest_Houston/image_006.jpg
+WARNING ⚠️ Image Read Error /Users/jeffignacio/mplc_pop_engine/auto_dealership_marketing_photos/Group_1_Toyota_Southwest_Houston/image_009.jpg
+  Final tier: REJECTED
+  Cost: $0.0150
+
+Group 1 Ford of Shreveport - Shreveport, LA
+  Group: Group 1 Automotive
+----------------------------------------------------------------------
+  Searching for showroom images...
+  Searching for service lounge images...
+  Searching for grand opening coverage...
+  ✓ Found 30 images across all searches
+WARNING ⚠️ Image Read Error /Users/jeffignacio/mplc_pop_engine/auto_dealership_marketing_photos/Group_1_Ford_of_Shreveport/image_002.jpg
+  Final tier: REJECTED
+  Cost: $0.0150
+
+======================================================================
+PER-LOCATION RESULTS: Marketing/Press Channel
+======================================================================
+
+AutoNation USA Houston (AutoNation)
+  Location: Houston, TX
+  Tier: PROSPECT
+  Images: 30 found
+  YOLO hits: 7
+  VLM calls: 7
+  Cost: $0.1009
+
+AutoNation Toyota Hayward (AutoNation)
+  Location: Hayward, CA
+  Tier: PROSPECT
+  Images: 30 found
+  YOLO hits: 5
+  VLM calls: 5
+  Cost: $0.0603
+
+AutoNation Ford Sanford (AutoNation)
+  Location: Sanford, FL
+  Tier: PROSPECT
+  Images: 30 found
+  YOLO hits: 4
+  VLM calls: 4
+  Cost: $0.0635
+
+AutoNation Chevrolet North (AutoNation)
+  Location: Denver, CO
+  Tier: PROSPECT
+  Images: 30 found
+  YOLO hits: 3
+  VLM calls: 3
+  Cost: $0.0499
+
+AutoNation Nissan Chandler (AutoNation)
+  Location: Chandler, AZ
+  Tier: SUSPECT
+  Images: 30 found
+  YOLO hits: 3
+  VLM calls: 3
+  Cost: $0.0474
+
+Lithia Toyota of Medford (Lithia Motors)
+  Location: Medford, OR
+  Tier: REJECTED
+  Images: 30 found
+  YOLO hits: 0
+  VLM calls: 0
+  Cost: $0.0150
+
+Honda of Downtown Los Angeles (Lithia Motors)
+  Location: Los Angeles, CA
+  Tier: REJECTED
+  Images: 30 found
+  YOLO hits: 1
+  VLM calls: 1
+  Cost: $0.0269
+
+Michael's Subaru of Bellevue (Lithia Motors)
+  Location: Bellevue, WA
+  Tier: REJECTED
+  Images: 30 found
+  YOLO hits: 2
+  VLM calls: 2
+  Cost: $0.0245
+
+Group 1 Toyota Southwest Houston (Group 1 Automotive)
+  Location: Houston, TX
+  Tier: REJECTED
+  Images: 30 found
+  YOLO hits: 0
+  VLM calls: 0
+  Cost: $0.0150
+
+Group 1 Ford of Shreveport (Group 1 Automotive)
+  Location: Shreveport, LA
+  Tier: REJECTED
+  Images: 30 found
+  YOLO hits: 0
+  VLM calls: 0
+  Cost: $0.0150
+
+======================================================================
+SUMMARY BY DEALERSHIP GROUP
+======================================================================
+
+AutoNation (5 locations):
+  PROSPECT: 4/5
+  SUSPECT: 1/5
+  REJECTED: 0/5
+  Avg images found: 30.0
+
+Lithia Motors (3 locations):
+  PROSPECT: 0/3
+  SUSPECT: 0/3
+  REJECTED: 3/3
+  Avg images found: 30.0
+
+Group 1 Automotive (2 locations):
+  PROSPECT: 0/2
+  SUSPECT: 0/2
+  REJECTED: 2/2
+  Avg images found: 30.0
+
+======================================================================
+OVERALL RESULTS: Marketing/Press Channel
+======================================================================
+
+Locations tested: 10
+
+Coverage:
+  PROSPECT: 4/10 (40.0%)
+  SUSPECT: 1/10 (10.0%)
+  REJECTED: 5/10 (50.0%)
+
+Images analyzed:
+  Total images: 300
+  YOLO TV detections: 25 (8.3%)
+
+======================================================================
+COST BREAKDOWN
+======================================================================
+  Image search (Serper): $0.1500
+  VLM classification: $0.2684
+  TOTAL: $0.4184
+
+  Cost per location: $0.0418
+
+Time: 6.0 minutes
+
+Evidence file: auto_dealership_marketing_evidence/auto_dealership_marketing_evidence.json
+
+======================================================================
+CHANNEL COMPARISON NOTE
+======================================================================
+Marketing/press channel expected to outperform Yelp because:
+  - Dealerships actively market their facilities
+  - Showroom/service lounge images are sales tools
+  - Grand opening coverage shows new facilities
+Compare results to Yelp channel (test_auto_dealerships_yelp_photos.py)

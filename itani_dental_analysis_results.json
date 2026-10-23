@@ -1,0 +1,96 @@
+{
+  "business": "Itani Dental San Francisco (4.5\u2b50, 130 reviews)",
+  "total_photos": 62,
+  "yolo_detections": 9,
+  "vlm_calls": 9,
+  "final_tier": "PROSPECT",
+  "tier_breakdown": {
+    "PROSPECT": 6,
+    "SUSPECT": 2,
+    "REJECTED": 1
+  },
+  "cost": 0.039339,
+  "classifications": [
+    {
+      "tier": "PROSPECT",
+      "space": "treatment_room",
+      "tv": "on_with_content",
+      "photo_type": "real_facility",
+      "description": "Dental procedure in progress with multiple practitioners wearing surgical loupes and protective equipment, with a monitor mounted on an articulating arm displaying dental X-ray or imaging content above the patient chair.",
+      "confidence": "high",
+      "cost": 0.00468
+    },
+    {
+      "tier": "PROSPECT",
+      "space": "treatment_room",
+      "tv": "on_with_content",
+      "photo_type": "real_facility",
+      "description": "Dental treatment room with operatory chair, dental equipment, and a wall-mounted monitor displaying visible content on screen, with a city view through the window.",
+      "confidence": "high",
+      "cost": 0.00459
+    },
+    {
+      "tier": "PROSPECT",
+      "space": "treatment_room",
+      "tv": "on_with_content",
+      "photo_type": "real_facility",
+      "description": "Two medical staff in surgical attire pose in an operating/procedure room with a monitor clearly displaying colorful content in the background among medical equipment and supply shelving.",
+      "confidence": "high",
+      "cost": 0.004605
+    },
+    {
+      "tier": "REJECTED",
+      "space": "patient_waiting",
+      "tv": "none",
+      "photo_type": "real_facility",
+      "description": "Modern dental office reception area with curved white desk, dark countertop, flowers, and wood cabinetry, but no television or monitor visible in the patient waiting space.",
+      "confidence": "high",
+      "cost": 0.00459
+    },
+    {
+      "tier": "PROSPECT",
+      "space": "treatment_room",
+      "tv": "on_with_content",
+      "photo_type": "real_facility",
+      "description": "A dental treatment room with a covered chair, dental equipment, and a wall-mounted TV/monitor displaying visible content above the window, with a laptop on a mobile cart in the foreground.",
+      "confidence": "high",
+      "cost": 0.004695
+    },
+    {
+      "tier": "SUSPECT",
+      "space": "treatment_room",
+      "tv": "unclear",
+      "photo_type": "real_facility",
+      "description": "Dental treatment room with chair, equipment, and city skyline view through large windows, with a wall-mounted monitor/TV visible but screen status cannot be confirmed as powered on with content.",
+      "confidence": "medium",
+      "cost": 0.004635
+    },
+    {
+      "tier": "PROSPECT",
+      "space": "treatment_room",
+      "tv": "on_with_content",
+      "photo_type": "real_facility",
+      "description": "Multiple dental professionals gathered around a patient in a treatment chair with a wall-mounted monitor displaying visible content and a \"Special Care Dentistry Association\" sign visible in the background.",
+      "confidence": "high",
+      "cost": 0.0046500000000000005
+    },
+    {
+      "tier": "PROSPECT",
+      "space": "treatment_room",
+      "tv": "on_with_content",
+      "photo_type": "real_facility",
+      "description": "A dental professional in a teal shirt attends to a patient in a reclined treatment chair, with a wall-mounted TV visible in the upper left showing colored content on screen.",
+      "confidence": "high",
+      "cost": 0.002073
+    },
+    {
+      "tier": "SUSPECT",
+      "space": "treatment_room",
+      "tv": "unclear",
+      "photo_type": "real_facility",
+      "description": "Three medical professionals in surgical attire performing a procedure in an operating room with a monitor visible on the wall, but the monitor's power status and content are not clearly discernible.",
+      "confidence": "medium",
+      "cost": 0.004821000000000001
+    }
+  ]
+}

@@ -1,0 +1,243 @@
+{
+  "summary": {
+    "total_accounts": 1,
+    "total_evidence_items": 8,
+    "by_tier": {
+      "PROSPECT": 6,
+      "SUSPECT": 2,
+      "REJECTED": 0
+    },
+    "by_channel": {
+      "video": 0,
+      "image": 8,
+      "text": 0
+    },
+    "total_cost": 0.185082
+  },
+  "records": [
+    {
+      "account_name": "Itani Dental San Francisco",
+      "channel": "image",
+      "tier": "PROSPECT",
+      "vertical": "Dental",
+      "evidence": {
+        "photo_location": "itani_dental_photos/photo_000.jpg",
+        "description": "Dental procedure in progress with multiple practitioners wearing surgical loupes and protective equipment, with a monitor mounted on an articulating arm displaying dental X-ray or imaging content above the patient chair.",
+        "source_url": "https://s3-media0.fl.yelpcdn.com/bphoto/GwErj_sigpb0a9X3Fm-syw/o.jpg"
+      },
+      "confidence": {
+        "yolo_detection": 0.7491121888160706,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "treatment_room",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.00468
+      },
+      "metadata": {
+        "timestamp": "2026-10-22T20:20:08.694627",
+        "evidence_id": "93f902fc0547",
+        "photo_caption": "In Office Sedation Dentistry",
+        "photo_type": "real_facility"
+      }
+    },
+    {
+      "account_name": "Itani Dental San Francisco",
+      "channel": "image",
+      "tier": "PROSPECT",
+      "vertical": "Dental",
+      "evidence": {
+        "photo_location": "itani_dental_photos/photo_005.jpg",
+        "description": "Dental treatment room with operatory chair, dental equipment, and a wall-mounted monitor displaying visible content on screen, with a city view through the window.",
+        "source_url": "https://s3-media0.fl.yelpcdn.com/bphoto/Glcgasea_ylijqtky_FRbQ/o.jpg"
+      },
+      "confidence": {
+        "yolo_detection": 0.304586261510849,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "treatment_room",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.00927
+      },
+      "metadata": {
+        "timestamp": "2026-10-22T20:20:13.525992",
+        "evidence_id": "a991288f4d56",
+        "photo_caption": "Care Suite 2",
+        "photo_type": "real_facility"
+      }
+    },
+    {
+      "account_name": "Itani Dental San Francisco",
+      "channel": "image",
+      "tier": "PROSPECT",
+      "vertical": "Dental",
+      "evidence": {
+        "photo_location": "itani_dental_photos/photo_007.jpg",
+        "description": "Two medical staff in surgical attire pose in an operating/procedure room with a monitor clearly displaying colorful content in the background among medical equipment and supply shelving.",
+        "source_url": "https://s3-media0.fl.yelpcdn.com/bphoto/IoQ4w93RmhhiflRA50lKVQ/o.jpg"
+      },
+      "confidence": {
+        "yolo_detection": 0.6712642312049866,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "treatment_room",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.013875
+      },
+      "metadata": {
+        "timestamp": "2026-10-22T20:20:17.789837",
+        "evidence_id": "52cacf840871",
+        "photo_caption": "Hospital Dentistry",
+        "photo_type": "real_facility"
+      }
+    },
+    {
+      "account_name": "Itani Dental San Francisco",
+      "channel": "image",
+      "tier": "PROSPECT",
+      "vertical": "Dental",
+      "evidence": {
+        "photo_location": "itani_dental_photos/photo_014.jpg",
+        "description": "A dental treatment room with a covered chair, dental equipment, and a wall-mounted TV/monitor displaying visible content above the window, with a laptop on a mobile cart in the foreground.",
+        "source_url": "https://s3-media0.fl.yelpcdn.com/bphoto/ENkKvwNo88H2dr27Vpa_yA/o.jpg"
+      },
+      "confidence": {
+        "yolo_detection": 0.5953904390335083,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "treatment_room",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.023160000000000004
+      },
+      "metadata": {
+        "timestamp": "2026-10-22T20:20:26.700843",
+        "evidence_id": "7d6e9fb10d71",
+        "photo_caption": "Care Suite 4",
+        "photo_type": "real_facility"
+      }
+    },
+    {
+      "account_name": "Itani Dental San Francisco",
+      "channel": "image",
+      "tier": "SUSPECT",
+      "vertical": "Dental",
+      "evidence": {
+        "photo_location": "itani_dental_photos/photo_016.jpg",
+        "description": "Dental treatment room with chair, equipment, and city skyline view through large windows, with a wall-mounted monitor/TV visible but screen status cannot be confirmed as powered on with content.",
+        "source_url": "https://s3-media0.fl.yelpcdn.com/bphoto/OfbelZYId-9MI7yDvcoyUA/o.jpg"
+      },
+      "confidence": {
+        "yolo_detection": 0.4340610206127167,
+        "vlm_assessment": "medium"
+      },
+      "space_classification": {
+        "type": "treatment_room",
+        "tv_powered_on": false
+      },
+      "cost": {
+        "total_account_cost": 0.027795000000000004
+      },
+      "metadata": {
+        "timestamp": "2026-10-22T20:20:30.757716",
+        "evidence_id": "6eeff4a97af0",
+        "photo_caption": "Care Suite 1",
+        "photo_type": "real_facility"
+      }
+    },
+    {
+      "account_name": "Itani Dental San Francisco",
+      "channel": "image",
+      "tier": "PROSPECT",
+      "vertical": "Dental",
+      "evidence": {
+        "photo_location": "itani_dental_photos/photo_017.jpg",
+        "description": "Multiple dental professionals gathered around a patient in a treatment chair with a wall-mounted monitor displaying visible content and a \"Special Care Dentistry Association\" sign visible in the background.",
+        "source_url": "https://s3-media0.fl.yelpcdn.com/bphoto/KuKfLOlJZVJUk2u1VX0IlQ/o.jpg"
+      },
+      "confidence": {
+        "yolo_detection": 0.7276725769042969,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "treatment_room",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.032445
+      },
+      "metadata": {
+        "timestamp": "2026-10-22T20:20:34.175583",
+        "evidence_id": "e7b5eea7d503",
+        "photo_caption": null,
+        "photo_type": "real_facility"
+      }
+    },
+    {
+      "account_name": "Itani Dental San Francisco",
+      "channel": "image",
+      "tier": "PROSPECT",
+      "vertical": "Dental",
+      "evidence": {
+        "photo_location": "itani_dental_photos/photo_039.jpg",
+        "description": "A dental professional in a teal shirt attends to a patient in a reclined treatment chair, with a wall-mounted TV visible in the upper left showing colored content on screen.",
+        "source_url": "https://s3-media0.fl.yelpcdn.com/bphoto/V-xY4HKgYjF3gzO80xivQA/o.jpg"
+      },
+      "confidence": {
+        "yolo_detection": 0.49676287174224854,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "treatment_room",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.034518
+      },
+      "metadata": {
+        "timestamp": "2026-10-22T20:20:46.259064",
+        "evidence_id": "5535efde57dd",
+        "photo_caption": "Hospital Dental Clearance",
+        "photo_type": "real_facility"
+      }
+    },
+    {
+      "account_name": "Itani Dental San Francisco",
+      "channel": "image",
+      "tier": "SUSPECT",
+      "vertical": "Dental",
+      "evidence": {
+        "photo_location": "itani_dental_photos/photo_041.jpg",
+        "description": "Three medical professionals in surgical attire performing a procedure in an operating room with a monitor visible on the wall, but the monitor's power status and content are not clearly discernible.",
+        "source_url": "https://s3-media0.fl.yelpcdn.com/bphoto/soOShq80gQhYaTNPxg6oig/o.jpg"
+      },
+      "confidence": {
+        "yolo_detection": 0.4773579239845276,
+        "vlm_assessment": "medium"
+      },
+      "space_classification": {
+        "type": "treatment_room",
+        "tv_powered_on": false
+      },
+      "cost": {
+        "total_account_cost": 0.039339
+      },
+      "metadata": {
+        "timestamp": "2026-10-22T20:20:50.262775",
+        "evidence_id": "e44d4b4e0fbe",
+        "photo_caption": null,
+        "photo_type": "real_facility"
+      }
+    }
+  ]
+}

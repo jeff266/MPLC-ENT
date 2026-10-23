@@ -1,0 +1,47 @@
+[
+  {
+    "company": "Marathon Petroleum",
+    "image_url": "https://s3.amazonaws.com/hines-images/marathon-oil-headquarters/Marathon-Oil-Headquarters_04_hres.jpg",
+    "image_title": "Marathon Oil Headquarters - Hines",
+    "vlm_answer": "NO",
+    "vlm_full_response": "NO",
+    "input_tokens": 1652,
+    "output_tokens": 4
+  },
+  {
+    "company": "PNC Financial Services",
+    "image_url": "https://media.bizj.us/view/img/12875134/pnc-tourwurm-1*900xx6694-3765-0-349.jpg",
+    "image_title": "PNC Bank moves regional HQ to Capitol View - Nashville Business Journal",
+    "vlm_answer": "NO",
+    "vlm_full_response": "NO",
+    "input_tokens": 739,
+    "output_tokens": 4
+  },
+  {
+    "company": "Eaton",
+    "image_url": "https://www.pickardchilton.com/sites/default/files/styles/gallery_image/public/EatonCenter_11.jpg?itok=Q3wGN3bG",
+    "image_title": "Eaton Center | Pickard Chilton",
+    "vlm_answer": "NO",
+    "vlm_full_response": "NO",
+    "input_tokens": 953,
+    "output_tokens": 4
+  },
+  {
+    "company": "Bridgestone Americas",
+    "image_url": "https://www.bridgestoneamericas.com/content/dam/corpcomm/americas/images/navigation/Img_Corporate_Contacts@2x.jpg",
+    "image_title": "Bridgestone Americas Administrative Offices Information",
+    "vlm_answer": "NO",
+    "vlm_full_response": "NO",
+    "input_tokens": 364,
+    "output_tokens": 4
+  },
+  {
+    "company": "Zillow Group",
+    "image_url": "https://www.officelovin.com/wp-content/uploads/2018/10/zillow-group-nyc-mm.jpg",
+    "image_title": "A Look Inside Zillow Group's New NYC Office - Officelovin",
+    "vlm_answer": "NO",
+    "vlm_full_response": "NO",
+    "input_tokens": 1316,
+    "output_tokens": 4
+  }
+]
