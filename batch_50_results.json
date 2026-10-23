@@ -1,0 +1,950 @@
+[
+  {
+    "account": "Moffitt Cancer Center",
+    "website": "https://www.moffitt.org/locations-directions/moffitt-cancer-center-magnolia-campus/",
+    "tier": "SUSPECT",
+    "image_channel": {
+      "channel": "image",
+      "search_cost": 0.015,
+      "images_found": 15,
+      "yolo_detections": 6,
+      "vlm_calls": 6,
+      "vlm_cost": 0.016578,
+      "tier": "SUSPECT",
+      "evidence": [
+        {
+          "tier": "SUSPECT",
+          "space": "lobby",
+          "tv": "unclear",
+          "reasoning": "A TV/monitor is mounted on the wall in the background, but it appears to be in a lobby or reception area with visitor seating rather than an employee-only space, and the TV's power status and content are not clearly visible from this angle.",
+          "cost": 0.002868,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTeOulISSnRHTVWQ-KtkvALebq5Dc3bxr7wzWbvsyb6tA&s=10",
+          "title": "Moffitt Cancer Center opens SouthShore facility in Ruskin - Tampa Bay  Business Journal"
+        },
+        {
+          "tier": "SUSPECT",
+          "space": "lobby/reception",
+          "tv": "unclear",
+          "reasoning": "This appears to be a reception/lobby area with a modern hospitality desk and seating, and while there is a TV mounted on the stone wall, it's not clearly showing powered-on content, and the space serves visitors rather than being employee-only.",
+          "cost": 0.002913,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQt2DlUpHPw2B4kN1BopBW1pMYWbGe4CNKZp7bPE1_voA&s=10",
+          "title": "Moffitt Cancer Center opens SouthShore facility in Ruskin - Tampa Bay  Business Journal"
+        },
+        {
+          "tier": "SUSPECT",
+          "space": "lobby/reception",
+          "tv": "unclear",
+          "reasoning": "This appears to be a reception or lobby area with a professional welcome counter and visitor seating, and while a TV/monitor is mounted on the wall, it's not clearly visible as powered on with content from this angle.",
+          "cost": 0.0027930000000000003,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQt2DlUpHPw2B4kN1BopBW1pMYWbGe4CNKZp7bPE1_voA&s=10",
+          "title": "Moffitt Cancer Center opens SouthShore facility in Ruskin - Tampa Bay  Business Journal"
+        },
+        {
+          "tier": "SUSPECT",
+          "space": "lobby",
+          "tv": "unclear",
+          "reasoning": "This appears to be a hospital or medical facility lobby/waiting area with a TV mounted on the wall, but the TV's power status and content are not clearly visible, and the space is designed for visitors/patients rather than employees.",
+          "cost": 0.0027930000000000003,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTeOulISSnRHTVWQ-KtkvALebq5Dc3bxr7wzWbvsyb6tA&s=10",
+          "title": "Moffitt Cancer Center opens SouthShore facility in Ruskin - Tampa Bay  Business Journal"
+        }
+      ],
+      "wall_time": 44.205334186553955
+    },
+    "total_cost": 0.0316,
+    "wall_time": 44.21
+  },
+  {
+    "account": "JM Family Enterprises, LLC",
+    "website": "jmfamily.com",
+    "tier": "SUSPECT",
+    "image_channel": {
+      "channel": "image",
+      "search_cost": 0.015,
+      "images_found": 10,
+      "yolo_detections": 4,
+      "vlm_calls": 4,
+      "vlm_cost": 0.011907000000000001,
+      "tier": "SUSPECT",
+      "evidence": [
+        {
+          "tier": "SUSPECT",
+          "space": "cafeteria",
+          "tv": "unclear",
+          "reasoning": "This appears to be an employee cafeteria with modern design and multiple seating areas, but while there may be a display visible in the upper right area, it's too distant/unclear to confirm it's powered on with visible content, and the professional photography style suggests this could be a stock or promotional photo rather than a real facility documentation shot.",
+          "cost": 0.003228,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRjUO8LZ4pBHBg7VuGE70Iea78Rr86CbuZdCGnt1M8rsQ&s=10",
+          "title": "JM Family Enterprises Office Headquarters - Kaufman Lynn Construction"
+        },
+        {
+          "tier": "SUSPECT",
+          "space": "cafeteria",
+          "tv": "on_with_content",
+          "reasoning": "While there is a powered-on monitor/TV visible on the left wall displaying \"JM FAMILY ENTERPRISES INC\" content, this appears to be a large corporate cafeteria or dining commons that may serve visitors and guests in addition to employees, rather than an exclusively employee-only breakroom space.",
+          "cost": 0.003183,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQLyaUpoSYxZi6b6BILxw1rQfivrdfMu3TEMRXa0Jaxuw&s=10",
+          "title": "JM Family Enterprises Office Headquarters - Kaufman Lynn Construction"
+        },
+        {
+          "tier": "SUSPECT",
+          "space": "cafeteria",
+          "tv": "unclear",
+          "reasoning": "This appears to be an employee cafeteria with modern design and multiple seating areas, but while there appears to be a screen/monitor visible in the background near the service area, it's too distant and unclear to confirm it's powered on with visible content.",
+          "cost": 0.002973,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRjUO8LZ4pBHBg7VuGE70Iea78Rr86CbuZdCGnt1M8rsQ&s=10",
+          "title": "JM Family Enterprises Office Headquarters - Kaufman Lynn Construction"
+        }
+      ],
+      "wall_time": 39.35239887237549
+    },
+    "total_cost": 0.0269,
+    "wall_time": 39.35
+  },
+  {
+    "account": "Wegmans Food Markets, Inc.",
+    "website": "www.wegmans.com",
+    "tier": "REJECTED",
+    "image_channel": {
+      "channel": "image",
+      "search_cost": 0.015,
+      "images_found": 10,
+      "yolo_detections": 0,
+      "vlm_calls": 0,
+      "vlm_cost": 0,
+      "tier": "REJECTED",
+      "evidence": [],
+      "wall_time": 17.68721103668213
+    },
+    "total_cost": 0.015,
+    "wall_time": 17.69
+  },
+  {
+    "account": "Baker Hughes Holdings, LLC",
+    "website": "www.utmbhealth.com",
+    "tier": "SUSPECT",
+    "image_channel": {
+      "channel": "image",
+      "search_cost": 0.015,
+      "images_found": 10,
+      "yolo_detections": 2,
+      "vlm_calls": 2,
+      "vlm_cost": 0.005091,
+      "tier": "SUSPECT",
+      "evidence": [
+        {
+          "tier": "SUSPECT",
+          "space": "breakroom",
+          "tv": "on_with_content",
+          "reasoning": "While a TV/monitor with visible content is confirmed in what appears to be an employee breakroom with high-top tables, the professional architectural photography style and pristine staging suggests this is likely a stock photo, promotional material, or newly completed space documentation rather than an authentic in-use facility photo.",
+          "cost": 0.00309,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQqe9Q6cV9kP9biV71ZPzAK98LVG_XT_W0eL9yBFxSF9w&s=10",
+          "title": "Baker Hughes moves into new corporate HQ in Houston Energy Corridor"
+        }
+      ],
+      "wall_time": 23.030216217041016
+    },
+    "total_cost": 0.0201,
+    "wall_time": 23.03
+  },
+  {
+    "account": "Zoetis Inc.",
+    "website": "www.zoetis.com",
+    "tier": "SUSPECT",
+    "image_channel": {
+      "channel": "image",
+      "search_cost": 0.015,
+      "images_found": 10,
+      "yolo_detections": 2,
+      "vlm_calls": 2,
+      "vlm_cost": 0.005555999999999999,
+      "tier": "SUSPECT",
+      "evidence": [
+        {
+          "tier": "SUSPECT",
+          "space": "cafeteria",
+          "tv": "on_with_content",
+          "reasoning": "While the TV monitors on the orange wall appear to be powered on with visible content and this appears to be an employee cafeteria/dining space, the professional architectural photography style and pristine presentation suggest this is likely a stock photo or showcase image rather than a real facility photo.",
+          "cost": 0.0030029999999999996,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSdlaI8tURW-GoA1296gfzTo9UfpVuqiiwvAi_u14WVcA&s=10",
+          "title": "Zoetis - Meyer"
+        }
+      ],
+      "wall_time": 34.46716904640198
+    },
+    "total_cost": 0.0206,
+    "wall_time": 34.47
+  },
+  {
+    "account": "Archer-Daniels-Midland Company",
+    "website": "www.adm.com",
+    "tier": "REJECTED",
+    "image_channel": {
+      "channel": "image",
+      "search_cost": 0.015,
+      "images_found": 15,
+      "yolo_detections": 0,
+      "vlm_calls": 0,
+      "vlm_cost": 0,
+      "tier": "REJECTED",
+      "evidence": [],
+      "wall_time": 34.28547692298889
+    },
+    "total_cost": 0.015,
+    "wall_time": 34.29
+  },
+  {
+    "account": "Elanco Animal Health Incorporated",
+    "website": "www.elanco.com",
+    "tier": "SUSPECT",
+    "image_channel": {
+      "channel": "image",
+      "search_cost": 0.015,
+      "images_found": 10,
+      "yolo_detections": 3,
+      "vlm_calls": 3,
+      "vlm_cost": 0.008634,
+      "tier": "SUSPECT",
+      "evidence": [
+        {
+          "tier": "SUSPECT",
+          "space": "lobby",
+          "tv": "on_with_content",
+          "reasoning": "While there appears to be a powered-on display with blue content visible on the upper left level, this is clearly a public lobby/atrium/reception area with visitors rather than an employee-only breakroom or cafeteria space.",
+          "cost": 0.002928,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQeYQzVkEcHLiHktlYQEzncQ3XOb2OI3e4mUOUvqr3dVA&s=10",
+          "title": "Elanco headquarters opens on Indianapolis' westside"
+        },
+        {
+          "tier": "SUSPECT",
+          "space": "lobby",
+          "tv": "on_with_content",
+          "reasoning": "While a TV is visible and powered on with content in the background, this appears to be a public lobby or atrium area with a large decorative sculpture and visitor seating rather than an employee-only space.",
+          "cost": 0.0027930000000000003,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcScTOiOVq4fcmhk4w2yWZLLgAm-Rh4EJ7fTS6pm_EVtnA&s=10",
+          "title": "Elanco Animal Health opens global HQ in downtown Indianapolis - WISH-TV"
+        },
+        {
+          "tier": "SUSPECT",
+          "space": "lobby",
+          "tv": "on_with_content",
+          "reasoning": "While there is a monitor/screen visible on the upper left level showing blue content, this is clearly a public lobby/atrium/reception area with visitors rather than an employee-only space like a breakroom or cafeteria.",
+          "cost": 0.002913,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQeYQzVkEcHLiHktlYQEzncQ3XOb2OI3e4mUOUvqr3dVA&s=10",
+          "title": "Elanco headquarters opens on Indianapolis' westside"
+        }
+      ],
+      "wall_time": 30.433411121368408
+    },
+    "total_cost": 0.0236,
+    "wall_time": 30.43
+  },
+  {
+    "account": "Manufacturers and Traders Trust Company",
+    "website": "www.3.mtb.com",
+    "tier": "REJECTED",
+    "image_channel": {
+      "channel": "image",
+      "search_cost": 0.015,
+      "images_found": 10,
+      "yolo_detections": 0,
+      "vlm_calls": 0,
+      "vlm_cost": 0,
+      "tier": "REJECTED",
+      "evidence": [],
+      "wall_time": 20.112108945846558
+    },
+    "total_cost": 0.015,
+    "wall_time": 20.11
+  },
+  {
+    "account": "ADP Global Procurement",
+    "website": "www.adp.com",
+    "tier": "SUSPECT",
+    "image_channel": {
+      "channel": "image",
+      "search_cost": 0.015,
+      "images_found": 10,
+      "yolo_detections": 2,
+      "vlm_calls": 2,
+      "vlm_cost": 0.005307,
+      "tier": "SUSPECT",
+      "evidence": [
+        {
+          "tier": "SUSPECT",
+          "space": "cafeteria",
+          "tv": "unclear",
+          "reasoning": "This appears to be an employee cafeteria with a mounted TV/monitor visible on the left pillar, but the screen status cannot be confirmed as powered on with visible content from this image quality and angle.",
+          "cost": 0.002757,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTS5sEDz8U-VdhOSLF86cy0KYwqkOh-9anQgbEp5M360g&s=10",
+          "title": "ADP moving 1,000 employees from Elk Grove Village to Zurich building in  Schaumburg"
+        },
+        {
+          "tier": "SUSPECT",
+          "space": "lobby",
+          "tv": "unclear",
+          "reasoning": "While a TV/monitor is visible mounted on the wall in the right portion of the image, this appears to be a reception/lobby area with visitor seating rather than an employee-only breakroom, and the TV's power status and content are not clearly distinguishable from this angle.",
+          "cost": 0.00255,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSwK0Rf0f3IINxiC4sTpogi-Ttd8HEKrA-Fh9zLpZMI9w&s=10",
+          "title": "ADP | Projects | Gensler"
+        }
+      ],
+      "wall_time": 21.110251665115356
+    },
+    "total_cost": 0.0203,
+    "wall_time": 21.11
+  },
+  {
+    "account": "Snap Inc.",
+    "website": "www.snap.com",
+    "tier": "SUSPECT",
+    "image_channel": {
+      "channel": "image",
+      "search_cost": 0.015,
+      "images_found": 15,
+      "yolo_detections": 2,
+      "vlm_calls": 2,
+      "vlm_cost": 0.005475,
+      "tier": "SUSPECT",
+      "evidence": [
+        {
+          "tier": "SUSPECT",
+          "space": "lobby",
+          "tv": "unclear",
+          "reasoning": "The TV/monitor on the wall appears to be off or its content is not clearly visible, and the modern space with decorative guitar wall art, large windows, and architectural lighting suggests a lobby or reception area rather than an employee-only breakroom.",
+          "cost": 0.0028799999999999997,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS-NsgjjnY6xDMb78q9sCU0sXFDmmaC8l3Y1vVqUJJvAA&s=10",
+          "title": "Snap Inc. Offices - Austin | Office Snapshots"
+        }
+      ],
+      "wall_time": 42.986327171325684
+    },
+    "total_cost": 0.0205,
+    "wall_time": 42.99
+  },
+  {
+    "account": "Newell Brands Inc (CCC)",
+    "website": "www.newellbrands.com",
+    "tier": "PROSPECT",
+    "image_channel": {
+      "channel": "image",
+      "search_cost": 0.015,
+      "images_found": 10,
+      "yolo_detections": 4,
+      "vlm_calls": 4,
+      "vlm_cost": 0.010206,
+      "tier": "PROSPECT",
+      "evidence": [
+        {
+          "tier": "PROSPECT",
+          "space": "cafeteria",
+          "tv": "on_with_content",
+          "reasoning": "Both images show an employee cafeteria with food service areas and dining tables, and a TV monitor is visible in the top image mounted on the wall displaying content.",
+          "cost": 0.002268,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQW_EhFqdLTMkNc_OPJRWT6WADmio4-kztxg3FJKx2qSQ&s=10",
+          "title": "\ud83c\udfa5 Ever wondered what it's like to work at Newell Brands? Join Talent  Leader Grant Mitchell for a behind-the-scenes look at a day in his life at  our Atlanta HQ, from team"
+        },
+        {
+          "tier": "SUSPECT",
+          "space": "other",
+          "tv": "on_with_content",
+          "reasoning": "While a TV is visible and powered on with content displayed, this appears to be a children's bathroom or family restroom in a public facility (likely a mall, airport, or customer-facing business) rather than an employee-only space, as evidenced by the child-sized furniture, toys, playful wall decorations, and family-oriented design.",
+          "cost": 0.003303,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ7X-FUg3G_QvaJ7IFS5CUZNmFasNjDjv4cjS_8ANH-dQ&s=10",
+          "title": "Newell Brands Opens Atlanta Design Center to Accelerate Brand Building  Through Consumer-Led Design and Innovation - AOL"
+        }
+      ],
+      "wall_time": 30.8303439617157
+    },
+    "total_cost": 0.0252,
+    "wall_time": 30.83
+  },
+  {
+    "account": "Owens & Minor",
+    "website": "www.owens-minor.com",
+    "tier": "PROSPECT",
+    "image_channel": {
+      "channel": "image",
+      "search_cost": 0.015,
+      "images_found": 15,
+      "yolo_detections": 5,
+      "vlm_calls": 5,
+      "vlm_cost": 0.012087,
+      "tier": "PROSPECT",
+      "evidence": [
+        {
+          "tier": "SUSPECT",
+          "space": "breakroom",
+          "tv": "off",
+          "reasoning": "This appears to be an employee breakroom with tiered seating, ping pong table, and a wall-mounted TV/monitor that is visible but appears to be powered off with no visible content on the screen.",
+          "cost": 0.002328,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT4eZZ53U4OSkwKYaooNR26jvmI0COqJxkptop2_Kodjw&s=10",
+          "title": "ANJ, along with @thecanvasofficial , completes the Owens & Minor Design and  Build project at Magarpatta Campus, Pune, covering 23,500 sq. ft. This  human-centric office features flexible workstations,"
+        },
+        {
+          "tier": "PROSPECT",
+          "space": "cafeteria",
+          "tv": "on_with_content",
+          "reasoning": "This is a real employee cafeteria with a TV mounted on the wall displaying visible content (appears to be news or sports), featuring serving stations with food displays and typical institutional dining setup.",
+          "cost": 0.002373,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQPVQgLEsBI9E5ExmtoNCG1p6npwxtiqNVqPFHMUZhAJg&s=10",
+          "title": "Owens & Minor Corporate Headquarters - Architect Magazine"
+        },
+        {
+          "tier": "PROSPECT",
+          "space": "cafeteria",
+          "tv": "on_with_content",
+          "reasoning": "A powered-on TV displaying content is visible in the upper left background of this employee cafeteria setting where a person is eating at a table.",
+          "cost": 0.002655,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQXNqYo_thLV0K0iW2rXHpsd6B4kE1JG3YqK0_slLu6qw&s=10",
+          "title": "OWENS FOOD COURT - Reviews, Photos & Phone Number (2026) - Health Market in  Montgomery County, Virginia (VA) - Wheree"
+        }
+      ],
+      "wall_time": 31.468463897705078
+    },
+    "total_cost": 0.0271,
+    "wall_time": 31.47
+  },
+  {
+    "account": "ARM, Inc.",
+    "website": "www.arm.com",
+    "tier": "REJECTED",
+    "image_channel": {
+      "channel": "image",
+      "search_cost": 0.015,
+      "images_found": 10,
+      "yolo_detections": 0,
+      "vlm_calls": 0,
+      "vlm_cost": 0,
+      "tier": "REJECTED",
+      "evidence": [],
+      "wall_time": 15.908087015151978
+    },
+    "total_cost": 0.015,
+    "wall_time": 15.91
+  },
+  {
+    "account": "The Sherwin Williams Company",
+    "website": "www.sherwin-williams.com",
+    "tier": "SUSPECT",
+    "image_channel": {
+      "channel": "image",
+      "search_cost": 0.015,
+      "images_found": 15,
+      "yolo_detections": 3,
+      "vlm_calls": 3,
+      "vlm_cost": 0.007692,
+      "tier": "SUSPECT",
+      "evidence": [
+        {
+          "tier": "SUSPECT",
+          "space": "lobby",
+          "tv": "on_with_content",
+          "reasoning": "While the monitor is clearly powered on displaying content, the curved counter with bar-height seating, polished finishes, and gallery-style artwork indicate this is a reception/lobby area rather than an employee breakroom.",
+          "cost": 0.00285,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS3jpvynxdsgKKPKuLYUT-ZDPePSLegdck9b2vrnQkJ0w&s=10",
+          "title": "Photos, details of Sherwin-Williams' new HQ interiors \u2013 NEOtrans"
+        },
+        {
+          "tier": "SUSPECT",
+          "space": "lobby",
+          "tv": "on_with_content",
+          "reasoning": "While the monitor is clearly powered on displaying content, the modern curved counter with bar-height seating, polished aesthetic, and artwork indicates this is a reception/lobby area rather than an employee-only breakroom space.",
+          "cost": 0.00285,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS3jpvynxdsgKKPKuLYUT-ZDPePSLegdck9b2vrnQkJ0w&s=10",
+          "title": "Photos, details of Sherwin-Williams' new HQ interiors \u2013 NEOtrans"
+        }
+      ],
+      "wall_time": 49.63023591041565
+    },
+    "total_cost": 0.0227,
+    "wall_time": 49.63
+  },
+  {
+    "account": "TDS",
+    "website": "www.tdsinc.com",
+    "tier": "REJECTED",
+    "image_channel": {
+      "channel": "image",
+      "search_cost": 0.015,
+      "images_found": 10,
+      "yolo_detections": 2,
+      "vlm_calls": 2,
+      "vlm_cost": 0.004281,
+      "tier": "REJECTED",
+      "evidence": [],
+      "wall_time": 21.204628944396973
+    },
+    "total_cost": 0.0193,
+    "wall_time": 21.2
+  },
+  {
+    "account": "Mars Veterinary",
+    "website": "www.marsveterinary.com",
+    "tier": "SUSPECT",
+    "image_channel": {
+      "channel": "image",
+      "search_cost": 0.015,
+      "images_found": 15,
+      "yolo_detections": 3,
+      "vlm_calls": 3,
+      "vlm_cost": 0.007446,
+      "tier": "SUSPECT",
+      "evidence": [
+        {
+          "tier": "SUSPECT",
+          "space": "cafeteria",
+          "tv": "unclear",
+          "reasoning": "This appears to be an employee cafeteria with multiple monitors visible on the back wall, but the monitors appear to be off or the content is not clearly visible, and the professional photography style suggests this may be a stock/promotional photo rather than a real facility documentation.",
+          "cost": 0.002553,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQk_cZbhUkZ5k1vQBJmDNf4pCKmvs07sxlvIsVkWTKKIQ&s=10",
+          "title": "Mars Petcare U.S. Headquarters"
+        }
+      ],
+      "wall_time": 27.489876985549927
+    },
+    "total_cost": 0.0224,
+    "wall_time": 27.49
+  },
+  {
+    "account": "The Marzetti Company",
+    "website": "www.lancastercolony.com",
+    "tier": "SUSPECT",
+    "image_channel": {
+      "channel": "image",
+      "search_cost": 0.015,
+      "images_found": 15,
+      "yolo_detections": 2,
+      "vlm_calls": 2,
+      "vlm_cost": 0.004815,
+      "tier": "SUSPECT",
+      "evidence": [
+        {
+          "tier": "SUSPECT",
+          "space": "cafeteria",
+          "tv": "off",
+          "reasoning": "This appears to be an employee cafeteria/breakroom with a TV mounted on the wall, but the TV screen appears to be black/powered off with no visible content displayed.",
+          "cost": 0.0027329999999999998,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTRXsj_bdHC0qMpIvZAWCg-uvE8cQLTlokoYL0bxjaw8A&s=10",
+          "title": "T. Marzetti Co. Opens Innovation Center In Ohio"
+        }
+      ],
+      "wall_time": 32.74398899078369
+    },
+    "total_cost": 0.0198,
+    "wall_time": 32.74
+  },
+  {
+    "account": "Quanta Services Management Partnership, L.P.",
+    "website": "www.quantaservices.com",
+    "tier": "SUSPECT",
+    "image_channel": {
+      "channel": "image",
+      "search_cost": 0.015,
+      "images_found": 15,
+      "yolo_detections": 1,
+      "vlm_calls": 1,
+      "vlm_cost": 0.002175,
+      "tier": "SUSPECT",
+      "evidence": [
+        {
+          "tier": "SUSPECT",
+          "space": "cafeteria",
+          "tv": "off",
+          "reasoning": "This appears to be an employee cafeteria with kitchen facilities and dining tables, and a TV/monitor is visible on the orange wall, but the screen appears to be powered off or blank with no visible content displayed.",
+          "cost": 0.002175,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRbEyijjWrd9qlH38RI658AkwX55xPNCsARfSiQCXt8hg&s=10",
+          "title": "Quanta Services | Art Arquitectos"
+        }
+      ],
+      "wall_time": 25.312866926193237
+    },
+    "total_cost": 0.0172,
+    "wall_time": 25.31
+  },
+  {
+    "account": "Nissan USA",
+    "website": "www.premisehealth.com",
+    "tier": "SUSPECT",
+    "image_channel": {
+      "channel": "image",
+      "search_cost": 0.015,
+      "images_found": 15,
+      "yolo_detections": 1,
+      "vlm_calls": 1,
+      "vlm_cost": 0.002346,
+      "tier": "SUSPECT",
+      "evidence": [
+        {
+          "tier": "SUSPECT",
+          "space": "cafeteria",
+          "tv": "unclear",
+          "reasoning": "Multiple screens are visible above what appears to be a \"Digital Tech Caf\u00e9\" employee dining area, but the screens appear to show only static placeholder graphics rather than confirmed powered-on content, and the pristine condition suggests this may be a promotional or setup photo.",
+          "cost": 0.002346,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQrQutFuyWAqPiS4b-Z8x4yDHE8rk0ocJAfX8iE-tQ2MQ&s=10",
+          "title": "Nissan boosts employee productivity and satisfaction | DXC Customer Stories"
+        }
+      ],
+      "wall_time": 24.700046062469482
+    },
+    "total_cost": 0.0173,
+    "wall_time": 24.7
+  },
+  {
+    "account": "ANSYS",
+    "website": "www.ansys.com",
+    "tier": "SUSPECT",
+    "image_channel": {
+      "channel": "image",
+      "search_cost": 0.015,
+      "images_found": 10,
+      "yolo_detections": 5,
+      "vlm_calls": 5,
+      "vlm_cost": 0.008436,
+      "tier": "SUSPECT",
+      "evidence": [
+        {
+          "tier": "SUSPECT",
+          "space": "lobby",
+          "tv": "on_with_content",
+          "reasoning": "While the TV is clearly powered on displaying content, the modern architectural design with dramatic ceiling features, polished floors, and prominent placement suggests this is a lobby or reception area rather than an employee-only space.",
+          "cost": 0.001803,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcThbNvScllo1IAs7QCxD_gkGhxzj6jul79mhuc46_T8tA&s",
+          "title": "Ansys HQ Expansion, Canonsburg PA | NEXT architecture"
+        },
+        {
+          "tier": "SUSPECT",
+          "space": "breakroom",
+          "tv": "unclear",
+          "reasoning": "This appears to be an employee breakroom with a mounted TV visible on the dark accent wall, but the TV screen status cannot be clearly determined as powered on with visible content from this image quality and angle.",
+          "cost": 0.0017130000000000001,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRrlmuJug-lTftJJ0oKZOjkFW2WJrR3lrpw7ataJxAA4A&s",
+          "title": "2400 Ansys Dr, Canonsburg, PA 15317 - Coworking Space Cityfeet.com"
+        },
+        {
+          "tier": "SUSPECT",
+          "space": "cafeteria",
+          "tv": "unclear",
+          "reasoning": "This appears to be an employee cafeteria with a TV/monitor visible on the wall, but the screen status cannot be confirmed as powered on with visible content from this image quality and angle.",
+          "cost": 0.001728,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRQfL98slenkgKYVneAWcnyWBS0PqWJGE7NjDwFQUv94Q&s",
+          "title": "Ansys HQ Expansion, Canonsburg PA | NEXT architecture"
+        }
+      ],
+      "wall_time": 56.551220417022705
+    },
+    "total_cost": 0.0234,
+    "wall_time": 56.55
+  },
+  {
+    "account": "Illinois Tool Works Inc",
+    "website": "www.itw.com",
+    "tier": "REJECTED",
+    "image_channel": {
+      "channel": "image",
+      "search_cost": 0.015,
+      "images_found": 15,
+      "yolo_detections": 2,
+      "vlm_calls": 2,
+      "vlm_cost": 0.005331000000000001,
+      "tier": "REJECTED",
+      "evidence": [],
+      "wall_time": 27.024678945541382
+    },
+    "total_cost": 0.0203,
+    "wall_time": 27.02
+  },
+  {
+    "account": "Kenvue Brands LLC - Global License",
+    "website": "www.kenvue.com",
+    "tier": "SUSPECT",
+    "image_channel": {
+      "channel": "image",
+      "search_cost": 0.015,
+      "images_found": 15,
+      "yolo_detections": 1,
+      "vlm_calls": 1,
+      "vlm_cost": 0.001893,
+      "tier": "SUSPECT",
+      "evidence": [
+        {
+          "tier": "SUSPECT",
+          "space": "lobby",
+          "tv": "on_with_content",
+          "reasoning": "While the TV is clearly powered on with visible content, this appears to be a modern lobby or atrium with its open architecture, high ceilings, and visitor-facing design rather than an employee-only breakroom or cafeteria space.",
+          "cost": 0.001893,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ5LEBZNjz0PojHl_dA2iv7qGnQ_AqIHqPwJhe7NicYfQ&s",
+          "title": "Kenvue new global headquarters - A new view of care"
+        }
+      ],
+      "wall_time": 28.06636095046997
+    },
+    "total_cost": 0.0169,
+    "wall_time": 28.07
+  },
+  {
+    "account": "Standard Motor Products, Inc.",
+    "website": "www.smpcorp.com",
+    "tier": "SUSPECT",
+    "image_channel": {
+      "channel": "image",
+      "search_cost": 0.015,
+      "images_found": 15,
+      "yolo_detections": 4,
+      "vlm_calls": 4,
+      "vlm_cost": 0.010575000000000001,
+      "tier": "SUSPECT",
+      "evidence": [
+        {
+          "tier": "SUSPECT",
+          "space": "other",
+          "tv": "on_with_content",
+          "reasoning": "While the monitor is clearly on displaying SMP content, this appears to be a formal conference room or boardroom rather than an employee-only breakroom/cafeteria/gym space, and the professional presentation setup suggests this could be a stock photo or customer case study rather than a candid facility photo.",
+          "cost": 0.002691,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ0fg2dU051CGFLezDEQu31KWs7LT7O5HkNqlhqmeVdrQ&s=10",
+          "title": "Leadership | Standard Motor Products"
+        },
+        {
+          "tier": "SUSPECT",
+          "space": "other",
+          "tv": "on_with_content",
+          "reasoning": "While the TV is clearly powered on displaying SMP branded content, this appears to be a formal conference room or boardroom rather than an employee breakroom/cafeteria/gym, and the polished presentation setup suggests this could be a stock photo, customer case study, or visitor-facing space.",
+          "cost": 0.0026760000000000004,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ0fg2dU051CGFLezDEQu31KWs7LT7O5HkNqlhqmeVdrQ&s=10",
+          "title": "Leadership | Standard Motor Products"
+        }
+      ],
+      "wall_time": 37.67325401306152
+    },
+    "total_cost": 0.0256,
+    "wall_time": 37.67
+  },
+  {
+    "account": "Chart Inc.",
+    "website": "www.chartindustries.com",
+    "tier": "SUSPECT",
+    "image_channel": {
+      "channel": "image",
+      "search_cost": 0.015,
+      "images_found": 15,
+      "yolo_detections": 3,
+      "vlm_calls": 3,
+      "vlm_cost": 0.008483999999999998,
+      "tier": "SUSPECT",
+      "evidence": [
+        {
+          "tier": "SUSPECT",
+          "space": "other",
+          "tv": "unclear",
+          "reasoning": "This appears to be a retail food service or cafeteria-style ordering area with display cases and customers, with what may be monitors visible but their power status and content cannot be clearly confirmed, and the space appears to be a public-facing customer service area rather than an employee-only breakroom.",
+          "cost": 0.003003,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRacFJCgTYQWrrrbxzi58t5cgVexhzAe1k1YvCU6Bb8vQ&s=10",
+          "title": "The Hottest Hollywood Dine Spot: Universal's Trendy Studio Cafeteria"
+        },
+        {
+          "tier": "SUSPECT",
+          "space": "other",
+          "tv": "on_with_content",
+          "reasoning": "While the TV appears powered on with visible content, this appears to be a general office workspace rather than an employee-only breakroom, cafeteria, or fitness center, disqualifying it from PROSPECT tier.",
+          "cost": 0.002868,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQiGNhHRInRboMzEzJmGDHW7TEiK9K-XXgTL3fVo4C2yw&s=10",
+          "title": "Chart Industries Project - La Crosse WI | DBS Group"
+        }
+      ],
+      "wall_time": 33.13653588294983
+    },
+    "total_cost": 0.0235,
+    "wall_time": 33.14
+  },
+  {
+    "account": "Timken",
+    "website": "www.timken.com",
+    "tier": "REJECTED",
+    "image_channel": {
+      "channel": "image",
+      "search_cost": 0.015,
+      "images_found": 10,
+      "yolo_detections": 0,
+      "vlm_calls": 0,
+      "vlm_cost": 0,
+      "tier": "REJECTED",
+      "evidence": [],
+      "wall_time": 13.539370059967041
+    },
+    "total_cost": 0.015,
+    "wall_time": 13.54
+  },
+  {
+    "account": "MSA Safety",
+    "website": "www.msasafety.com",
+    "tier": "SUSPECT",
+    "image_channel": {
+      "channel": "image",
+      "search_cost": 0.015,
+      "images_found": 15,
+      "yolo_detections": 3,
+      "vlm_calls": 3,
+      "vlm_cost": 0.006204,
+      "tier": "SUSPECT",
+      "evidence": [
+        {
+          "tier": "SUSPECT",
+          "space": "cafeteria",
+          "tv": "unclear",
+          "reasoning": "This appears to be an employee cafeteria with a TV/monitor visible in the upper left corner, but the image quality and distance make it impossible to confirm whether the screen is powered on with visible content, and the professional photography style suggests this could be a stock or promotional photo.",
+          "cost": 0.001968,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcStT9_qi-vEajWxJUr9G3900Di_1rPm2TfdBug7Bh758w&s",
+          "title": "MSA - The new cafeteria"
+        }
+      ],
+      "wall_time": 34.73392701148987
+    },
+    "total_cost": 0.0212,
+    "wall_time": 34.73
+  },
+  {
+    "account": "First Horizon Bank",
+    "website": "www.firsthorizon.com",
+    "tier": "REJECTED",
+    "image_channel": {
+      "channel": "image",
+      "search_cost": 0.015,
+      "images_found": 15,
+      "yolo_detections": 1,
+      "vlm_calls": 1,
+      "vlm_cost": 0.0021330000000000003,
+      "tier": "REJECTED",
+      "evidence": [],
+      "wall_time": 22.675279140472412
+    },
+    "total_cost": 0.0171,
+    "wall_time": 22.68
+  },
+  {
+    "account": "AutoZone Parts, Inc.",
+    "website": "www.autozone.com",
+    "tier": "PROSPECT",
+    "image_channel": {
+      "channel": "image",
+      "search_cost": 0.015,
+      "images_found": 15,
+      "yolo_detections": 1,
+      "vlm_calls": 1,
+      "vlm_cost": 0.002928,
+      "tier": "PROSPECT",
+      "evidence": [
+        {
+          "tier": "PROSPECT",
+          "space": "gym/fitness center",
+          "tv": "on_with_content",
+          "reasoning": "The image shows an employee fitness center with exercise equipment (treadmill visible) and a powered-on TV/monitor displaying content on the wall, with a Christmas tree indicating this is an internal employee wellness space rather than a customer-facing area.",
+          "cost": 0.002928,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSH1aj_b__-Uy_ZygO80kc3E_FMWGLPNZbmiXpBuprtCA&s=10",
+          "title": "Welcome to AZ, What do you want? : r/AutoZone"
+        }
+      ],
+      "wall_time": 16.893433094024658
+    },
+    "total_cost": 0.0179,
+    "wall_time": 16.89
+  },
+  {
+    "account": "Armstrong World Industries",
+    "website": "www.armstrong.com",
+    "tier": "REJECTED",
+    "image_channel": {
+      "channel": "image",
+      "search_cost": 0.015,
+      "images_found": 15,
+      "yolo_detections": 1,
+      "vlm_calls": 1,
+      "vlm_cost": 0.002778,
+      "tier": "REJECTED",
+      "evidence": [],
+      "wall_time": 22.46389389038086
+    },
+    "total_cost": 0.0178,
+    "wall_time": 22.46
+  },
+  {
+    "account": "Kwik Trip",
+    "website": "www.kwiktrip.com",
+    "tier": "PROSPECT",
+    "image_channel": {
+      "channel": "image",
+      "search_cost": 0.015,
+      "images_found": 15,
+      "yolo_detections": 4,
+      "vlm_calls": 4,
+      "vlm_cost": 0.010877999999999999,
+      "tier": "PROSPECT",
+      "evidence": [
+        {
+          "tier": "SUSPECT",
+          "space": "lobby",
+          "tv": "on_with_content",
+          "reasoning": "While the TV is clearly powered on displaying content, this is a reception/lobby area (evidenced by the \"KWIK TRIP\" signage, reception desk, and visitor seating) rather than an employee-only space.",
+          "cost": 0.002469,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnaQGQxjD77mWvMXsg_bBy_PCRZDzTZPQfrn7th1MHGw&s=10",
+          "title": "Kwik Trip Lobby/Breakroom \u2014 Wieser Brothers"
+        },
+        {
+          "tier": "SUSPECT",
+          "space": "cafeteria",
+          "tv": "unclear",
+          "reasoning": "This appears to be an employee cafeteria with a TV/monitor visible on the wall in the background, but the TV's power status and whether it's displaying content cannot be clearly confirmed from this distance and image quality.",
+          "cost": 0.002853,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSqY-bYjiYqDzpv04ubFcO7rNFPqqiOo1NAld-Jkm4qsw&s=10",
+          "title": "Kwik Trip - Break Room Remodel - I.D.ology"
+        },
+        {
+          "tier": "PROSPECT",
+          "space": "cafeteria",
+          "tv": "on_with_content",
+          "reasoning": "The TV mounted in the upper right corner is clearly powered on displaying visible content (appears to be news), and this is an employee cafeteria/breakroom with multiple dining tables and chairs in a real facility setting.",
+          "cost": 0.002898,
+          "source_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSMmAjnsdOgId37XnWVRI74SyAe-oIdT_gYie71PhymEA&s=10",
+          "title": "Kwik Trip - Break Room Remodel - I.D.ology"
+        }
+      ],
+      "wall_time": 69.00479531288147
+    },
+    "total_cost": 0.0259,
+    "wall_time": 69.0
+  },
+  {
+    "account": "Bimbo Bakeries USA, Inc.",
+    "website": "www.bimbobakeriesusa.com",
+    "tier": "REJECTED",
+    "image_channel": {
+      "channel": "image",
+      "search_cost": 0.015,
+      "images_found": 15,
+      "yolo_detections": 0,
+      "vlm_calls": 0,
+      "vlm_cost": 0,
+      "tier": "REJECTED",
+      "evidence": [],
+      "wall_time": 20.693578004837036
+    },
+    "total_cost": 0.015,
+    "wall_time": 20.69
+  },
+  {
+    "account": "AmTrust North America, Inc",
+    "website": "www.amtrustfinancial.com",
+    "tier": "REJECTED",
+    "image_channel": {
+      "channel": "image",
+      "search_cost": 0.015,
+      "images_found": 5,
+      "yolo_detections": 0,
+      "vlm_calls": 0,
+      "vlm_cost": 0,
+      "tier": "REJECTED",
+      "evidence": [],
+      "wall_time": 22.532583236694336
+    },
+    "total_cost": 0.015,
+    "wall_time": 22.53
+  }
+]

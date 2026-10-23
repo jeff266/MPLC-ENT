@@ -1,0 +1,213 @@
+================================================================================
+BUILDING PROPER EVAL SET
+================================================================================
+True Positives (should match): 20
+True Negatives (should NOT match): 15
+
+
+================================================================================
+TRUE POSITIVES (Known Sports Bars - Should Detect TVs)
+================================================================================
+
+[1/20] Hooters
+--------------------------------------------------------------------------------
+❌ MISSED: No matches found
+   Page scraped successfully but no pattern matches
+
+[2/20] Buffalo Wild Wings
+--------------------------------------------------------------------------------
+✅ DETECTED: 1 matches (best score: 60)
+   - "game day" (score: 60)
+
+[3/20] Twin Peaks Restaurant
+--------------------------------------------------------------------------------
+✅ DETECTED: 10 matches (best score: 100)
+   - "Sports Bar" (score: 100)
+   - "wall-to-wall TVs" (score: 100)
+   - "watch party" (score: 100)
+
+[4/20] Dave & Busters
+--------------------------------------------------------------------------------
+✅ DETECTED: 7 matches (best score: 75)
+   - "football" (score: 75)
+   - "UFC" (score: 26)
+   - "ufc" (score: 26)
+
+[5/20] Topgolf
+--------------------------------------------------------------------------------
+✅ DETECTED: 2 matches (best score: 93)
+   - "Game Day" (score: 93)
+   - "TVs" (score: 60)
+
+[6/20] Walk-Ons Sports Bistreaux
+--------------------------------------------------------------------------------
+✅ DETECTED: 10 matches (best score: 90)
+   - "wall-to-wall TVs" (score: 90)
+   - "Game Day" (score: 60)
+   - "game day" (score: 60)
+
+[7/20] Yard House
+--------------------------------------------------------------------------------
+❌ MISSED: No matches found
+   Page scraped successfully but no pattern matches
+
+[8/20] Lucky Strike
+--------------------------------------------------------------------------------
+❌ MISSED: No matches found
+   Page scraped successfully but no pattern matches
+
+[9/20] Main Event
+--------------------------------------------------------------------------------
+✅ DETECTED: 6 matches (best score: 35)
+   - "Entertainment" (score: 35)
+   - "entertainment" (score: 35)
+   - "Game" (score: 0)
+
+[10/20] Punch Bowl Social
+--------------------------------------------------------------------------------
+❌ MISSED: No matches found
+   Page scraped successfully but no pattern matches
+
+[11/20] Round1 Bowling
+--------------------------------------------------------------------------------
+✅ DETECTED: 2 matches (best score: 0)
+   - "GAME" (score: 0)
+   - "GAME" (score: 0)
+
+[12/20] Pinstripes
+--------------------------------------------------------------------------------
+❌ MISSED: No matches found
+   Page scraped successfully but no pattern matches
+
+[13/20] Bowlero
+--------------------------------------------------------------------------------
+✅ DETECTED: 2 matches (best score: 0)
+   - "game" (score: 0)
+   - "match" (score: 0)
+
+[14/20] Kings Dining Entertainment
+--------------------------------------------------------------------------------
+❌ MISSED: No matches found
+   Failed to scrape page
+
+[15/20] Splitsville
+--------------------------------------------------------------------------------
+❌ MISSED: No matches found
+   Page scraped successfully but no pattern matches
+
+[16/20] Fox and Hound
+--------------------------------------------------------------------------------
+✅ DETECTED: 1 matches (best score: 5)
+   - "game" (score: 5)
+
+[17/20] Tilted Kilt
+--------------------------------------------------------------------------------
+✅ DETECTED: 2 matches (best score: 99)
+   - "sports bar" (score: 99)
+   - "screens" (score: 63)
+
+[18/20] Twin Peaks (alt)
+--------------------------------------------------------------------------------
+✅ DETECTED: 1 matches (best score: 96)
+   - "Game Day" (score: 96)
+
+[19/20] Pluckers Wing Bar
+--------------------------------------------------------------------------------
+❌ MISSED: No matches found
+   Page scraped successfully but no pattern matches
+
+[20/20] Champps
+--------------------------------------------------------------------------------
+❌ MISSED: No matches found
+   Page scraped successfully but no pattern matches
+
+================================================================================
+TRUE NEGATIVES (No TVs - Should NOT Detect)
+================================================================================
+
+[1/15] Kirkland & Ellis Law
+--------------------------------------------------------------------------------
+✅ CORRECT: No matches
+
+[2/15] Latham & Watkins Law
+--------------------------------------------------------------------------------
+❌ FALSE POSITIVE: 1 matches (best score: 23)
+   - "Football" (score: 23)
+
+[3/15] Skadden Law Firm
+--------------------------------------------------------------------------------
+✅ CORRECT: No matches
+
+[4/15] Aspen Dental
+--------------------------------------------------------------------------------
+✅ CORRECT: No matches
+
+[5/15] Gentle Dental
+--------------------------------------------------------------------------------
+✅ CORRECT: No matches
+
+[6/15] Deloitte
+--------------------------------------------------------------------------------
+❌ FALSE POSITIVE: 1 matches (best score: 0)
+   - "game" (score: 0)
+
+[7/15] PwC
+--------------------------------------------------------------------------------
+❌ FALSE POSITIVE: 2 matches (best score: 38)
+   - "Entertainment" (score: 38)
+   - "Match" (score: 0)
+
+[8/15] EY Accounting
+--------------------------------------------------------------------------------
+✅ CORRECT: No matches
+
+[9/15] State Farm Insurance
+--------------------------------------------------------------------------------
+✅ CORRECT: No matches
+
+[10/15] Allstate Insurance
+--------------------------------------------------------------------------------
+✅ CORRECT: No matches
+
+[11/15] Gap Retail
+--------------------------------------------------------------------------------
+❌ FALSE POSITIVE: 1 matches (best score: 0)
+   - "match" (score: 0)
+
+[12/15] Old Navy
+--------------------------------------------------------------------------------
+✅ CORRECT: No matches
+
+[13/15] Kohls Department Store
+--------------------------------------------------------------------------------
+✅ CORRECT: No matches
+
+[14/15] Bed Bath Beyond
+--------------------------------------------------------------------------------
+✅ CORRECT: No matches
+
+[15/15] Office Depot
+--------------------------------------------------------------------------------
+✅ CORRECT: No matches
+
+================================================================================
+EVAL SET METRICS
+================================================================================
+
+TRUE POSITIVES (Sports Bars):
+  Detected: 11/20 (55.0% recall)
+  Missed: 9
+
+TRUE NEGATIVES (No TVs):
+  Correct rejections: 11/15
+  False positives: 4
+
+OVERALL:
+  Recall: 55.0% (detected 11/20 known sports bars)
+  Precision: 73.3% (of all detections, 11/15 were correct)
+
+❌ FAILS - Needs significant improvement
+
+Results saved to eval_set_results.json
+
+Next: Investigate missed true positives to diagnose recall issues

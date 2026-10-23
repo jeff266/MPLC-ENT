@@ -1,0 +1,2916 @@
+{
+  "restaurants": {
+    "vertical": "Restaurants/Bars",
+    "total_accounts": 20,
+    "accounts_with_tv": 15,
+    "detected": 15,
+    "recall": 1.0,
+    "precision": 1.2,
+    "fallback_triggered_count": 0,
+    "fallback_accounts": [],
+    "photos_available_count": 19,
+    "photos_percentage": 0.95,
+    "all_results": [
+      {
+        "business_name": "Topgolf",
+        "expected_tv": true,
+        "reviews_fetched": 25,
+        "total_reviews": 6565,
+        "matched": false,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 88,
+        "matched_reviews": [],
+        "correct": false
+      },
+      {
+        "business_name": "Walk-Ons Sports Bistreaux",
+        "expected_tv": true,
+        "reviews_fetched": 25,
+        "total_reviews": 4246,
+        "matched": true,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 46,
+        "matched_reviews": [
+          {
+            "review_num": 4,
+            "rating": 5,
+            "published_at": "2026-09-06T03:45:30.010Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bfootball\\b",
+            "snippet": "Came into town from Oklahoma, to watch football games and have a couple drinks, and foosball tournament. We",
+            "has_photos": true,
+            "photo_count": 1
+          },
+          {
+            "review_num": 7,
+            "rating": 5,
+            "published_at": "2026-07-02T02:38:18.915Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btelevisions?\\b",
+            "snippet": "ng a game. The food was phenomenal and whats great is there televisions lining all a long the walls so you will always have a quali",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 10,
+            "rating": 5,
+            "published_at": "2026-04-26T18:52:21.211Z",
+            "confidence": "High",
+            "matched_pattern": "\\bsports bar\\b",
+            "snippet": "-On\u2019s \u2014 seriously one of the best experiences I\u2019ve had at a sports bar. She was on top of everything the whole time, super attenti",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 13,
+            "rating": 1,
+            "published_at": "2026-06-25T23:46:16.660Z",
+            "confidence": "High",
+            "matched_pattern": "\\bsports bar\\b",
+            "snippet": "e paid our bill and left immediately. We then found another sports bar that was happy to accommodate us and where the staff actual",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 23,
+            "rating": 5,
+            "published_at": "2026-05-18T03:28:26.100Z",
+            "confidence": "High",
+            "matched_pattern": "\\bsports bar\\b",
+            "snippet": "Sports bar with lots of tv screens. Good food and fun ambience. Food p",
+            "has_photos": true,
+            "photo_count": 3
+          },
+          {
+            "review_num": 25,
+            "rating": 5,
+            "published_at": "2025-05-06T04:01:43.317Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "great meal.\n\nOne letdown was that the local game wasn\u2019t on TV\u2014I was hoping to catch the end\u2014but considering how it was go",
+            "has_photos": true,
+            "photo_count": 4
+          }
+        ],
+        "correct": true
+      },
+      {
+        "business_name": "Hooters",
+        "expected_tv": true,
+        "reviews_fetched": 75,
+        "total_reviews": 1464,
+        "matched": true,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 142,
+        "matched_reviews": [
+          {
+            "review_num": 54,
+            "rating": 1,
+            "published_at": "2026-07-21T02:45:36.448Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bsoccer\\b",
+            "snippet": "Stopped in to watch the the soccer game and have dinner, accompanied by my service dog. I have",
+            "has_photos": true,
+            "photo_count": 1
+          },
+          {
+            "review_num": 57,
+            "rating": 5,
+            "published_at": "2026-07-13T00:52:22.218Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bsoccer\\b",
+            "snippet": "I came for the soccer game and sat with Aleya, it was super busy but she made sur",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 65,
+            "rating": 1,
+            "published_at": "2026-07-04T15:55:12.848Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bscreens?\\b",
+            "snippet": "Came in to watch the Spain game. Only shown on one screen that we could see. Music so loud.\nHad the top off one beer",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 68,
+            "rating": 1,
+            "published_at": "2025-07-09T21:47:03.751Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "osing other Hooters. Food came out 1 by 1, drinks mediocre. TV screens are outdated and all screens are dirty. Our check h",
+            "has_photos": true,
+            "photo_count": 3
+          },
+          {
+            "review_num": 71,
+            "rating": 2,
+            "published_at": "2026-06-28T02:36:21.544Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "Food was good.\nTV were awfully arranged, and not with clear img to watch the",
+            "has_photos": false,
+            "photo_count": 0
+          }
+        ],
+        "correct": true
+      },
+      {
+        "business_name": "Dave & Busters",
+        "expected_tv": true,
+        "reviews_fetched": 25,
+        "total_reviews": 8833,
+        "matched": true,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 44,
+        "matched_reviews": [
+          {
+            "review_num": 6,
+            "rating": 5,
+            "published_at": "2026-01-26T23:23:19.961Z",
+            "confidence": "High",
+            "matched_pattern": "\\bwatch (the )?(game|games|match|matches|fight|fights)\\b",
+            "snippet": "re's our dilemma, we arrived around 6 PM wanting to eat and watch the fights. Problem is the storm got worst and they were closing and w",
+            "has_photos": true,
+            "photo_count": 4
+          },
+          {
+            "review_num": 10,
+            "rating": 5,
+            "published_at": "2025-10-22T00:45:36.678Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "e arcade. It\u2019s an amazing spot to watch sports with tons of TVs, a pickleball practice area, a light arena for group games,",
+            "has_photos": true,
+            "photo_count": 4
+          }
+        ],
+        "correct": true
+      },
+      {
+        "business_name": "Tilted Kilt",
+        "expected_tv": true,
+        "reviews_fetched": 131,
+        "total_reviews": 6,
+        "matched": true,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 152,
+        "matched_reviews": [
+          {
+            "review_num": 22,
+            "rating": 5,
+            "published_at": "2018-04-29T23:51:03.326Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bscreens?\\b",
+            "snippet": "de to the restaurant are awesome. The couch area by the big screen is a great place to watch any game! Good customer service a",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 26,
+            "rating": 5,
+            "published_at": "2019-07-19T14:03:55.250Z",
+            "confidence": "High",
+            "matched_pattern": "\\bwatch (the )?(game|games|match|matches|fight|fights)\\b",
+            "snippet": "sted in that game, it does seem to be a good place to go to watch games. They helped us celebrate the stag we were on by providing",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 32,
+            "rating": 5,
+            "published_at": "2017-11-12T19:48:31.909Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "Extremely entertaining and accommodating game days with all TVs on the game, audio on the house speakers, a dj, and raffle",
+            "has_photos": true,
+            "photo_count": 4
+          },
+          {
+            "review_num": 41,
+            "rating": 5,
+            "published_at": "2016-08-23T14:35:04.970Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "Great food and beer selection, outdoor bar and tv's to catch the latest game",
+            "has_photos": true,
+            "photo_count": 1
+          },
+          {
+            "review_num": 42,
+            "rating": 4,
+            "published_at": "2017-09-09T22:10:14.369Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "Good size place with plenty of seating, lots of TV's, good atmosphere, and a nice outdoor patio. They are very",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 45,
+            "rating": 4,
+            "published_at": "2012-11-21T16:10:44.132Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "and just in time for the main event. They even changed the TV that was right in front of my table to the event I wanted t",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 50,
+            "rating": 2,
+            "published_at": "2012-10-21T23:36:59.794Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "itched it to another game (Colts vs Browns) that was on the TV to the left (without asking me). Never changed the game bac",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 51,
+            "rating": 5,
+            "published_at": "2018-03-07T00:00:08.109Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bscreens?\\b",
+            "snippet": "Always a fabulous burger, great ambiance, lots of flat screens with a world of sports stations always playing. Indoor or o",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 59,
+            "rating": 1,
+            "published_at": "2016-12-13T03:42:18.735Z",
+            "confidence": "High",
+            "matched_pattern": "\\bwatch (the )?(game|games|match|matches|fight|fights)\\b",
+            "snippet": "aid it was 20). We came in were seated on a Monday night to watch the game with very few people at the tables(customers were outnumber",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 61,
+            "rating": 5,
+            "published_at": "2014-02-01T17:22:36.422Z",
+            "confidence": "High",
+            "matched_pattern": "\\bsports bar\\b",
+            "snippet": "Best sports bar ive been to in phoenix great food drinks good you get what",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 63,
+            "rating": 5,
+            "published_at": "2016-11-27T15:17:55.658Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bfootball\\b",
+            "snippet": "n here a couple times within the past month to watch Sunday football and the girls working have provided fast and friendly servi",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 67,
+            "rating": 3,
+            "published_at": "2016-07-08T19:00:54.592Z",
+            "confidence": "High",
+            "matched_pattern": "\\bcatch (the )?(game|match|fight)\\b",
+            "snippet": "food menu, this Scottish take on Hooter's is a good spot to catch the game on Sunday and have a drink with your pals.",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 78,
+            "rating": 4,
+            "published_at": "2017-03-27T17:50:09.081Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "nice beer selection and usually quick service with lots of TVs for sporting events.",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 86,
+            "rating": 4,
+            "published_at": "2019-11-06T21:54:26.796Z",
+            "confidence": "High",
+            "matched_pattern": "\\bwatch (the )?(game|games|match|matches|fight|fights)\\b",
+            "snippet": "great selection of food a must for upscale bar food or just watch the game\u2661!",
+            "has_photos": true,
+            "photo_count": 1
+          },
+          {
+            "review_num": 90,
+            "rating": 4,
+            "published_at": "2018-09-28T04:38:54.151Z",
+            "confidence": "High",
+            "matched_pattern": "\\bcatch (the )?(game|match|fight)\\b",
+            "snippet": "eased with his burger and the food. My husband was happy to catch the game while we visited. We tried the Pickle Fries for the first t",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 103,
+            "rating": 5,
+            "published_at": "2016-09-24T17:10:20.879Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "uring football season. And they have a breakfast menu. Good TV views from just about every table. Great customer service,",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 114,
+            "rating": 5,
+            "published_at": "2025-09-28T21:23:53.711Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "Came in on a Sunday. There are over 25 tvs on with all the football games as well as golf. Huge select",
+            "has_photos": true,
+            "photo_count": 3
+          },
+          {
+            "review_num": 119,
+            "rating": 5,
+            "published_at": "2024-03-25T18:07:43.201Z",
+            "confidence": "High",
+            "matched_pattern": "\\bsports bar\\b",
+            "snippet": "h I highly recommend. The atmosphere is a British pub meets sports bar, and it was fairly empty when we went (around 3pm on a Tues",
+            "has_photos": true,
+            "photo_count": 2
+          },
+          {
+            "review_num": 131,
+            "rating": 5,
+            "published_at": "2018-01-24T04:00:46.620Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "cy it was actually pretty tasty as well. There is plenty of TVs surrounding me so I could catch all the games that we're go",
+            "has_photos": true,
+            "photo_count": 9
+          }
+        ],
+        "correct": true
+      },
+      {
+        "business_name": "Yard House",
+        "expected_tv": true,
+        "reviews_fetched": 25,
+        "total_reviews": 3883,
+        "matched": true,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 131,
+        "matched_reviews": [
+          {
+            "review_num": 2,
+            "rating": 5,
+            "published_at": "2026-07-19T23:14:45.913Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "ud, we understood that because of the sports playing on the TVs. We also really loved the music they were playing.\nOur serv",
+            "has_photos": true,
+            "photo_count": 3
+          },
+          {
+            "review_num": 4,
+            "rating": 3,
+            "published_at": "2026-04-14T07:07:41.391Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "al, low light but warm and welcoming ambiance and there are TV screens everywhere for sports fans with interior only seati",
+            "has_photos": true,
+            "photo_count": 10
+          },
+          {
+            "review_num": 12,
+            "rating": 5,
+            "published_at": "2025-08-30T17:44:22.031Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "n regularly.  This is great spot to watch sports; there are TVs everywhere. I can't wait to come back and try more menu ite",
+            "has_photos": true,
+            "photo_count": 5
+          }
+        ],
+        "correct": true
+      },
+      {
+        "business_name": "Punch Bowl Social",
+        "expected_tv": true,
+        "reviews_fetched": 25,
+        "total_reviews": 4660,
+        "matched": true,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 123,
+        "matched_reviews": [
+          {
+            "review_num": 2,
+            "rating": 5,
+            "published_at": "2026-05-08T23:52:47.777Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bscreens?\\b",
+            "snippet": "ts us 20 per person.\n\nThey have this meme generation on the screen which is quite engaging and sometimes it shows you instruct",
+            "has_photos": true,
+            "photo_count": 3
+          }
+        ],
+        "correct": true
+      },
+      {
+        "business_name": "Splitsville Luxury Lanes",
+        "expected_tv": true,
+        "reviews_fetched": 25,
+        "total_reviews": 4365,
+        "matched": true,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 67,
+        "matched_reviews": [
+          {
+            "review_num": 9,
+            "rating": 5,
+            "published_at": "2026-08-23T17:04:17.822Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bfootball\\b",
+            "snippet": "Lovely place to watch football and just chill. Our bartender Dorsey was superb. Just the r",
+            "has_photos": true,
+            "photo_count": 3
+          }
+        ],
+        "correct": true
+      },
+      {
+        "business_name": "Twin Peaks Restaurant",
+        "expected_tv": true,
+        "reviews_fetched": 482,
+        "total_reviews": 8224,
+        "matched": true,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 692,
+        "matched_reviews": [
+          {
+            "review_num": 7,
+            "rating": 5,
+            "published_at": "2026-07-12T14:59:59.591Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bscreens?\\b",
+            "snippet": "eeing the amazing peaks and valleys. Games on all the large Screens. Family organized and booth and bar style seating.  Friendl",
+            "has_photos": true,
+            "photo_count": 9
+          },
+          {
+            "review_num": 8,
+            "rating": 5,
+            "published_at": "2026-06-21T16:53:51.971Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bsoccer\\b",
+            "snippet": "ience at Twin Peaks. Came to watch the Spain v Saudi Arabia soccer game. Food was awesome. Had the spicy chitpotle chicken whi",
+            "has_photos": true,
+            "photo_count": 1
+          },
+          {
+            "review_num": 20,
+            "rating": 5,
+            "published_at": "2025-12-21T17:00:48.688Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bufc\\b",
+            "snippet": "Went on Friday night, it was packed. UFC and Alabama vs Oklahoma were on. Fridays are Lingerie Night",
+            "has_photos": true,
+            "photo_count": 9
+          },
+          {
+            "review_num": 35,
+            "rating": 5,
+            "published_at": "2020-01-21T01:45:36.231Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "Great food. Great service and lots to look at...  TV's that is. Lol. Excellent steak!!",
+            "has_photos": true,
+            "photo_count": 1
+          },
+          {
+            "review_num": 41,
+            "rating": 3,
+            "published_at": "2017-12-30T01:48:43.162Z",
+            "confidence": "High",
+            "matched_pattern": "\\bsports bar\\b",
+            "snippet": "Overall the food is pretty decent for a chain sports bar.  It blows places like Hooters out if the water.  Beer sele",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 71,
+            "rating": 4,
+            "published_at": "2026-05-10T19:09:56.476Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "arage\" where i spent the entirety of my time. Sports on the TVs, privacy and the freedom to smoke! Lacie came and checked o",
+            "has_photos": true,
+            "photo_count": 1
+          },
+          {
+            "review_num": 76,
+            "rating": 5,
+            "published_at": "2026-09-05T17:30:19.420Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bfootball\\b",
+            "snippet": "Stopped in for day 1 of college football. Sat down and Jonas was helpful from the start. She was kno",
+            "has_photos": true,
+            "photo_count": 2
+          },
+          {
+            "review_num": 121,
+            "rating": 4,
+            "published_at": "2026-08-10T16:15:25.754Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "The food was very good.  There are many tv screens they gladly change channels to accommodate. The sir",
+            "has_photos": true,
+            "photo_count": 1
+          },
+          {
+            "review_num": 172,
+            "rating": 5,
+            "published_at": "2026-05-19T17:50:14.558Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "ks in Atlanta! The atmosphere is always lively with tons of TVs to catch every game. A huge shoutout to Sydney for taking s",
+            "has_photos": true,
+            "photo_count": 1
+          },
+          {
+            "review_num": 173,
+            "rating": 3,
+            "published_at": "2026-07-03T17:46:26.625Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "is place has a large bar and a large dining room. There are TV's everywhere to include at our table. The dining room wasn'",
+            "has_photos": true,
+            "photo_count": 4
+          },
+          {
+            "review_num": 177,
+            "rating": 5,
+            "published_at": "2026-05-15T21:42:37.024Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bufc\\b",
+            "snippet": "the movie theater/watch room atmosphere while watching the UFC, it made the whole experience even better. Definitely comin",
+            "has_photos": true,
+            "photo_count": 2
+          },
+          {
+            "review_num": 187,
+            "rating": 4,
+            "published_at": "2026-08-25T17:55:43.146Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "occer matches on a Sunday and sat at bar. They have lots of TVs and were quick to put on the matches. My bartenders were bo",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 197,
+            "rating": 5,
+            "published_at": "2026-04-27T23:44:41.136Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "great and lots of food/drink options for anyone. They have TV's right in the both and were kind enough to change the chan",
+            "has_photos": true,
+            "photo_count": 1
+          },
+          {
+            "review_num": 199,
+            "rating": 5,
+            "published_at": "2026-07-05T23:48:03.072Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "thing you would think it is and that's why I went.\n\nLots of TVs and several different games showing.  They have nice cold b",
+            "has_photos": true,
+            "photo_count": 1
+          },
+          {
+            "review_num": 201,
+            "rating": 3,
+            "published_at": "2026-06-12T23:07:50.928Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "Delicious and strong. I like it.\nA guy next to me wanted a TV changed to see the world cup on the TVs and the bartender t",
+            "has_photos": true,
+            "photo_count": 2
+          },
+          {
+            "review_num": 208,
+            "rating": 4,
+            "published_at": "2026-06-23T22:29:51.289Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "rant is clean and pretty lively. Many sports events on many TV's great drink selection with good prices overall. Good appe",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 212,
+            "rating": 5,
+            "published_at": "2026-05-03T18:24:48.187Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "eat, waitress was sweet, and atmosphere was cool! Plenty of TVs to watch sports! Fried Pickles were the best",
+            "has_photos": true,
+            "photo_count": 1
+          },
+          {
+            "review_num": 228,
+            "rating": 5,
+            "published_at": "2026-01-28T00:52:18.694Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "s good. Definitely a nice spot to grab a cold one and watch tv.",
+            "has_photos": true,
+            "photo_count": 4
+          },
+          {
+            "review_num": 231,
+            "rating": 4,
+            "published_at": "2026-05-09T02:30:42.052Z",
+            "confidence": "High",
+            "matched_pattern": "\\bwatch (the )?(game|games|match|matches|fight|fights)\\b",
+            "snippet": "s. The place was very clean and comfortable. Lots of TVs to watch games on. We really liked the mozzarella bites. The burger with t",
+            "has_photos": true,
+            "photo_count": 4
+          },
+          {
+            "review_num": 236,
+            "rating": 5,
+            "published_at": "2026-04-06T22:24:23.540Z",
+            "confidence": "High",
+            "matched_pattern": "\\bsports bar\\b",
+            "snippet": "t service from waitress. Prices were pretty good. This is a sports bar with plenty of seats and TVs.",
+            "has_photos": true,
+            "photo_count": 1
+          },
+          {
+            "review_num": 251,
+            "rating": 5,
+            "published_at": "2026-07-12T15:09:54.391Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "said food was good and the atmosphere was fun with all the TV's . Folks seem to be enjoying around me as well. I will be",
+            "has_photos": true,
+            "photo_count": 9
+          },
+          {
+            "review_num": 283,
+            "rating": 3,
+            "published_at": "2026-05-13T15:12:30.355Z",
+            "confidence": "High",
+            "matched_pattern": "\\bsports bar\\b",
+            "snippet": "Don't be fooled not a steakhouse. This is a sports bar. This has \"hooters\"like feel. barely dressed young rail thi",
+            "has_photos": true,
+            "photo_count": 18
+          },
+          {
+            "review_num": 287,
+            "rating": 5,
+            "published_at": "2025-11-13T01:51:15.582Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "nk you will be disappointed if you give them a try. Lots of TV's if you are a sports nut.",
+            "has_photos": true,
+            "photo_count": 3
+          },
+          {
+            "review_num": 297,
+            "rating": 4,
+            "published_at": "2026-07-31T23:10:18.686Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btelevisions?\\b",
+            "snippet": "rvice was good, the golf occupied what appeared to be every television manufactured since 1997, and the place was undeniably enter",
+            "has_photos": true,
+            "photo_count": 2
+          },
+          {
+            "review_num": 309,
+            "rating": 5,
+            "published_at": "2026-08-04T23:56:18.211Z",
+            "confidence": "High",
+            "matched_pattern": "\\bsports bar\\b",
+            "snippet": "Wonderful sports bar and eatery.  Delicious food,  very reasonably priced and at",
+            "has_photos": true,
+            "photo_count": 1
+          },
+          {
+            "review_num": 402,
+            "rating": 2,
+            "published_at": "2026-03-24T18:13:57.387Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "om, I don't think anyone would've cared. They have numerous tv's for games which is nice, but the speakers were so loud th",
+            "has_photos": true,
+            "photo_count": 2
+          },
+          {
+            "review_num": 405,
+            "rating": 5,
+            "published_at": "2025-11-09T23:30:51.626Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bfootball\\b",
+            "snippet": "ry welcoming, friendly, courteous, and professional. It was football Sunday and they were rather busy. She got my \"Dine In\" orde",
+            "has_photos": true,
+            "photo_count": 6
+          }
+        ],
+        "correct": true
+      },
+      {
+        "business_name": "Pinstripes",
+        "expected_tv": true,
+        "reviews_fetched": 80,
+        "total_reviews": 5,
+        "matched": true,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 398,
+        "matched_reviews": [
+          {
+            "review_num": 32,
+            "rating": 4,
+            "published_at": "2025-06-18T10:37:39.220Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bsoccer\\b",
+            "snippet": "darts, what looks like beer pong but with garbage cans and soccer ball! There were other things to play but it was still pret",
+            "has_photos": true,
+            "photo_count": 6
+          },
+          {
+            "review_num": 50,
+            "rating": 5,
+            "published_at": "2024-07-29T23:23:50.112Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bscreens?\\b",
+            "snippet": "are beautiful and so easy to mange all from a touch of the screen. We had a fantastic time and will for sure be back very soo",
+            "has_photos": true,
+            "photo_count": 1
+          },
+          {
+            "review_num": 54,
+            "rating": 5,
+            "published_at": "2026-02-10T06:03:49.172Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "were comparative for bowling where you can also eat, watch tv or chill on their cushioned couches while waiting your turn",
+            "has_photos": true,
+            "photo_count": 3
+          }
+        ],
+        "correct": true
+      },
+      {
+        "business_name": "Pluckers Wing Bar",
+        "expected_tv": true,
+        "reviews_fetched": 150,
+        "total_reviews": 2200,
+        "matched": true,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 241,
+        "matched_reviews": [
+          {
+            "review_num": 6,
+            "rating": 1,
+            "published_at": "2026-06-11T01:30:25.707Z",
+            "confidence": "High",
+            "matched_pattern": "\\bwatch (the )?(game|games|match|matches|fight|fights)\\b",
+            "snippet": "cause they were busy. She literally told me I could stay to watch the game, but I wouldn't be getting any food. Like lol.",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 15,
+            "rating": 5,
+            "published_at": "2025-11-11T04:26:26.305Z",
+            "confidence": "High",
+            "matched_pattern": "\\bsports bar\\b",
+            "snippet": "uess somewhere in my mind I had written this place off as a sports bar franchise bulshit place I would not enjoy and I would never",
+            "has_photos": true,
+            "photo_count": 3
+          },
+          {
+            "review_num": 18,
+            "rating": 5,
+            "published_at": "2025-10-27T00:56:35.604Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "ngry and bold,\nDreaming of wings dipped in liquid gold.\nThe TVs were glowing, the sauces divine,\nAnd Walker appeared \u2014 righ",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 28,
+            "rating": 4,
+            "published_at": "2026-07-02T02:59:14.975Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "This pluckers has tons of TVs and is a good place to come to watch sports. The food is on",
+            "has_photos": true,
+            "photo_count": 19
+          },
+          {
+            "review_num": 30,
+            "rating": 1,
+            "published_at": "2026-09-06T14:52:00.355Z",
+            "confidence": "High",
+            "matched_pattern": "\\bgame[ -]?day\\b",
+            "snippet": "\u2019t wanna be there. When my friend and I arrived it was a UT game day so we understand we\u2019d have to be patient . ERIC took our dr",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 34,
+            "rating": 4,
+            "published_at": "2025-08-07T16:35:00.785Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "interior is clean and the whole place is lined with enough TVs to make a Best Buy blush. Seems like a great place to be on",
+            "has_photos": true,
+            "photo_count": 5
+          },
+          {
+            "review_num": 43,
+            "rating": 3,
+            "published_at": "2024-02-15T01:12:25.464Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "go here again unless I really wanted to watch sports on the TVs. There's way too much stimulation and ads that kept playing",
+            "has_photos": true,
+            "photo_count": 4
+          },
+          {
+            "review_num": 52,
+            "rating": 4,
+            "published_at": "2025-09-30T23:22:15.404Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bfootball\\b",
+            "snippet": "Plucker's is a great place if you are in the mood to watch football & eat wings!",
+            "has_photos": true,
+            "photo_count": 2
+          },
+          {
+            "review_num": 55,
+            "rating": 3,
+            "published_at": "2024-12-21T15:46:50.568Z",
+            "confidence": "High",
+            "matched_pattern": "\\bgame[ -]?day\\b",
+            "snippet": "you\u2019re rooting for your favorite team or just enjoying the game-day energy.\n\nThe service was friendly and attentive. Staff memb",
+            "has_photos": true,
+            "photo_count": 3
+          },
+          {
+            "review_num": 65,
+            "rating": 4,
+            "published_at": "2018-06-24T22:15:14.842Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bscreens?\\b",
+            "snippet": "hour and the mug was giant! :-) pretty cool. There are also screens all over so you don't miss any sports action. There was no",
+            "has_photos": true,
+            "photo_count": 2
+          },
+          {
+            "review_num": 68,
+            "rating": 5,
+            "published_at": "2023-02-09T22:03:45.843Z",
+            "confidence": "High",
+            "matched_pattern": "\\bsports bar\\b",
+            "snippet": "Pluckers is my family's favorite sports bar and the great wings are just a bonus.  I love all the diffe",
+            "has_photos": true,
+            "photo_count": 3
+          },
+          {
+            "review_num": 70,
+            "rating": 5,
+            "published_at": "2025-09-23T01:52:28.675Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bfootball\\b",
+            "snippet": "Went to Pluckers for Monday night football. Michael and Jaxon made it a fantastic experience. Always a",
+            "has_photos": true,
+            "photo_count": 1
+          },
+          {
+            "review_num": 71,
+            "rating": 5,
+            "published_at": "2023-09-05T22:13:28.400Z",
+            "confidence": "High",
+            "matched_pattern": "\\bsports bar\\b",
+            "snippet": "times too much to eat.\n\nOverall this place has an excellent sports bar atmosphere where the walls are covered with TV flat screens",
+            "has_photos": true,
+            "photo_count": 2
+          },
+          {
+            "review_num": 77,
+            "rating": 5,
+            "published_at": "2026-06-09T04:54:44.645Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "the Manganero wings and it\u2019s delicious.  They have tons of TVs.  The place is usually packed and it\u2019s always a great atmos",
+            "has_photos": true,
+            "photo_count": 2
+          },
+          {
+            "review_num": 80,
+            "rating": 4,
+            "published_at": "2026-02-04T20:32:29.778Z",
+            "confidence": "High",
+            "matched_pattern": "\\bsports bar\\b",
+            "snippet": "Pluckers Wing Bar is the definition of a classic American sports bar and grill. The first thing you notice when you walk in is t",
+            "has_photos": true,
+            "photo_count": 2
+          },
+          {
+            "review_num": 85,
+            "rating": 5,
+            "published_at": "2026-07-27T18:33:33.966Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "ly the best wings in town, with great atmosphere. Plenty of TVs for sport watching also. You must try the manganero, Raspbe",
+            "has_photos": true,
+            "photo_count": 4
+          },
+          {
+            "review_num": 92,
+            "rating": 5,
+            "published_at": "2026-04-25T10:09:15.404Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "Lively restaurant with about a million TVs for sports viewing. The potato chip with blue cheese dressi",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 105,
+            "rating": 3,
+            "published_at": "2026-06-22T07:16:39.761Z",
+            "confidence": "High",
+            "matched_pattern": "\\bsports bar\\b",
+            "snippet": "alty.\n\nI haven\u2019t been back since because I\u2019m not big on the sports bar scene, but yesterday we ordered some wings over UberEats at",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 106,
+            "rating": 5,
+            "published_at": "2026-04-24T03:24:17.378Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bnfl\\b",
+            "snippet": "Great NFL Draft night specials. Service outstanding. Food was excelle",
+            "has_photos": true,
+            "photo_count": 2
+          },
+          {
+            "review_num": 131,
+            "rating": 5,
+            "published_at": "2025-02-12T00:38:27.323Z",
+            "confidence": "High",
+            "matched_pattern": "\\bmultiple tvs?\\b",
+            "snippet": "we had everything we needed. The ambiance was lively, with multiple TVs playing the latest games and upbeat music adding to the vib",
+            "has_photos": true,
+            "photo_count": 4
+          }
+        ],
+        "correct": true
+      },
+      {
+        "business_name": "Main Event Entertainment",
+        "expected_tv": true,
+        "reviews_fetched": 51,
+        "total_reviews": 8785,
+        "matched": true,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 96,
+        "matched_reviews": [
+          {
+            "review_num": 13,
+            "rating": 5,
+            "published_at": "2026-03-25T10:04:23.558Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bscreens?\\b",
+            "snippet": "e and time I visited and exited is on timeline photo that I screen shot. The restaurant & bar to right at walkin it took 15 mi",
+            "has_photos": true,
+            "photo_count": 8
+          }
+        ],
+        "correct": true
+      },
+      {
+        "business_name": "Round1 Bowling & Amusement",
+        "expected_tv": true,
+        "reviews_fetched": 50,
+        "total_reviews": 1699,
+        "matched": true,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 162,
+        "matched_reviews": [
+          {
+            "review_num": 41,
+            "rating": 1,
+            "published_at": "2026-06-06T07:16:36.383Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "sports.\n\nNone of the staff seemed to know how to manage the TVs, and their attitude was very poor.\n\nI was watching the NBA",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 44,
+            "rating": 5,
+            "published_at": "2026-05-27T15:23:14.585Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bscreens?\\b",
+            "snippet": "ingredients, bring some gloves if you like to use the touch screen games\n\nAlso some of the games are 90% in japanese, they're",
+            "has_photos": false,
+            "photo_count": 0
+          }
+        ],
+        "correct": true
+      },
+      {
+        "business_name": "Fox and Hound",
+        "expected_tv": true,
+        "reviews_fetched": 55,
+        "total_reviews": 189,
+        "matched": true,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 149,
+        "matched_reviews": [
+          {
+            "review_num": 1,
+            "rating": 3,
+            "published_at": "2022-04-21T18:38:56.021Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bscreens?\\b",
+            "snippet": "iful bar and a very nicely decorated dining room with a big screen.\nI was also surprised to see it empty though.\n\nThe server w",
+            "has_photos": true,
+            "photo_count": 5
+          },
+          {
+            "review_num": 13,
+            "rating": 4,
+            "published_at": "2022-07-23T11:15:42.762Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bscreens?\\b",
+            "snippet": "ip, hamburgers and coconut shrimp.\nThey still have multiple screens in the bar so you can watch most any game, including tradit",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 14,
+            "rating": 5,
+            "published_at": "2018-10-13T17:06:19.796Z",
+            "confidence": "High",
+            "matched_pattern": "\\bwatch (the )?(game|games|match|matches|fight|fights)\\b",
+            "snippet": "But this pub is Liverpool! If you\u2019re looking for a place to watch the match, you\u2019re going to love it here.\nI was here for the Champions",
+            "has_photos": true,
+            "photo_count": 2
+          },
+          {
+            "review_num": 15,
+            "rating": 5,
+            "published_at": "2020-09-05T06:20:31.147Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "tion in the area. They have billiards, darts, sports on the TV and of course most importantly booze, lots and lots of booz",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 20,
+            "rating": 5,
+            "published_at": "2020-01-01T22:50:56.522Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bfootball\\b",
+            "snippet": "ion. The hosts are accommodating and are open early for the football.",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 23,
+            "rating": 5,
+            "published_at": "2020-08-13T15:46:24.308Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bfootball\\b",
+            "snippet": "The best spot in all of South Florida to watch football(soccer). The staff is warm and friendly, food is spot on, a",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 26,
+            "rating": 1,
+            "published_at": "2012-01-04T03:23:33.195Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "hair under seven dollars each.  Not only all this, but the TV screens are arranged poorly.  I'm an easy guy to please, an",
+            "has_photos": false,
+            "photo_count": 0
+          }
+        ],
+        "correct": true
+      },
+      {
+        "business_name": "Deloitte Consulting",
+        "expected_tv": false,
+        "reviews_fetched": 25,
+        "total_reviews": 108,
+        "matched": false,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 1,
+        "matched_reviews": [],
+        "correct": true
+      },
+      {
+        "business_name": "Latham & Watkins LLP",
+        "expected_tv": false,
+        "reviews_fetched": 25,
+        "total_reviews": 65,
+        "matched": false,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 0,
+        "matched_reviews": [],
+        "correct": true
+      },
+      {
+        "business_name": "Buffalo Wild Wings",
+        "expected_tv": true,
+        "reviews_fetched": 1597,
+        "total_reviews": 97,
+        "matched": true,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 1732,
+        "matched_reviews": [
+          {
+            "review_num": 25,
+            "rating": 3,
+            "published_at": "2022-03-20T12:20:26.175Z",
+            "confidence": "High",
+            "matched_pattern": "\\bsports bar\\b",
+            "snippet": "it was called. They did a good job with that. Overall, as a sports bar it works. Sports memorabilia everywhere and games on the tv",
+            "has_photos": true,
+            "photo_count": 4
+          },
+          {
+            "review_num": 28,
+            "rating": 5,
+            "published_at": "2026-07-24T15:55:25.464Z",
+            "confidence": "High",
+            "matched_pattern": "\\bwatch (the )?(game|games|match|matches|fight|fights)\\b",
+            "snippet": "mood, you can still eat here! Lots of TV screens so you can watch the game with your family and friends",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 30,
+            "rating": 1,
+            "published_at": "2022-01-09T02:36:15.992Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bfootball\\b",
+            "snippet": "them.\nI just wanted some buffalo wings to go home and watch football!!!\n\ud83e\udd2c Does that picture look anything like the wings you eat",
+            "has_photos": true,
+            "photo_count": 1
+          },
+          {
+            "review_num": 31,
+            "rating": 3,
+            "published_at": "2023-11-28T22:27:14.356Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bfootball\\b",
+            "snippet": "the average food here. While it's a decent spot to catch a football game and enjoy some drinks, the food won't satisfy your tas",
+            "has_photos": true,
+            "photo_count": 3
+          },
+          {
+            "review_num": 32,
+            "rating": 5,
+            "published_at": "2019-09-04T14:57:20.928Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "kly. Servers are usually very cool and attentive. Plenty of TV's on the wall so there is always something to watch. One th",
+            "has_photos": true,
+            "photo_count": 3
+          },
+          {
+            "review_num": 33,
+            "rating": 3,
+            "published_at": "2023-03-31T23:40:13.919Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "ip with B Dubs. You know what you're going to get here - 50 TVs playing every sport imaginable plus a decent assignment of",
+            "has_photos": true,
+            "photo_count": 2
+          },
+          {
+            "review_num": 35,
+            "rating": 3,
+            "published_at": "2018-11-21T02:18:49.798Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bscreens?\\b",
+            "snippet": "uggest putting a Rally or Motocross channel in at least one screen :) that would be awesome and an upgrade to a 4 star review.",
+            "has_photos": true,
+            "photo_count": 1
+          },
+          {
+            "review_num": 102,
+            "rating": 4,
+            "published_at": "2026-04-22T11:38:36.754Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "e endless appetizer, filled everyone up.  Place has lots of TVs but its starting to look dated",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 104,
+            "rating": 1,
+            "published_at": "2026-07-02T17:24:38.797Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bsoccer\\b",
+            "snippet": "My family and I tried to catch the USA soccer game here last night and were were told the wait would be 4",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 107,
+            "rating": 4,
+            "published_at": "2023-01-25T13:57:19.343Z",
+            "confidence": "High",
+            "matched_pattern": "\\bsports bar\\b",
+            "snippet": "bring my children if it were just me and them. Definitely a sports bar atmosphere and the sound level on the televisions makes it",
+            "has_photos": true,
+            "photo_count": 15
+          },
+          {
+            "review_num": 120,
+            "rating": 3,
+            "published_at": "2021-01-10T01:46:54.434Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "ilings with walls covered in projector screens and gigantic TVs make this one of our favorite BWW atmospheres. My only comp",
+            "has_photos": true,
+            "photo_count": 3
+          },
+          {
+            "review_num": 122,
+            "rating": 1,
+            "published_at": "2025-09-05T01:33:09.741Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bnfl\\b",
+            "snippet": "Update: Schedule ordered opening night NFL. Walked into 60+ people waiting on orders, waited 25 minute",
+            "has_photos": true,
+            "photo_count": 1
+          },
+          {
+            "review_num": 133,
+            "rating": 4,
+            "published_at": "2021-11-28T22:43:20.392Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "Nice place for a relaxed night. They have large TVs so it is perfect place for watching games with friends and",
+            "has_photos": true,
+            "photo_count": 3
+          },
+          {
+            "review_num": 146,
+            "rating": 5,
+            "published_at": "2025-08-06T07:28:55.552Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "to sports fans since they usually have sports games on the tvs. I remember them having some arcade games as well that are",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 159,
+            "rating": 5,
+            "published_at": "2025-04-09T00:36:56.751Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bscreens?\\b",
+            "snippet": "u don\u2019t like heat.\n\nThe vibe was chill, with games on every screen and a lively crowd. Perfect spot to hang out with friends,",
+            "has_photos": true,
+            "photo_count": 1
+          },
+          {
+            "review_num": 209,
+            "rating": 5,
+            "published_at": "2025-09-30T15:40:34.240Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bfootball\\b",
+            "snippet": "We stopped here after a football game and were pleasantly surprised. I'm not sure if it's ju",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 217,
+            "rating": 5,
+            "published_at": "2025-09-01T03:34:26.250Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "tmosphere is top-notch, with multiple games on a variety of TVs. We were there to watch the Penn State game, and the manage",
+            "has_photos": true,
+            "photo_count": 1
+          },
+          {
+            "review_num": 227,
+            "rating": 5,
+            "published_at": "2026-03-18T20:04:40.915Z",
+            "confidence": "High",
+            "matched_pattern": "\\bsports bar\\b",
+            "snippet": "be in. The food, beer, plenty of flat screen TVs around. A sports bar.",
+            "has_photos": true,
+            "photo_count": 1
+          },
+          {
+            "review_num": 230,
+            "rating": 3,
+            "published_at": "2019-01-05T04:16:45.861Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "ith the high school nearby there were lots of students. The TVs were everywhere and you can see them from any seat. We had",
+            "has_photos": true,
+            "photo_count": 2
+          },
+          {
+            "review_num": 237,
+            "rating": 2,
+            "published_at": "2026-02-28T01:54:13.143Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "wn hill. Slow kitchen, slow service, and poor organization. TVs left without channel selection. Cook leaves kitchen and sta",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 254,
+            "rating": 1,
+            "published_at": "2025-12-21T01:29:46.105Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bfootball\\b",
+            "snippet": "r from them at all. We typically order while we\u2019re watching football and drinking so picking up there mistake isn\u2019t an option. A",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 257,
+            "rating": 3,
+            "published_at": "2025-05-21T18:58:50.562Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "see if we were ready for our check (we were). The signature TVs all over the dining room were silent until they finally kic",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 263,
+            "rating": 3,
+            "published_at": "2026-04-27T02:56:10.402Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "on fight and the place was packed amd everyone was watching tv so its chill. I like the thai curry wings theyre prettu goo",
+            "has_photos": true,
+            "photo_count": 2
+          },
+          {
+            "review_num": 270,
+            "rating": 3,
+            "published_at": "2025-01-13T00:35:05.836Z",
+            "confidence": "High",
+            "matched_pattern": "\\bsports bar\\b",
+            "snippet": "Sorta a blah place. Food is ok, atmosphere is sports bar vibe but bland. We all had the worst indigestion the next d",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 272,
+            "rating": 2,
+            "published_at": "2026-06-14T02:44:02.367Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bgame night\\b",
+            "snippet": "here 45 min standing waiting to be seated yes it\u2019s a knicks game night and it\u2019s packed but I watched 3 different ppl before us tha",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 282,
+            "rating": 4,
+            "published_at": "2020-10-31T02:04:52.911Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "ryone wore masks and distance rules were in place.  Lots of tvs and a bar area separate from dining space.",
+            "has_photos": true,
+            "photo_count": 4
+          },
+          {
+            "review_num": 288,
+            "rating": 3,
+            "published_at": "2017-01-09T08:32:39.325Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "e place which was nice. I noticed that a good amount of the TV'S and projectors are starting to become discolored. I would",
+            "has_photos": true,
+            "photo_count": 5
+          },
+          {
+            "review_num": 301,
+            "rating": 4,
+            "published_at": "2024-06-08T02:08:51.738Z",
+            "confidence": "High",
+            "matched_pattern": "\\bsports bar\\b",
+            "snippet": "ross low mild to very high.   Ample parking. Good ambiance. Sports bar types. Mon -Fri happy hours 3-6pm. Mon and wed all you can",
+            "has_photos": true,
+            "photo_count": 4
+          },
+          {
+            "review_num": 349,
+            "rating": 5,
+            "published_at": "2020-10-23T19:29:51.175Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "d the bar, but there seems to be plenty of room & there are TV\u2019s all around.\n\nExcellent selection of bar type food, appeti",
+            "has_photos": true,
+            "photo_count": 2
+          },
+          {
+            "review_num": 374,
+            "rating": 5,
+            "published_at": "2025-07-13T14:39:35.086Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "ty of filling food options.   Decent selection of beers and TVs in every direction.   The staff is friendly and the service",
+            "has_photos": true,
+            "photo_count": 6
+          },
+          {
+            "review_num": 379,
+            "rating": 5,
+            "published_at": "2019-12-28T06:36:59.349Z",
+            "confidence": "High",
+            "matched_pattern": "\\bsports bar\\b",
+            "snippet": "Awesome sports bar for drinks and food. It even has 'Reverse Happy Hours' for",
+            "has_photos": true,
+            "photo_count": 6
+          },
+          {
+            "review_num": 388,
+            "rating": 5,
+            "published_at": "2024-12-02T04:30:37.431Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "ere! The food is amazing plus they have the sports games on tv. Wings beers and Sports! What more can one ask for???",
+            "has_photos": true,
+            "photo_count": 1
+          },
+          {
+            "review_num": 393,
+            "rating": 5,
+            "published_at": "2026-03-15T01:39:47.172Z",
+            "confidence": "High",
+            "matched_pattern": "\\bsports bar\\b",
+            "snippet": "todler and an infant and it was perfect. Just know it is a sports bar so louder then a regular restaurant. But it was all over a",
+            "has_photos": true,
+            "photo_count": 1
+          },
+          {
+            "review_num": 396,
+            "rating": 5,
+            "published_at": "2026-06-14T23:42:43.093Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bufc\\b",
+            "snippet": "ve Buffalo Wild Wings best atmosphere for sports especially ufc which I\u2019m watching. If you have the chance to come to the r",
+            "has_photos": true,
+            "photo_count": 1
+          },
+          {
+            "review_num": 415,
+            "rating": 5,
+            "published_at": "2026-04-12T23:12:02.924Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bfootball\\b",
+            "snippet": "eceived. Love coming here, highly recommend. Can\u2019t wait for football season!",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 420,
+            "rating": 1,
+            "published_at": "2026-03-17T00:20:41.674Z",
+            "confidence": "High",
+            "matched_pattern": "\\bsports bar\\b",
+            "snippet": "d up all night;\nThere are TVs all over with sports, it is a sports bar, but for some reason one TV had a stupid show on, and it wa",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 426,
+            "rating": 5,
+            "published_at": "2020-08-22T17:48:58.300Z",
+            "confidence": "High",
+            "matched_pattern": "\\bsports bar\\b",
+            "snippet": "Do you really not a big fan of sports bar food but I was genuinely surprised and pleased with the win",
+            "has_photos": true,
+            "photo_count": 9
+          },
+          {
+            "review_num": 428,
+            "rating": 3,
+            "published_at": "2026-03-23T20:21:40.234Z",
+            "confidence": "High",
+            "matched_pattern": "\\bgame[ -]?day\\b",
+            "snippet": "e wasn't even half full. Would hate to see what its like on gameday.",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 433,
+            "rating": 4,
+            "published_at": "2025-12-02T02:30:59.372Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bfootball\\b",
+            "snippet": "ht so not very busy but this is a great place to watch some football and have some drinks",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 465,
+            "rating": 5,
+            "published_at": "2024-07-17T12:53:14.353Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "really easy to order ahead and pick things up. They have a TV for sports and another TV to show you the upcoming orders.",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 519,
+            "rating": 5,
+            "published_at": "2026-03-09T22:25:11.608Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bufc\\b",
+            "snippet": "ws about buffalo wild wings I was very hesitant to come for UFC fight night on Saturday but my dad insisted. All the worker",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 520,
+            "rating": 1,
+            "published_at": "2026-02-08T22:36:33.668Z",
+            "confidence": "High",
+            "matched_pattern": "\\bwatch (the )?(game|games|match|matches|fight|fights)\\b",
+            "snippet": "ers\u2026 more than 80 customers waiting and anxious to leave to watch the game. Disappointed and never coming back.",
+            "has_photos": true,
+            "photo_count": 1
+          },
+          {
+            "review_num": 579,
+            "rating": 4,
+            "published_at": "2026-06-14T01:08:11.782Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "e a beer, and watch a sporting event on the large amount of TVs and game selections they have on.",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 599,
+            "rating": 5,
+            "published_at": "2025-08-21T17:24:59.617Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bscreens?\\b",
+            "snippet": "t Buffalo Wild Wings is always lively, with sports on every screen and an upbeat vibe. It\u2019s the perfect spot for hanging out,",
+            "has_photos": true,
+            "photo_count": 10
+          },
+          {
+            "review_num": 604,
+            "rating": 5,
+            "published_at": "2025-08-09T01:39:37.182Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "get well wings. Great deals. Atmosphere was great. Alot of tvs to watch all sports. Great customer service.  Never have a",
+            "has_photos": true,
+            "photo_count": 5
+          },
+          {
+            "review_num": 608,
+            "rating": 4,
+            "published_at": "2025-05-12T16:50:14.148Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "Good wings location. Huge space. Plenty of games on TV. Service was fast. Wings were good. Overall a decent experi",
+            "has_photos": true,
+            "photo_count": 5
+          },
+          {
+            "review_num": 609,
+            "rating": 4,
+            "published_at": "2026-03-06T02:44:04.512Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bscreens?\\b",
+            "snippet": "on wings, chugging on whatever beer, watching the many big screens for everything from football to poker. Its just very... rel",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 619,
+            "rating": 5,
+            "published_at": "2025-09-23T02:56:54.346Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bfootball\\b",
+            "snippet": "Came in planning to watch a half of football, ended up closing the tab after the Sunday night game. Vibe",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 624,
+            "rating": 4,
+            "published_at": "2022-01-09T13:33:41.349Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "Cool place\nDrink menu had tons of choices.\nLots of tvs and bar area.\nFood was good . Service was pretty much stand",
+            "has_photos": true,
+            "photo_count": 5
+          },
+          {
+            "review_num": 628,
+            "rating": 4,
+            "published_at": "2026-02-26T01:50:18.095Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bscreens?\\b",
+            "snippet": "location. Kinda busy with online orders according the order screen. Employees are nice and friendly and polite. My wings were",
+            "has_photos": true,
+            "photo_count": 1
+          },
+          {
+            "review_num": 668,
+            "rating": 5,
+            "published_at": "2026-05-08T19:54:13.699Z",
+            "confidence": "High",
+            "matched_pattern": "\\bwatch (the )?(game|games|match|matches|fight|fights)\\b",
+            "snippet": "erience at Buffalo Wild Wings every time I\u2019ve gone there to watch games. The wings are always delicious with lots of flavor options",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 674,
+            "rating": 5,
+            "published_at": "2025-10-27T22:49:09.123Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bfootball\\b",
+            "snippet": "A great place to catch a football game or any sport for that matter! They are linked with mgm",
+            "has_photos": true,
+            "photo_count": 21
+          },
+          {
+            "review_num": 675,
+            "rating": 4,
+            "published_at": "2025-04-28T23:21:38.370Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "wings were good. The place is huge! They have several large TV monitors and at the time very appropriately had sporting ev",
+            "has_photos": true,
+            "photo_count": 1
+          },
+          {
+            "review_num": 679,
+            "rating": 4,
+            "published_at": "2025-06-25T20:50:23.627Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bnba\\b",
+            "snippet": "Went to BWW for the NBA finals \ud83d\ude0b. Went with 3 of my friends \ud83e\udde1. Although it was very",
+            "has_photos": true,
+            "photo_count": 1
+          },
+          {
+            "review_num": 691,
+            "rating": 5,
+            "published_at": "2026-03-28T08:27:43.528Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "hecks on you. Quick service from order to serving. Ample of TV\u2019s to watch your game and ample spacing between tables. Had",
+            "has_photos": true,
+            "photo_count": 7
+          },
+          {
+            "review_num": 710,
+            "rating": 5,
+            "published_at": "2025-06-29T04:06:03.468Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bufc\\b",
+            "snippet": "and it shows. My family had a wonderful night enjoying the UFC fight, the great food, and the fantastic service. Can\u2019t wai",
+            "has_photos": true,
+            "photo_count": 2
+          },
+          {
+            "review_num": 729,
+            "rating": 5,
+            "published_at": "2025-03-08T18:13:45.150Z",
+            "confidence": "High",
+            "matched_pattern": "\\bwatch (the )?(game|games|match|matches|fight|fights)\\b",
+            "snippet": "(for members of their rewards program). It\u2019s a great bar to watch games and grab a beer, with a wide selection to choose from. I al",
+            "has_photos": true,
+            "photo_count": 4
+          },
+          {
+            "review_num": 740,
+            "rating": 5,
+            "published_at": "2026-05-10T01:10:19.764Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bufc\\b",
+            "snippet": "Buffalo Wild Wings is a place to be during any UFC event. The atmosphere is always so fun and it always feels",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 747,
+            "rating": 5,
+            "published_at": "2026-05-10T01:15:47.748Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bufc\\b",
+            "snippet": "wings with sliders and chocolate fudge cake while watching UFC with the boys. And food is fried in BEEF TALLOW ts can\u2019t ge",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 772,
+            "rating": 1,
+            "published_at": "2026-06-06T13:09:48.628Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bgame night\\b",
+            "snippet": "ng major issues.\n\nThey were clearly short-staffed on a busy game night. I give this place 1 star because management completely fai",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 777,
+            "rating": 5,
+            "published_at": "2026-05-11T01:39:25.864Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bufc\\b",
+            "snippet": "The service in atmosphere were great on UFC night. My server was Amanda she was very helpfull and kind.",
+            "has_photos": true,
+            "photo_count": 1
+          },
+          {
+            "review_num": 782,
+            "rating": 1,
+            "published_at": "2026-04-02T14:57:55.021Z",
+            "confidence": "High",
+            "matched_pattern": "\\bsports bar\\b",
+            "snippet": "o we got the check and went to Tommy's tavern. God forbid a sports bar get food and beers out to you with games playing out loud.",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 796,
+            "rating": 5,
+            "published_at": "2026-06-26T19:11:28.985Z",
+            "confidence": "High",
+            "matched_pattern": "\\bsports bar\\b",
+            "snippet": "p. The games are a lil busy but that\u2019s to be expected for a sports bar. Just gotta make sure to get in early enough",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 827,
+            "rating": 4,
+            "published_at": "2024-05-13T03:55:49.534Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bufc\\b",
+            "snippet": "he service was good. The beer was reasonably cold. It was a UFC fight night when I went, so the atmosphere was a little off",
+            "has_photos": true,
+            "photo_count": 2
+          },
+          {
+            "review_num": 882,
+            "rating": 5,
+            "published_at": "2023-07-21T10:34:18.866Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": ". No complaints at all.\n\nAs far as decor goes there is huge TV above the bar surrounded by several smaller TVs making this",
+            "has_photos": true,
+            "photo_count": 6
+          },
+          {
+            "review_num": 886,
+            "rating": 5,
+            "published_at": "2023-11-14T22:39:37.168Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "he waitress was super welcoming and nice. We count about 42 tv screens and the atmosphere is super nice. You need to go fo",
+            "has_photos": true,
+            "photo_count": 4
+          },
+          {
+            "review_num": 887,
+            "rating": 1,
+            "published_at": "2025-12-30T08:38:49.476Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "time, we never ended up getting the rest of our order. The tvs also barely had service so we couldn't even really watch an",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 889,
+            "rating": 4,
+            "published_at": "2023-03-31T16:46:10.109Z",
+            "confidence": "High",
+            "matched_pattern": "\\bsports bar\\b",
+            "snippet": "Sports bar setting.\nLots of TV'S.\n\nWe had regular buffalo wings and bo",
+            "has_photos": true,
+            "photo_count": 3
+          },
+          {
+            "review_num": 893,
+            "rating": 5,
+            "published_at": "2025-04-08T22:42:05.129Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "someone who loves games, put your date with his back to the TV if possible, because the place is full of televisions with",
+            "has_photos": true,
+            "photo_count": 1
+          },
+          {
+            "review_num": 894,
+            "rating": 3,
+            "published_at": "2026-07-08T13:42:29.424Z",
+            "confidence": "High",
+            "matched_pattern": "\\bwatch (the )?(game|games|match|matches|fight|fights)\\b",
+            "snippet": "Not great. I met people there to watch the game and had a good time, but service took forever and the fries",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 917,
+            "rating": 1,
+            "published_at": "2026-03-23T03:20:01.271Z",
+            "confidence": "High",
+            "matched_pattern": "\\bsports bar\\b",
+            "snippet": "he bad: literally everything else l\n\nFirst to start, it\u2019s a sports bar, they\u2019re incredibly out of touch. There will be games on an",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 931,
+            "rating": 4,
+            "published_at": "2026-04-18T03:08:41.517Z",
+            "confidence": "High",
+            "matched_pattern": "\\bsports bar\\b",
+            "snippet": "n something to you\u2026 This is \u2018GO\u2019 format\u2014which means. No big sports bar. No distractions. Just execution. Simply built for takeout",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 945,
+            "rating": 1,
+            "published_at": "2026-02-09T02:00:50.965Z",
+            "confidence": "High",
+            "matched_pattern": "\\bgame[ -]?day\\b",
+            "snippet": "tomers home with missing food after an extremely long wait. Game day is one of the biggest food days of the year, and this locat",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 957,
+            "rating": 5,
+            "published_at": "2025-10-14T12:50:18.092Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bfootball\\b",
+            "snippet": "before hand. Wings got made pretty quick on a Monday night football. I don\u2019t know about Sundays though. This definitely hits th",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 1045,
+            "rating": 5,
+            "published_at": "2026-08-19T21:50:43.993Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bfootball\\b",
+            "snippet": "urgence since the old depressing K-Mart and Path Mark days. Football season this year here will be great! \u263a\ufe0f",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 1046,
+            "rating": 4,
+            "published_at": "2026-06-25T00:04:06.979Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "ow. They also had the world cup and other games on on their TV'S. I would recommend coming here if you don't mind waiting.",
+            "has_photos": true,
+            "photo_count": 4
+          },
+          {
+            "review_num": 1062,
+            "rating": 5,
+            "published_at": "2022-01-21T18:29:42.194Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "Request her if you visit this location.\nThere are plenty of tvs to enjoy. There's tables, booth, and bar seating here. Merc",
+            "has_photos": true,
+            "photo_count": 28
+          },
+          {
+            "review_num": 1066,
+            "rating": 5,
+            "published_at": "2018-10-09T15:38:40.960Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "hing that stands out is the quality of the picture from the tvs and the sound quality. Came by after work to catch the yank",
+            "has_photos": true,
+            "photo_count": 22
+          },
+          {
+            "review_num": 1139,
+            "rating": 4,
+            "published_at": "2026-06-28T04:39:16.766Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "bs is clean and the service was prompt and super friendly.. TVs in every direction! The ultimate set up for catching every",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 1149,
+            "rating": 5,
+            "published_at": "2026-04-28T04:37:20.415Z",
+            "confidence": "High",
+            "matched_pattern": "\\bsports bar\\b",
+            "snippet": "Hillside location. Let me make it clear\u2026This is not the big sports bar you sit in for hours. This is the GO format\u2014which means: Fa",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 1162,
+            "rating": 5,
+            "published_at": "2025-11-18T17:00:46.248Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "t to eat there and parking is very good too. There is a big TV screen and they play fun stuff like football games if you r",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 1174,
+            "rating": 5,
+            "published_at": "2026-02-03T00:13:42.694Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bscreens?\\b",
+            "snippet": "sphere and food, drinks and everyone is very nice. Many big screens for all sports.",
+            "has_photos": true,
+            "photo_count": 3
+          },
+          {
+            "review_num": 1180,
+            "rating": 5,
+            "published_at": "2025-08-11T20:10:34.665Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "Great atmosphere.  Tvs everywhere. The food was fresh and hot. Servers were kind a",
+            "has_photos": true,
+            "photo_count": 12
+          },
+          {
+            "review_num": 1182,
+            "rating": 1,
+            "published_at": "2026-06-17T00:35:12.201Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bufc\\b",
+            "snippet": "frustrated me was that Buffalo Wild Wings heavily promotes UFC events, yet they turned off the UFC fight before the event",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 1198,
+            "rating": 2,
+            "published_at": "2021-10-09T07:56:35.942Z",
+            "confidence": "High",
+            "matched_pattern": "\\bwatch (the )?(game|games|match|matches|fight|fights)\\b",
+            "snippet": "he roof, and they also have valet parking.   Great place to watch the game before Covid.",
+            "has_photos": true,
+            "photo_count": 9
+          },
+          {
+            "review_num": 1204,
+            "rating": 4,
+            "published_at": "2025-12-21T22:44:32.810Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "other. Restroom is filthy. High chair and koala kare seen. TV\u2019s are ample for you to get updated with sports. Accepts deb",
+            "has_photos": true,
+            "photo_count": 3
+          },
+          {
+            "review_num": 1208,
+            "rating": 2,
+            "published_at": "2025-08-17T01:36:30.780Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bfootball\\b",
+            "snippet": "ipt with a busted pen. The family behind me wanted to watch football but manager couldn't change the channel. \ud83d\ude02\ud83d\ude02",
+            "has_photos": true,
+            "photo_count": 4
+          },
+          {
+            "review_num": 1210,
+            "rating": 1,
+            "published_at": "2026-07-20T21:32:28.838Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bsoccer\\b",
+            "snippet": "contact and wouldn't talk to us, let alone welcome us. The soccer game was on and they were busy but those two front employee",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 1264,
+            "rating": 5,
+            "published_at": "2026-05-20T22:53:55.833Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bufc\\b",
+            "snippet": "My experience was amazing great for one of the UFC nights here. My server Nicole was very professional and nic",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 1266,
+            "rating": 4,
+            "published_at": "2018-11-25T05:14:31.170Z",
+            "confidence": "High",
+            "matched_pattern": "\\bwatch (the )?(game|games|match|matches|fight|fights)\\b",
+            "snippet": "other waiters to find him. Overall food is great while you watch the game, service not so much.",
+            "has_photos": true,
+            "photo_count": 3
+          },
+          {
+            "review_num": 1348,
+            "rating": 5,
+            "published_at": "2026-07-10T01:23:28.098Z",
+            "confidence": "High",
+            "matched_pattern": "\\bsports bar\\b",
+            "snippet": "Great restaurant in Secaucus\u2026.sports bar..great quality food in a reasonable price. Free parking lot",
+            "has_photos": true,
+            "photo_count": 19
+          },
+          {
+            "review_num": 1393,
+            "rating": 4,
+            "published_at": "2025-05-22T22:23:28.001Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "Great food, great selection of beers, and friendly service. TVs everywhere.  Go for all you can eat wings when your favorit",
+            "has_photos": true,
+            "photo_count": 4
+          },
+          {
+            "review_num": 1427,
+            "rating": 5,
+            "published_at": "2026-07-07T21:02:28.169Z",
+            "confidence": "High",
+            "matched_pattern": "\\blive sports\\b",
+            "snippet": "ntained, and the huge TVs made it an awesome place to catch live sports with friends or family. Whether you\u2019re there for a meal, to",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 1494,
+            "rating": 5,
+            "published_at": "2026-10-05T13:38:19.294Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "et location my order was ready and i see my name on pick up TV",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 1562,
+            "rating": 4,
+            "published_at": "2024-04-15T04:10:28.155Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\btvs?\\b",
+            "snippet": "nts! Especially UFC!!! civilized crowd and attentive staff! TVs everywhere and a huge screen right in the middle of the res",
+            "has_photos": true,
+            "photo_count": 4
+          },
+          {
+            "review_num": 1563,
+            "rating": 4,
+            "published_at": "2024-10-14T10:45:40.453Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bscreens?\\b",
+            "snippet": "end this place to everyone. There's sport on a multitude of screens if that's what you're into. The service was excellent, Nick",
+            "has_photos": true,
+            "photo_count": 2
+          },
+          {
+            "review_num": 1565,
+            "rating": 4,
+            "published_at": "2022-11-08T09:52:57.107Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bufc\\b",
+            "snippet": "id during a Saturday night it was a decent place to catch a UFC fight, if you went early. Usually pretty slow around mid af",
+            "has_photos": true,
+            "photo_count": 9
+          },
+          {
+            "review_num": 1576,
+            "rating": 5,
+            "published_at": "2025-05-13T19:54:43.784Z",
+            "confidence": "High",
+            "matched_pattern": "\\bsports bar\\b",
+            "snippet": "uffalo Wild Wings delivers exactly what you\u2019d expect from a sports bar \u2014 loud, lively, and loaded with flavor. The wings are defin",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 1594,
+            "rating": 5,
+            "published_at": "2026-05-17T00:10:36.664Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bufc\\b",
+            "snippet": "vice \"Evelyn\" is the best bartender!  Foodvis awesome too!  UFC, Yankees and more MMA Rousey vs Carano!!!",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 1596,
+            "rating": 5,
+            "published_at": "2022-11-19T01:23:17.810Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bscreens?\\b",
+            "snippet": "burgers are awesome and the staff is very friendly. Lots of screens to watch any event you like. Tons of parking and great ambi",
+            "has_photos": true,
+            "photo_count": 3
+          }
+        ],
+        "correct": true
+      },
+      {
+        "business_name": "PwC US",
+        "expected_tv": false,
+        "reviews_fetched": 86,
+        "total_reviews": 4,
+        "matched": false,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 11,
+        "matched_reviews": [],
+        "correct": true
+      },
+      {
+        "business_name": "Gap Inc Store",
+        "expected_tv": false,
+        "reviews_fetched": 589,
+        "total_reviews": 68,
+        "matched": true,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 297,
+        "matched_reviews": [
+          {
+            "review_num": 402,
+            "rating": 5,
+            "published_at": "2022-11-17T16:00:39.624Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bscreens?\\b",
+            "snippet": "ul and offered me 20% savings on the credit card and on the screen that I was submitting my information, it ASKED ME on the sc",
+            "has_photos": false,
+            "photo_count": 0
+          }
+        ],
+        "correct": false
+      },
+      {
+        "business_name": "Old Navy",
+        "expected_tv": false,
+        "reviews_fetched": 312,
+        "total_reviews": 1453,
+        "matched": false,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 338,
+        "matched_reviews": [],
+        "correct": true
+      }
+    ]
+  },
+  "dental": {
+    "vertical": "Dental Offices",
+    "total_accounts": 10,
+    "accounts_with_tv": 8,
+    "detected": 6,
+    "recall": 0.75,
+    "precision": 0.6666666666666666,
+    "fallback_triggered_count": 0,
+    "fallback_accounts": [],
+    "photos_available_count": 9,
+    "photos_percentage": 0.9,
+    "all_results": [
+      {
+        "business_name": "Gentle Dental",
+        "expected_tv": true,
+        "reviews_fetched": 50,
+        "total_reviews": 399,
+        "matched": false,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 1,
+        "matched_reviews": [],
+        "correct": false
+      },
+      {
+        "business_name": "Heartland Dental",
+        "expected_tv": true,
+        "reviews_fetched": 0,
+        "total_reviews": 0,
+        "matched": false,
+        "error": "No place found or no reviews",
+        "primary_source": "error",
+        "triggered_fallback": false,
+        "photos_count": 0,
+        "matched_reviews": []
+      },
+      {
+        "business_name": "Bright Now Dental",
+        "expected_tv": true,
+        "reviews_fetched": 175,
+        "total_reviews": 355,
+        "matched": true,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 23,
+        "matched_reviews": [
+          {
+            "review_num": 12,
+            "rating": 5,
+            "published_at": "2024-09-24T19:39:48.849Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bwaiting room\\b",
+            "snippet": "(nice\ud83d\ude00) filled out some paperwork. Had a short wait in the waiting room but enjoyed watching HGTV \ud83d\udc40.  Got X-ray and good check up.",
+            "has_photos": true,
+            "photo_count": 5
+          },
+          {
+            "review_num": 28,
+            "rating": 1,
+            "published_at": "2025-03-07T23:18:25.240Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bwaiting room\\b",
+            "snippet": "y temp fell out and broke on the first day.\n\nI\u2019m now in the waiting room after getting bumped from a 1:00pm appointment to a 2:30. I",
+            "has_photos": true,
+            "photo_count": 1
+          },
+          {
+            "review_num": 91,
+            "rating": 4,
+            "published_at": "2026-06-09T18:59:26.757Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\blobby\\b",
+            "snippet": "on time of the actual appointment. No long wait time in the lobby and can always call and get my questions answered when I ha",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 174,
+            "rating": 1,
+            "published_at": "2025-08-18T17:55:14.268Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\blobby\\b",
+            "snippet": "that they didn't have enough assistants. Other folks in the lobby had been waiting for over 2 hours to be seen. Our option wa",
+            "has_photos": false,
+            "photo_count": 0
+          }
+        ],
+        "correct": true
+      },
+      {
+        "business_name": "Perfect Teeth",
+        "expected_tv": true,
+        "reviews_fetched": 150,
+        "total_reviews": 496,
+        "matched": false,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 29,
+        "matched_reviews": [],
+        "correct": false
+      },
+      {
+        "business_name": "Aspen Dental",
+        "expected_tv": true,
+        "reviews_fetched": 325,
+        "total_reviews": 845,
+        "matched": true,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 55,
+        "matched_reviews": [
+          {
+            "review_num": 34,
+            "rating": 1,
+            "published_at": "2026-03-10T15:14:12.742Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\blobby\\b",
+            "snippet": "them same day per my wishes.  Cool... I wait an hour in the lobby, xray tech comes to get me finally... the xray area is ghet",
+            "has_photos": false,
+            "photo_count": 0
+          }
+        ],
+        "correct": true
+      },
+      {
+        "business_name": "Smile Brands",
+        "expected_tv": true,
+        "reviews_fetched": 25,
+        "total_reviews": 747,
+        "matched": false,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 2,
+        "matched_reviews": [],
+        "correct": false
+      },
+      {
+        "business_name": "Coast Dental",
+        "expected_tv": true,
+        "reviews_fetched": 150,
+        "total_reviews": 1100,
+        "matched": true,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 13,
+        "matched_reviews": [
+          {
+            "review_num": 2,
+            "rating": 1,
+            "published_at": "2026-06-26T17:17:52.965Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\blobby\\b",
+            "snippet": "I went in for a cleaning at 12pm. Sat there waiting in the lobby with NO ONE else there but me. And it took them 45 minutes",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 7,
+            "rating": 1,
+            "published_at": "2026-03-17T21:21:12.392Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\blobby\\b",
+            "snippet": "of weeks. My appointment was at 3:30. I arrived to the main lobby at 3:15. At approximately 4:00 I was called and placed to a",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 17,
+            "rating": 1,
+            "published_at": "2025-12-30T15:47:46.348Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bwaiting room\\b",
+            "snippet": ". Just complete disregard.\n\nAfter forcing her to sit in the waiting room for over an hour, the staff finally admitted at 10:30 AM th",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 111,
+            "rating": 1,
+            "published_at": "2026-03-05T19:59:29.499Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bwaiting room\\b",
+            "snippet": "Park was the worst dental experience I\u2019ve had. I sat in the waiting room for over an hour and a half while the dentist wasn't even o",
+            "has_photos": false,
+            "photo_count": 0
+          }
+        ],
+        "correct": true
+      },
+      {
+        "business_name": "Western Dental",
+        "expected_tv": true,
+        "reviews_fetched": 462,
+        "total_reviews": 11,
+        "matched": true,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 47,
+        "matched_reviews": [
+          {
+            "review_num": 29,
+            "rating": 5,
+            "published_at": "2026-06-29T23:23:46.062Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\blobby\\b",
+            "snippet": "recommend this Dentist\u2019s.They are extremely helpful and The Lobby is super Clean.Staff are very polite and friendly.Im super",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 58,
+            "rating": 1,
+            "published_at": "2025-07-25T23:29:12.880Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bwaiting room\\b",
+            "snippet": "t point, I was silently crying and shaking from pain in the waiting room while the front desk watched and did nothing. I eventually",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 65,
+            "rating": 2,
+            "published_at": "2026-06-03T17:55:56.208Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\blobby\\b",
+            "snippet": "oval with the surgeon. The front desk told me to sit in the lobby and my name would be called shortly. At 12:30pm I asked how",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 96,
+            "rating": 2,
+            "published_at": "2022-05-31T21:21:24.718Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bwaiting room\\b",
+            "snippet": "o open chair for me, so I was sent back into a fully packed waiting room to wait for a chair. By noon I was called in and without to",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 98,
+            "rating": 1,
+            "published_at": "2023-12-21T21:12:58.346Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bwaiting room\\b",
+            "snippet": "back to me. I was puzzled by how long I was waiting in the waiting room, and I asked how long until they are done with his x-rays.",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 102,
+            "rating": 5,
+            "published_at": "2018-07-22T19:07:04.862Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bwaiting room\\b",
+            "snippet": "entive and we\u2019re grateful to be there on a Saturday.  Great waiting room. They have all the state of the art technology and we felt",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 120,
+            "rating": 1,
+            "published_at": "2023-06-01T19:58:33.700Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bwaiting room\\b",
+            "snippet": "he got  the the service first before the three of us in the waiting room. \ud83d\udc4f\ud83d\udc4f\ud83d\udc4fI atleast waited for an hour and I couldn't wait any lo",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 185,
+            "rating": 1,
+            "published_at": "2025-08-14T18:50:40.150Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\blobby\\b",
+            "snippet": "your xray.\u201d So she takes the xray and I return back to the lobby, go to the front desk to ask the cost of the veneer. I wait",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 252,
+            "rating": 2,
+            "published_at": "2024-11-13T18:30:34.696Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\blobby\\b",
+            "snippet": "and nobody ever shows up for work, so I go and I sit in the lobby for an hour or two and then eventually have to give up and",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 274,
+            "rating": 1,
+            "published_at": "2025-10-23T18:50:01.826Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bwaiting room\\b",
+            "snippet": "owed to my appt. After checking in and waited 30 min in the waiting room. I asked for when I would be seen and they hadn\u2019t even proc",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 330,
+            "rating": 5,
+            "published_at": "2026-05-06T19:39:54.051Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bwaiting room\\b",
+            "snippet": "y even have music playing in the background and a TV in the waiting room, which helps create a relaxed atmosphere.\n\nOverall, I highl",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 346,
+            "rating": 1,
+            "published_at": "2026-03-21T22:32:47.828Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\blobby\\b",
+            "snippet": "nswers. I got better answers, from the other patrons in the lobby.  DO NOT come. Unless it\u2019s for basic cleaning etc. anything",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 382,
+            "rating": 1,
+            "published_at": "2026-02-05T01:59:52.387Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\blobby\\b",
+            "snippet": "ning visit, I spent the majority of the time waiting in the lobby, eventually completed first time X-rays and scans, then spe",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 402,
+            "rating": 1,
+            "published_at": "2025-06-28T15:38:47.992Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bwaiting room\\b",
+            "snippet": "DO NOT COME HERE!!! They will make you wait an hour in the waiting room even with an appointment! And they will try to take advanta",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 412,
+            "rating": 1,
+            "published_at": "2023-08-21T22:30:14.009Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bwaiting room\\b",
+            "snippet": "The place checked me out as I was in the waiting room causing me to wait 3 hours. Do no come here very poor custo",
+            "has_photos": true,
+            "photo_count": 1
+          },
+          {
+            "review_num": 417,
+            "rating": 1,
+            "published_at": "2025-12-05T00:15:01.834Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bwaiting room\\b",
+            "snippet": "(sarcasm) as I love spending extra time in an uncomfortable waiting room with the rest of LA.\n\nOh, and the parking lot has a two hou",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 419,
+            "rating": 1,
+            "published_at": "2025-06-28T21:09:51.052Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bwaiting room\\b",
+            "snippet": "lmost 01:00 PM. No updates, no apologies\u2014just an overpacked waiting room and a slowly dying phone battery. Apparently, their concept",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 431,
+            "rating": 1,
+            "published_at": "2024-10-08T05:16:17.064Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bwaiting room\\b",
+            "snippet": "st so I made an appointment. I waited almost 2 hours at the waiting room for them to tell me I have to reschedule as they were not a",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 432,
+            "rating": 3,
+            "published_at": "2024-09-23T18:57:59.518Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bwaiting room\\b",
+            "snippet": "e with the dental work, but not the hours of waiting in the waiting room or front desk / non dental workers not knowing what\u2019s happe",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 438,
+            "rating": 1,
+            "published_at": "2026-07-23T17:38:41.564Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bwaiting room\\b",
+            "snippet": "s involved waiting well over an hour before being seen. The waiting room is packed to the point where it feels like the county jail.",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 441,
+            "rating": 1,
+            "published_at": "2026-05-20T16:07:52.376Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bwaiting room\\b",
+            "snippet": "ts. They are a greedy shop that packs as many people in the waiting room as possible, but with absolutely ZERO regard to the patient",
+            "has_photos": false,
+            "photo_count": 0
+          }
+        ],
+        "correct": true
+      },
+      {
+        "business_name": "Village Dental Practice",
+        "expected_tv": false,
+        "reviews_fetched": 175,
+        "total_reviews": 114,
+        "matched": true,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 6,
+        "matched_reviews": [
+          {
+            "review_num": 99,
+            "rating": 5,
+            "published_at": "2023-04-07T19:36:37.381Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bwaiting room\\b",
+            "snippet": "ommend her if you are looking for a dentist. The clinic and waiting room is very clean and pleasant and they do not cut corners on i",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 109,
+            "rating": 5,
+            "published_at": "2022-02-02T17:40:18.689Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bwaiting room\\b",
+            "snippet": "always seen immediately, and have not needed to sit in the waiting room.\nAll the staff are kind and thoughtful.\nDr Konar is highly",
+            "has_photos": false,
+            "photo_count": 0
+          }
+        ],
+        "correct": false
+      },
+      {
+        "business_name": "Downtown Family Dentistry",
+        "expected_tv": false,
+        "reviews_fetched": 416,
+        "total_reviews": 52,
+        "matched": true,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 29,
+        "matched_reviews": [
+          {
+            "review_num": 104,
+            "rating": 1,
+            "published_at": "2024-02-21T03:28:01.722Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bwaiting room\\b",
+            "snippet": "tment started both nurses having came in while I was in the waiting room, are no where to be found to assist the dentist and I'm hol",
+            "has_photos": false,
+            "photo_count": 0
+          }
+        ],
+        "correct": false
+      }
+    ]
+  },
+  "auto": {
+    "vertical": "Auto Dealerships",
+    "total_accounts": 9,
+    "accounts_with_tv": 7,
+    "detected": 3,
+    "recall": 0.42857142857142855,
+    "precision": 1.6666666666666667,
+    "fallback_triggered_count": 0,
+    "fallback_accounts": [],
+    "photos_available_count": 7,
+    "photos_percentage": 0.7777777777777778,
+    "all_results": [
+      {
+        "business_name": "AutoNation Ford",
+        "expected_tv": true,
+        "reviews_fetched": 25,
+        "total_reviews": 4542,
+        "matched": false,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 38,
+        "matched_reviews": [],
+        "correct": false
+      },
+      {
+        "business_name": "Hendrick Automotive Chevrolet",
+        "expected_tv": true,
+        "reviews_fetched": 25,
+        "total_reviews": 7616,
+        "matched": false,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 19,
+        "matched_reviews": [],
+        "correct": false
+      },
+      {
+        "business_name": "Sonic Automotive BMW",
+        "expected_tv": true,
+        "reviews_fetched": 25,
+        "total_reviews": 3995,
+        "matched": false,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 26,
+        "matched_reviews": [],
+        "correct": false
+      },
+      {
+        "business_name": "CarMax",
+        "expected_tv": true,
+        "reviews_fetched": 243,
+        "total_reviews": 1970,
+        "matched": false,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 89,
+        "matched_reviews": [],
+        "correct": false
+      },
+      {
+        "business_name": "Budget Auto Sales",
+        "expected_tv": false,
+        "reviews_fetched": 7,
+        "total_reviews": 7,
+        "matched": false,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 0,
+        "matched_reviews": [],
+        "correct": true
+      },
+      {
+        "business_name": "Main Street Motors",
+        "expected_tv": false,
+        "reviews_fetched": 10,
+        "total_reviews": 10,
+        "matched": false,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 0,
+        "matched_reviews": [],
+        "correct": true
+      },
+      {
+        "business_name": "Penske Automotive Toyota",
+        "expected_tv": true,
+        "reviews_fetched": 450,
+        "total_reviews": 2093,
+        "matched": true,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 379,
+        "matched_reviews": [
+          {
+            "review_num": 67,
+            "rating": 5,
+            "published_at": "2026-04-23T16:17:41.605Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bwaiting room\\b",
+            "snippet": "department was quick at getting me checked in, and into the waiting room. Also, and finally, as a coffee lover, that's some good cof",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 95,
+            "rating": 5,
+            "published_at": "2026-03-21T18:16:59.071Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bwaiting room\\b",
+            "snippet": "onal. If you wait while they do the work, they have a great waiting room area and free WiFi. This time around I asked for a ride hom",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 170,
+            "rating": 5,
+            "published_at": "2026-06-24T14:32:53.680Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bwaiting room\\b",
+            "snippet": "rived four hours before I was scheduled. Clean, comfortable Waiting room, courteous staff.",
+            "has_photos": false,
+            "photo_count": 0
+          },
+          {
+            "review_num": 445,
+            "rating": 5,
+            "published_at": "2022-06-21T05:32:42.193Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\blobby\\b",
+            "snippet": "nt fair recommendation, not over -selling.\n\n\ud83d\udc4d Clean waiting lobby with free drinks\n\n\ud83d\udc4dOverall great customer service.\n\n\ud83d\udc4d Defin",
+            "has_photos": true,
+            "photo_count": 7
+          }
+        ],
+        "correct": true
+      },
+      {
+        "business_name": "Group 1 Automotive Mercedes",
+        "expected_tv": true,
+        "reviews_fetched": 400,
+        "total_reviews": 113,
+        "matched": true,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 321,
+        "matched_reviews": [
+          {
+            "review_num": 180,
+            "rating": 5,
+            "published_at": "2026-05-13T00:41:07.371Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\blobby\\b",
+            "snippet": "ven allowed my son to check out some of the vehicles in the lobby. Everyone was very kind, warming and welcoming. Thank you t",
+            "has_photos": true,
+            "photo_count": 1
+          },
+          {
+            "review_num": 315,
+            "rating": 5,
+            "published_at": "2026-05-12T16:02:57.662Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bservice (area|lounge)\\b",
+            "snippet": "y car with care. I also noticed they recently renovated the service area\u2014it looks super clean and professional now. Highly recommend",
+            "has_photos": false,
+            "photo_count": 0
+          }
+        ],
+        "correct": true
+      },
+      {
+        "business_name": "Lithia Honda",
+        "expected_tv": true,
+        "reviews_fetched": 625,
+        "total_reviews": 1828,
+        "matched": true,
+        "primary_source": "google_maps",
+        "triggered_fallback": false,
+        "photos_count": 537,
+        "matched_reviews": [
+          {
+            "review_num": 339,
+            "rating": 5,
+            "published_at": "2026-04-05T10:56:13.344Z",
+            "confidence": "Medium",
+            "matched_pattern": "\\bwaiting room\\b",
+            "snippet": "market. Very friendly staff all around, great showroom and waiting room, and again Alan Prakash was a huge help and excellent to wo",
+            "has_photos": false,
+            "photo_count": 0
+          }
+        ],
+        "correct": true
+      }
+    ]
+  }
+}

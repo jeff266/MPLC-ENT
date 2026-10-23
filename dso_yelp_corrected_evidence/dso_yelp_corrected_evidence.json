@@ -1,0 +1,135 @@
+{
+  "summary": {
+    "total_accounts": 1,
+    "total_evidence_items": 4,
+    "by_tier": {
+      "PROSPECT": 3,
+      "SUSPECT": 1,
+      "REJECTED": 0
+    },
+    "by_channel": {
+      "video": 0,
+      "image": 4,
+      "text": 0
+    },
+    "total_cost": 0.5424249999999999
+  },
+  "records": [
+    {
+      "account_name": "Itani Dental San Francisco",
+      "channel": "image",
+      "tier": "PROSPECT",
+      "vertical": "Dental",
+      "evidence": {
+        "photo_location": "dso_yelp_corrected_photos/itani-dental-san-francisco-san-francisco/photo_000.jpg",
+        "description": "Dental procedure in progress with multiple practitioners working on a patient, and a ceiling-mounted monitor displaying what appears to be dental X-rays or imaging.",
+        "source_url": "https://s3-media0.fl.yelpcdn.com/bphoto/GwErj_sigpb0a9X3Fm-syw/o.jpg"
+      },
+      "confidence": {
+        "yolo_detection": 0.7491121888160706,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "treatment_room",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.128575
+      },
+      "metadata": {
+        "timestamp": "2026-10-22T20:27:43.527726",
+        "evidence_id": "8cea50f03bc0",
+        "chain": "PDS/Smile Generation",
+        "yelp_rating": 4.5,
+        "photo_caption": "In Office Sedation Dentistry"
+      }
+    },
+    {
+      "account_name": "Itani Dental San Francisco",
+      "channel": "image",
+      "tier": "PROSPECT",
+      "vertical": "Dental",
+      "evidence": {
+        "photo_location": "dso_yelp_corrected_photos/itani-dental-san-francisco-san-francisco/photo_001.jpg",
+        "description": "Dental treatment room with operatory chair and equipment, featuring a mounted monitor/TV displaying visible content on an articulating arm above the patient area, with a city view window.",
+        "source_url": "https://s3-media0.fl.yelpcdn.com/bphoto/Glcgasea_ylijqtky_FRbQ/o.jpg"
+      },
+      "confidence": {
+        "yolo_detection": 0.304586261510849,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "treatment_room",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.133225
+      },
+      "metadata": {
+        "timestamp": "2026-10-22T20:27:46.792710",
+        "evidence_id": "3731b69c3c69",
+        "chain": "PDS/Smile Generation",
+        "yelp_rating": 4.5,
+        "photo_caption": "Care Suite 2"
+      }
+    },
+    {
+      "account_name": "Itani Dental San Francisco",
+      "channel": "image",
+      "tier": "PROSPECT",
+      "vertical": "Dental",
+      "evidence": {
+        "photo_location": "dso_yelp_corrected_photos/itani-dental-san-francisco-san-francisco/photo_005.jpg",
+        "description": "Dental treatment room with a reclined chair covered in protective plastic, dental equipment arm, and a wall-mounted TV/monitor displaying visible content above the window, with a laptop on a mobile cart in the foreground.",
+        "source_url": "https://s3-media0.fl.yelpcdn.com/bphoto/ENkKvwNo88H2dr27Vpa_yA/o.jpg"
+      },
+      "confidence": {
+        "yolo_detection": 0.5953904390335083,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "treatment_room",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.13801
+      },
+      "metadata": {
+        "timestamp": "2026-10-22T20:27:51.526035",
+        "evidence_id": "c125dc638eb1",
+        "chain": "PDS/Smile Generation",
+        "yelp_rating": 4.5,
+        "photo_caption": "Care Suite 4"
+      }
+    },
+    {
+      "account_name": "Itani Dental San Francisco",
+      "channel": "image",
+      "tier": "SUSPECT",
+      "vertical": "Dental",
+      "evidence": {
+        "photo_location": "dso_yelp_corrected_photos/itani-dental-san-francisco-san-francisco/photo_006.jpg",
+        "description": "Dental treatment room with chair, equipment, and large windows overlooking city skyline, with a mounted monitor/TV visible but screen state cannot be confirmed as powered on with content.",
+        "source_url": "https://s3-media0.fl.yelpcdn.com/bphoto/OfbelZYId-9MI7yDvcoyUA/o.jpg"
+      },
+      "confidence": {
+        "yolo_detection": 0.4340610206127167,
+        "vlm_assessment": "medium"
+      },
+      "space_classification": {
+        "type": "treatment_room",
+        "tv_powered_on": false
+      },
+      "cost": {
+        "total_account_cost": 0.142615
+      },
+      "metadata": {
+        "timestamp": "2026-10-22T20:27:55.025382",
+        "evidence_id": "fa00197a8518",
+        "chain": "PDS/Smile Generation",
+        "yelp_rating": 4.5,
+        "photo_caption": "Care Suite 1"
+      }
+    }
+  ]
+}

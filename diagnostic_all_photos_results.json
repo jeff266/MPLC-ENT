@@ -1,0 +1,18 @@
+{
+  "test_business": "Small Smiles - Naperville, IL",
+  "test_url": "https://www.yelp.com/biz/small-smiles-naperville-3",
+  "total_photos": 1,
+  "photos_with_captions": 1,
+  "interior_caption_matches": 0,
+  "all_photos": [
+    {
+      "url": "https://s3-media0.fl.yelpcdn.com/bphoto/8DcFS9FJOe6JlW0nXLp9fw/o.jpg",
+      "caption": "Meet Dr. Dave the owner of Small Smiles LLC",
+      "date": "2026-09-15T15:21:56+00:00",
+      "media_id": "8DcFS9FJOe6JlW0nXLp9fw",
+      "business_id": "JsuRoWoholDTeHpu_e6wOw",
+      "business_alias": "small-smiles-naperville-3"
+    }
+  ],
+  "caption_matches": []
+}
