@@ -1,0 +1,127 @@
+{
+  "validation_dataset": {
+    "source": "US MM+ Customers CSV",
+    "total_accounts": 10,
+    "industry": "Corporations",
+    "ground_truth": "All accounts are existing MPLC customers with confirmed PoP licenses"
+  },
+  "channel_performance": {
+    "channel_1_facility_video": {
+      "accounts_tested": 10,
+      "coverage": 1,
+      "coverage_rate": "10.0%",
+      "vlm_cost": "$0.0300",
+      "covered_accounts": ["Cigna/Evernorth"],
+      "notes": "Only 1/10 corporate facility tour videos showed amenity spaces with TVs"
+    },
+    "channel_2_serpapi_images": {
+      "accounts_tested": 9,
+      "coverage": 5,
+      "coverage_rate": "55.6%",
+      "incremental_lift": "+50 percentage points",
+      "total_cost": "$0.1289",
+      "covered_accounts": [
+        "Marathon Petroleum",
+        "PNC Financial Services", 
+        "Eaton",
+        "Bridgestone Americas",
+        "Zillow Group"
+      ],
+      "notes": "Google Images search for 'headquarters inside' found interior photos showing amenity TVs"
+    },
+    "channel_3_text_proxy": {
+      "accounts_tested": 4,
+      "coverage": 4,
+      "coverage_rate": "100.0%",
+      "incremental_lift": "+40 percentage points",
+      "total_cost": "$0 (Serper credits only)",
+      "covered_accounts": [
+        "TJX Companies",
+        "Tractor Supply",
+        "Costco Wholesale",
+        "Nutanix"
+      ],
+      "notes": "Widened vocabulary (cafeteria/gym/fitness/lobby) on company websites + Glassdoor found 2+ amenity types for all remaining accounts"
+    }
+  },
+  "cumulative_coverage": {
+    "video_only": "10% (1/10)",
+    "video_plus_images": "60% (6/10)",
+    "video_plus_images_plus_text": "100% (10/10)"
+  },
+  "cost_analysis": {
+    "total_vlm_cost": "$0.1589",
+    "cost_per_account_covered": "$0.0159",
+    "cost_per_account_tested": "$0.0159",
+    "serper_credits_used": "~50 credits (text proxy searches)"
+  },
+  "key_findings": [
+    "Facility video alone achieves only 10% coverage on real corporate customers",
+    "SerpAPI image search provides strongest incremental lift (+50 points)",
+    "Text proxy vocabulary fills remaining gaps to reach 100% coverage",
+    "Stacking multiple weak signals achieves complete coverage on ground-truth positives",
+    "Pattern matches restaurant pipeline design: single source insufficient, multi-channel required"
+  ],
+  "account_details": {
+    "Eaton": {
+      "video": false,
+      "images": true,
+      "text": false,
+      "final_channel": "SerpAPI images"
+    },
+    "Marathon Petroleum": {
+      "video": false,
+      "images": true,
+      "text": false,
+      "final_channel": "SerpAPI images"
+    },
+    "Costco Wholesale": {
+      "video": false,
+      "images": false,
+      "text": true,
+      "final_channel": "Text proxy"
+    },
+    "TJX Companies": {
+      "video": false,
+      "images": false,
+      "text": true,
+      "final_channel": "Text proxy"
+    },
+    "PNC Financial Services": {
+      "video": false,
+      "images": true,
+      "text": false,
+      "final_channel": "SerpAPI images"
+    },
+    "Cigna/Evernorth": {
+      "video": true,
+      "images": false,
+      "text": false,
+      "final_channel": "Facility video"
+    },
+    "Bridgestone Americas": {
+      "video": false,
+      "images": true,
+      "text": false,
+      "final_channel": "SerpAPI images"
+    },
+    "Zillow Group": {
+      "video": false,
+      "images": true,
+      "text": false,
+      "final_channel": "SerpAPI images"
+    },
+    "Nutanix": {
+      "video": false,
+      "images": false,
+      "text": true,
+      "final_channel": "Text proxy"
+    },
+    "Tractor Supply": {
+      "video": false,
+      "images": false,
+      "text": true,
+      "final_channel": "Text proxy"
+    }
+  }
+}

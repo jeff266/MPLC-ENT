@@ -1,0 +1,205 @@
+{
+  "summary": {
+    "total_accounts": 3,
+    "total_evidence_items": 6,
+    "by_tier": {
+      "PROSPECT": 6,
+      "SUSPECT": 0,
+      "REJECTED": 0
+    },
+    "by_channel": {
+      "video": 0,
+      "image": 6,
+      "text": 0
+    },
+    "total_cost": 0.951596
+  },
+  "records": [
+    {
+      "account_name": "AutoNation USA Houston",
+      "channel": "image",
+      "tier": "PROSPECT",
+      "vertical": "Auto Dealership",
+      "evidence": {
+        "photo_location": "auto_dealership_photos/auto-nation-usa-houston-2/photo_000.jpg",
+        "description": "Three wall-mounted flat-screen TVs are powered on displaying different content including AutoNation TV and news channels in what appears to be a customer waiting area with a wooden table visible in the foreground.",
+        "source_url": "https://s3-media0.fl.yelpcdn.com/bphoto/C-AR_Ch8r-eJTtM_QGbSBA/o.jpg"
+      },
+      "confidence": {
+        "yolo_detection": 0.6571765542030334,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "service_lounge",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.077285
+      },
+      "metadata": {
+        "timestamp": "2026-10-22T21:07:18.602914",
+        "evidence_id": "44f86689f7c1",
+        "dealership_group": "AutoNation",
+        "yelp_rating": 2,
+        "photo_caption": "TVs in the waiting area",
+        "verification_source": "https://www.yelp.com/biz/auto-nation-usa-houston",
+        "sample_type": "exploratory_public_group"
+      }
+    },
+    {
+      "account_name": "Michael's Subaru of Bellevue",
+      "channel": "image",
+      "tier": "PROSPECT",
+      "vertical": "Auto Dealership",
+      "evidence": {
+        "photo_location": "auto_dealership_photos/michaels-subaru-bellevue-4/photo_001.jpg",
+        "description": "Service waiting lounge with two large TVs displaying live basketball game content, comfortable black leather chair, display cabinet with model cars, and service desk visible in background.",
+        "source_url": "https://s3-media0.fl.yelpcdn.com/bphoto/p7i2rbYIxKtKNza_RIJsiw/o.jpg"
+      },
+      "confidence": {
+        "yolo_detection": 0.8476060032844543,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "service_lounge",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.121725
+      },
+      "metadata": {
+        "timestamp": "2026-10-22T21:11:21.461997",
+        "evidence_id": "e5c8cee8cb39",
+        "dealership_group": "Lithia Motors",
+        "yelp_rating": 4,
+        "photo_caption": "Service waiting area.",
+        "verification_source": "https://www.michaelssubaru.com/",
+        "sample_type": "exploratory_public_group"
+      }
+    },
+    {
+      "account_name": "Michael's Subaru of Bellevue",
+      "channel": "image",
+      "tier": "PROSPECT",
+      "vertical": "Auto Dealership",
+      "evidence": {
+        "photo_location": "auto_dealership_photos/michaels-subaru-bellevue-4/photo_002.jpg",
+        "description": "A service lounge waiting area with black leather chairs, illuminated display cabinets on either side, and a wall-mounted TV clearly showing a news broadcast or talk show with people on a set.",
+        "source_url": "https://s3-media0.fl.yelpcdn.com/bphoto/keoc4wfvxTYtZsSZ2nMpBg/o.jpg"
+      },
+      "confidence": {
+        "yolo_detection": 0.8364294767379761,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "service_lounge",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.126495
+      },
+      "metadata": {
+        "timestamp": "2026-10-22T21:11:26.278135",
+        "evidence_id": "dbd898b81e64",
+        "dealership_group": "Lithia Motors",
+        "yelp_rating": 4,
+        "photo_caption": "Service Dept Waiting Area",
+        "verification_source": "https://www.michaelssubaru.com/",
+        "sample_type": "exploratory_public_group"
+      }
+    },
+    {
+      "account_name": "Group 1 Toyota Southwest Houston",
+      "channel": "image",
+      "tier": "PROSPECT",
+      "vertical": "Auto Dealership",
+      "evidence": {
+        "photo_location": "auto_dealership_photos/group-1-toyota-richmond/photo_002.jpg",
+        "description": "Toyota dealership service waiting lounge with red seating furniture, mounted TV displaying visible content, coffee station, and vintage car mural decoration on the upper wall.",
+        "source_url": "https://s3-media0.fl.yelpcdn.com/bphoto/R-hosNz4W6Ac9er5SMid7A/o.jpg"
+      },
+      "confidence": {
+        "yolo_detection": 0.7750595808029175,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "service_lounge",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.2058
+      },
+      "metadata": {
+        "timestamp": "2026-10-22T21:12:18.358692",
+        "evidence_id": "2bda2e98d5b1",
+        "dealership_group": "Group 1 Automotive",
+        "yelp_rating": 2.5,
+        "photo_caption": "Waiting area of Fort Bend Toyota",
+        "verification_source": "https://www.group1toyotasouthwesthouston.com/",
+        "sample_type": "exploratory_public_group"
+      }
+    },
+    {
+      "account_name": "Group 1 Toyota Southwest Houston",
+      "channel": "image",
+      "tier": "PROSPECT",
+      "vertical": "Auto Dealership",
+      "evidence": {
+        "photo_location": "auto_dealership_photos/group-1-toyota-richmond/photo_003.jpg",
+        "description": "Service lounge waiting area with modern high-top seating and a wall-mounted TV displaying visible content above the counter.",
+        "source_url": "https://s3-media0.fl.yelpcdn.com/bphoto/EedjurDUvFK1FOwQQduiwg/o.jpg"
+      },
+      "confidence": {
+        "yolo_detection": 0.8396645188331604,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "service_lounge",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.207738
+      },
+      "metadata": {
+        "timestamp": "2026-10-22T21:12:21.324767",
+        "evidence_id": "93770beb4a5c",
+        "dealership_group": "Group 1 Automotive",
+        "yelp_rating": 2.5,
+        "photo_caption": "lounge area with free coffee and other beverage.",
+        "verification_source": "https://www.group1toyotasouthwesthouston.com/",
+        "sample_type": "exploratory_public_group"
+      }
+    },
+    {
+      "account_name": "Group 1 Toyota Southwest Houston",
+      "channel": "image",
+      "tier": "PROSPECT",
+      "vertical": "Auto Dealership",
+      "evidence": {
+        "photo_location": "auto_dealership_photos/group-1-toyota-richmond/photo_004.jpg",
+        "description": "A service lounge waiting area with multiple red upholstered chairs and small tables, featuring a wall-mounted TV that is clearly powered on and displaying content, with a retail/parts area visible in the background.",
+        "source_url": "https://s3-media0.fl.yelpcdn.com/bphoto/LimiKEPfD4Rkn-u0_SoX-Q/o.jpg"
+      },
+      "confidence": {
+        "yolo_detection": 0.80317622423172,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "service_lounge",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.212553
+      },
+      "metadata": {
+        "timestamp": "2026-10-22T21:12:25.071741",
+        "evidence_id": "02c022be5fc5",
+        "dealership_group": "Group 1 Automotive",
+        "yelp_rating": 2.5,
+        "photo_caption": "Waiting room at Fort Bend Toyota",
+        "verification_source": "https://www.group1toyotasouthwesthouston.com/",
+        "sample_type": "exploratory_public_group"
+      }
+    }
+  ]
+}

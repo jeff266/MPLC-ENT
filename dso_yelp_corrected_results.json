@@ -1,0 +1,79 @@
+[
+  {
+    "business": "W Dentistry",
+    "chain": "PDS/Smile Generation",
+    "city": "San Francisco",
+    "tier": "REJECTED",
+    "total_photos": 4,
+    "interior_photos": 0,
+    "yolo_detections": 0,
+    "vlm_calls": 0,
+    "cost": 0.008
+  },
+  {
+    "business": "Itani Dental San Francisco",
+    "chain": "PDS/Smile Generation",
+    "city": "San Francisco",
+    "tier": "PROSPECT",
+    "total_photos": 62,
+    "interior_photos": 10,
+    "yolo_detections": 4,
+    "vlm_calls": 4,
+    "cost": 0.142615
+  },
+  {
+    "business": "Dentists of Pittsburg",
+    "chain": "PDS/Smile Generation",
+    "city": "Pittsburg",
+    "tier": "REJECTED",
+    "total_photos": 26,
+    "interior_photos": 2,
+    "yolo_detections": 0,
+    "vlm_calls": 0,
+    "cost": 0.052000000000000005
+  },
+  {
+    "business": "Miller Family Dental",
+    "chain": "Kool Smiles",
+    "city": "Houston",
+    "tier": "REJECTED",
+    "total_photos": 5,
+    "interior_photos": 1,
+    "yolo_detections": 0,
+    "vlm_calls": 0,
+    "cost": 0.01
+  },
+  {
+    "business": "Topaz Dentistry",
+    "chain": "Kool Smiles",
+    "city": "Bryan",
+    "tier": "REJECTED",
+    "total_photos": 8,
+    "interior_photos": 0,
+    "yolo_detections": 0,
+    "vlm_calls": 0,
+    "cost": 0.016
+  },
+  {
+    "business": "Small Smiles",
+    "chain": "Small Smiles",
+    "city": "Naperville",
+    "tier": "REJECTED",
+    "total_photos": 1,
+    "interior_photos": 0,
+    "yolo_detections": 0,
+    "vlm_calls": 0,
+    "cost": 0.002
+  },
+  {
+    "business": "Small Smiles",
+    "chain": "Small Smiles",
+    "city": "Mishawaka",
+    "tier": "REJECTED",
+    "total_photos": 0,
+    "interior_photos": 0,
+    "yolo_detections": 0,
+    "vlm_calls": 0,
+    "cost": 0.0
+  }
+]

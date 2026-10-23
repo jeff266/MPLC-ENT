@@ -1,0 +1,457 @@
+{
+  "true_positives": [
+    {
+      "name": "Hooters",
+      "url": "https://www.hooters.com/",
+      "detected": false,
+      "match_count": 0,
+      "best_score": 0,
+      "all_matches": [],
+      "scraped": true
+    },
+    {
+      "name": "Buffalo Wild Wings",
+      "url": "https://www.buffalowildwings.com/",
+      "detected": false,
+      "match_count": 0,
+      "best_score": 0,
+      "all_matches": [],
+      "scraped": true
+    },
+    {
+      "name": "Twin Peaks Restaurant",
+      "url": "https://www.twinpeaksrestaurant.com/",
+      "detected": true,
+      "match_count": 10,
+      "best_score": 100,
+      "all_matches": [
+        {
+          "matched_keyword": "Sports Bar",
+          "evidence_text": "ating selection of fan favorites and in-house brews are your trusted companion in victory or defeat. Find Your Lodge #1 Sports Bar Discover Scenic Views of Every Game Step inside and you\u2019ll find wall-to-wall TVs fit for the ultimate watch party. From",
+          "confidence_score": 100,
+          "pattern_group": "high",
+          "evidence_flag": "Very Strong",
+          "source_url": "https://www.twinpeaksrestaurant.com/"
+        },
+        {
+          "matched_keyword": "wall-to-wall TVs",
+          "evidence_text": "ion in victory or defeat. Find Your Lodge #1 Sports Bar Discover Scenic Views of Every Game Step inside and you\u2019ll find wall-to-wall TVs fit for the ultimate watch party. From local rivalries to primetime matchups, Twin Peaks has you covered. Learn More Ab",
+          "confidence_score": 100,
+          "pattern_group": "high",
+          "evidence_flag": "Very Strong",
+          "source_url": "https://www.twinpeaksrestaurant.com/"
+        },
+        {
+          "matched_keyword": "watch party",
+          "evidence_text": "dge #1 Sports Bar Discover Scenic Views of Every Game Step inside and you\u2019ll find wall-to-wall TVs fit for the ultimate watch party. From local rivalries to primetime matchups, Twin Peaks has you covered. Learn More About Us Find a Lodge \u2192 The Best Vi",
+          "confidence_score": 100,
+          "pattern_group": "high",
+          "evidence_flag": "Very Strong",
+          "source_url": "https://www.twinpeaksrestaurant.com/"
+        },
+        {
+          "matched_keyword": "Game Day",
+          "evidence_text": "e (Twin Peaks Man Cave Neon Sign, Coors Light Home Bar Kit: Mini-Refrigerator, Neon Sign, Cocktail Table & Stools), The Game Day Bundle (75\u201d Ultra-Thin LG SmartTV, Miller Lite Tailgate: Corn Hole, Ice Chest & 10\u2019x10\u2019 Tent), or The Peaks Bundle (Twi",
+          "confidence_score": 96,
+          "pattern_group": "high",
+          "evidence_flag": "Very Strong",
+          "source_url": "https://www.twinpeaksrestaurant.com/"
+        },
+        {
+          "matched_keyword": "sports bar",
+          "evidence_text": "Your Lodge Volkanovski vs. Evloev UFC 333 | October 24th | 1:00PM CT \u2192 EVERY DAY IS GAME DAY Catch every game at the +1 sports bar \u2192 Win $500 Every Week All Season Long at the lodge. Scan to Enter. \u2192 Scratch Menu From lunch to late night, the Twin Pe",
+          "confidence_score": 90,
+          "pattern_group": "high",
+          "evidence_flag": "Very Strong",
+          "source_url": "https://www.twinpeaksrestaurant.com/"
+        }
+      ],
+      "scraped": true
+    },
+    {
+      "name": "Dave & Busters",
+      "url": "https://www.daveandbusters.com/",
+      "detected": true,
+      "match_count": 1,
+      "best_score": 75,
+      "all_matches": [
+        {
+          "matched_keyword": "football",
+          "evidence_text": "hild will love this place!! Games galore to play!! All games worked. Clean restrooms, plenty of areas to eat, nice bar, football and sports to watch. Nice gifting area to decide what to get with your rewards. We truly enjoyed the time here with our",
+          "confidence_score": 75,
+          "pattern_group": "medium",
+          "evidence_flag": "Strong",
+          "source_url": "https://www.daveandbusters.com/"
+        }
+      ],
+      "scraped": true
+    },
+    {
+      "name": "Topgolf",
+      "url": "https://topgolf.com/",
+      "detected": true,
+      "match_count": 2,
+      "best_score": 93,
+      "all_matches": [
+        {
+          "matched_keyword": "Game Day",
+          "evidence_text": "ked hourly rate per bay and room for six to play, it\u2019s easy to wrap up your weekend with Sunday Funday. Plan Your Visit Game Day Meets Game Play Tackle the Field Goal Challenge, make the call on which game is on in your bay and enjoy beer specials",
+          "confidence_score": 93,
+          "pattern_group": "high",
+          "evidence_flag": "Very Strong",
+          "source_url": "https://topgolf.com/"
+        },
+        {
+          "matched_keyword": "TVs",
+          "evidence_text": "ks every shot and keeps score, giving you real feedback every time you tee it up. Laid-back vibes, great music, tons of TVs and an unbeatable food and drink menu keep things casual and fun for everyone, no matter their skill level. Making it e",
+          "confidence_score": 60,
+          "pattern_group": "medium",
+          "evidence_flag": "Medium",
+          "source_url": "https://topgolf.com/"
+        }
+      ],
+      "scraped": true
+    },
+    {
+      "name": "Walk-Ons Sports Bistreaux",
+      "url": "https://walk-ons.com/",
+      "detected": true,
+      "match_count": 6,
+      "best_score": 90,
+      "all_matches": [
+        {
+          "matched_keyword": "wall-to-wall TVs",
+          "evidence_text": "it easy to bring big flavor to the table. Explore Catering Walk-On's Sports Bistreaux For The Win Scratch-made dishes, wall-to-wall TVs, craft beers and cocktails. Dig into our mouthwatering menu items like Poboys, Gumbo, and Voodoo Shrimp. Plus fan-favor",
+          "confidence_score": 90,
+          "pattern_group": "high",
+          "evidence_flag": "Very Strong",
+          "source_url": "https://walk-ons.com/"
+        },
+        {
+          "matched_keyword": "Game Day",
+          "evidence_text": "by the underdog spirit of our team Virtual Tour See full video a birds eye view of our latest prototype in Lakeland, FL Game Day with plenty of TVs never miss a moment Walk-On's Rewards Every $1 equals 10 points - earn free food as you go. Learn Mo",
+          "confidence_score": 90,
+          "pattern_group": "high",
+          "evidence_flag": "Very Strong",
+          "source_url": "https://walk-ons.com/"
+        },
+        {
+          "matched_keyword": "tv",
+          "evidence_text": "imise the relevance of the advertisements on the website. Maximum Storage Duration : 1 year Type : HTTP Cookie cdn.attn.tv 7 _attn_ Used for reporting and optimization of marketing text messages. Maximum Storage Duration : Session Type : HTML",
+          "confidence_score": 60,
+          "pattern_group": "medium",
+          "evidence_flag": "Medium",
+          "source_url": "https://walk-ons.com/"
+        },
+        {
+          "matched_keyword": "tv",
+          "evidence_text": ": Session Type : HTML Local Storage rlsgeoipdat Pending Maximum Storage Duration : Session Type : HTTP Cookie cdn.attn.tv 1 __attentive_session_id Pending Maximum Storage Duration : Session Type : HTTP Cookie locate.walk-ons.com 4 andFilters",
+          "confidence_score": 60,
+          "pattern_group": "medium",
+          "evidence_flag": "Medium",
+          "source_url": "https://walk-ons.com/"
+        },
+        {
+          "matched_keyword": "TVs",
+          "evidence_text": "ring big flavor to the table. Explore Catering Walk-On's Sports Bistreaux For The Win Scratch-made dishes, wall-to-wall TVs, craft beers and cocktails. Dig into our mouthwatering menu items like Poboys, Gumbo, and Voodoo Shrimp. Plus fan-favor",
+          "confidence_score": 60,
+          "pattern_group": "medium",
+          "evidence_flag": "Medium",
+          "source_url": "https://walk-ons.com/"
+        }
+      ],
+      "scraped": true
+    },
+    {
+      "name": "Yard House",
+      "url": "https://www.yardhouse.com/",
+      "detected": false,
+      "match_count": 0,
+      "best_score": 0,
+      "all_matches": [],
+      "scraped": true
+    },
+    {
+      "name": "Lucky Strike",
+      "url": "https://www.bowlluckystrike.com/",
+      "detected": false,
+      "match_count": 0,
+      "best_score": 0,
+      "all_matches": [],
+      "scraped": true
+    },
+    {
+      "name": "Main Event",
+      "url": "https://www.mainevent.com/",
+      "detected": false,
+      "match_count": 0,
+      "best_score": 0,
+      "all_matches": [],
+      "scraped": true
+    },
+    {
+      "name": "Punch Bowl Social",
+      "url": "https://punchbowlsocial.com/",
+      "detected": false,
+      "match_count": 0,
+      "best_score": 0,
+      "all_matches": [],
+      "scraped": true
+    },
+    {
+      "name": "Round1 Bowling",
+      "url": "https://www.round1usa.com/",
+      "detected": false,
+      "match_count": 0,
+      "best_score": 0,
+      "all_matches": [],
+      "scraped": true
+    },
+    {
+      "name": "Pinstripes",
+      "url": "https://pinstripes.com/",
+      "detected": false,
+      "match_count": 0,
+      "best_score": 0,
+      "all_matches": [],
+      "scraped": false
+    },
+    {
+      "name": "Bowlero",
+      "url": "https://www.bowlero.com/",
+      "detected": false,
+      "match_count": 0,
+      "best_score": 0,
+      "all_matches": [],
+      "scraped": true
+    },
+    {
+      "name": "Kings Dining Entertainment",
+      "url": "https://www.kings-de.com/",
+      "detected": false,
+      "match_count": 0,
+      "best_score": 0,
+      "all_matches": [],
+      "scraped": false
+    },
+    {
+      "name": "Splitsville",
+      "url": "https://www.splitsvillelanes.com/",
+      "detected": false,
+      "match_count": 0,
+      "best_score": 0,
+      "all_matches": [],
+      "scraped": true
+    },
+    {
+      "name": "Fox and Hound",
+      "url": "https://www.foxandhound.com/",
+      "detected": false,
+      "match_count": 0,
+      "best_score": 0,
+      "all_matches": [],
+      "scraped": true
+    },
+    {
+      "name": "Tilted Kilt",
+      "url": "https://www.tiltedkilt.com/",
+      "detected": true,
+      "match_count": 2,
+      "best_score": 99,
+      "all_matches": [
+        {
+          "matched_keyword": "sports bar",
+          "evidence_text": "\"A Cold Beer Never Looked So Good!\" \u00ae Tilted Kilt Pub & Eatery is more than just a restaurant, and so much more than a sports bar. Our fun, festive atmosphere makes us the go-to place to watch sports, enjoy a cold beer and hang out with friends. We",
+          "confidence_score": 99,
+          "pattern_group": "high",
+          "evidence_flag": "Very Strong",
+          "source_url": "https://www.tiltedkilt.com/"
+        },
+        {
+          "matched_keyword": "screens",
+          "evidence_text": "om and an extensive spirit selection. All this, plus year-round, nonstop pro and college sports action on all of our HD screens. Of course, there\u2019s also our World Famous Tilted Kilt Girls\u00ae. Beautiful and ever so friendly, everyone is eager to put",
+          "confidence_score": 63,
+          "pattern_group": "medium",
+          "evidence_flag": "Medium",
+          "source_url": "https://www.tiltedkilt.com/"
+        }
+      ],
+      "scraped": true
+    },
+    {
+      "name": "Twin Peaks (alt)",
+      "url": "https://www.twinpeaksrestaurant.com/lodge-life/",
+      "detected": true,
+      "match_count": 1,
+      "best_score": 96,
+      "all_matches": [
+        {
+          "matched_keyword": "Game Day",
+          "evidence_text": "e (Twin Peaks Man Cave Neon Sign, Coors Light Home Bar Kit: Mini-Refrigerator, Neon Sign, Cocktail Table & Stools), The Game Day Bundle (75\u201d Ultra-Thin LG SmartTV, Miller Lite Tailgate: Corn Hole, Ice Chest & 10\u2019x10\u2019 Tent), or The Peaks Bundle (Twi",
+          "confidence_score": 96,
+          "pattern_group": "high",
+          "evidence_flag": "Very Strong",
+          "source_url": "https://www.twinpeaksrestaurant.com/lodge-life/"
+        }
+      ],
+      "scraped": true
+    },
+    {
+      "name": "Pluckers Wing Bar",
+      "url": "https://www.pluckers.com/",
+      "detected": false,
+      "match_count": 0,
+      "best_score": 0,
+      "all_matches": [],
+      "scraped": true
+    },
+    {
+      "name": "Champps",
+      "url": "https://www.champps.com/",
+      "detected": false,
+      "match_count": 0,
+      "best_score": 0,
+      "all_matches": [],
+      "scraped": true
+    }
+  ],
+  "true_negatives": [
+    {
+      "name": "Kirkland & Ellis Law",
+      "url": "https://www.kirkland.com/",
+      "false_positive": false,
+      "match_count": 0,
+      "best_score": 0,
+      "all_matches": []
+    },
+    {
+      "name": "Latham & Watkins Law",
+      "url": "https://www.lw.com/",
+      "false_positive": false,
+      "match_count": 0,
+      "best_score": 0,
+      "all_matches": []
+    },
+    {
+      "name": "Skadden Law Firm",
+      "url": "https://www.skadden.com/",
+      "false_positive": false,
+      "match_count": 0,
+      "best_score": 0,
+      "all_matches": []
+    },
+    {
+      "name": "Aspen Dental",
+      "url": "https://www.aspendental.com/",
+      "false_positive": false,
+      "match_count": 0,
+      "best_score": 0,
+      "all_matches": []
+    },
+    {
+      "name": "Gentle Dental",
+      "url": "https://www.gentledental.com/",
+      "false_positive": false,
+      "match_count": 0,
+      "best_score": 0,
+      "all_matches": []
+    },
+    {
+      "name": "Deloitte",
+      "url": "https://www2.deloitte.com/",
+      "false_positive": false,
+      "match_count": 0,
+      "best_score": 0,
+      "all_matches": []
+    },
+    {
+      "name": "PwC",
+      "url": "https://www.pwc.com/",
+      "false_positive": false,
+      "match_count": 0,
+      "best_score": 0,
+      "all_matches": []
+    },
+    {
+      "name": "EY Accounting",
+      "url": "https://www.ey.com/",
+      "false_positive": false,
+      "match_count": 0,
+      "best_score": 0,
+      "all_matches": []
+    },
+    {
+      "name": "State Farm Insurance",
+      "url": "https://www.statefarm.com/",
+      "false_positive": false,
+      "match_count": 0,
+      "best_score": 0,
+      "all_matches": []
+    },
+    {
+      "name": "Allstate Insurance",
+      "url": "https://www.allstate.com/",
+      "false_positive": false,
+      "match_count": 0,
+      "best_score": 0,
+      "all_matches": []
+    },
+    {
+      "name": "Gap Retail",
+      "url": "https://www.gap.com/",
+      "false_positive": false,
+      "match_count": 0,
+      "best_score": 0,
+      "all_matches": []
+    },
+    {
+      "name": "Old Navy",
+      "url": "https://oldnavy.gap.com/",
+      "false_positive": true,
+      "match_count": 1,
+      "best_score": 96,
+      "all_matches": [
+        {
+          "matched_keyword": "Game Day",
+          "evidence_text": "e Sweats Guide The Sweats Guide Is Here Meet the new HQ for our comfiest fabrics and fits. Shop Sweats The Sweats Guide Game Day, Your Way NFL gear to show your team spirit from head to toe. Shop NFL The Very Merry Gift Guide Everything for everybo",
+          "confidence_score": 96,
+          "pattern_group": "high",
+          "evidence_flag": "Very Strong",
+          "source_url": "https://oldnavy.gap.com/"
+        }
+      ]
+    },
+    {
+      "name": "Kohls Department Store",
+      "url": "https://www.kohls.com/",
+      "false_positive": false,
+      "match_count": 0,
+      "best_score": 0,
+      "all_matches": []
+    },
+    {
+      "name": "Bed Bath Beyond",
+      "url": "https://www.bedbathandbeyond.com/",
+      "false_positive": false,
+      "match_count": 0,
+      "best_score": 0,
+      "all_matches": []
+    },
+    {
+      "name": "Office Depot",
+      "url": "https://www.officedepot.com/",
+      "false_positive": false,
+      "match_count": 0,
+      "best_score": 0,
+      "all_matches": []
+    }
+  ],
+  "metrics": {
+    "recall_pct": 30.0,
+    "precision_pct": 85.71428571428571,
+    "tp_detected": 6,
+    "tp_missed": 14,
+    "tn_correct": 14,
+    "tn_false_positive": 1
+  }
+}
