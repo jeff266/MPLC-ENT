@@ -8,3 +8,13 @@ __pycache__/
 *.db-wal
 .env
 .DS_Store
+
+# Run artifacts — belong in output/, not root
+output/runs/
+output/logs/
+mplc_results_*.csv
+*_output.txt
+*.log
+
+# Keep enrichment ledger tracked (it's the live dedup cache)
+!enrichment_ledger.db
