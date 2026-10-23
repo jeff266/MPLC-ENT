@@ -1,0 +1,152 @@
+{
+  "accounts_tested": 10,
+  "video_channel": {
+    "accounts": [
+      {
+        "account": "Eaton",
+        "download_cost": 0,
+        "yolo_cost": 0,
+        "vlm_cost": 0.0013,
+        "total": 0.0013
+      },
+      {
+        "account": "Marathon Petroleum",
+        "download_cost": 0,
+        "yolo_cost": 0,
+        "vlm_cost": 0,
+        "total": 0
+      },
+      {
+        "account": "Costco Wholesale",
+        "download_cost": 0,
+        "yolo_cost": 0,
+        "vlm_cost": 0.0041,
+        "total": 0.0041
+      },
+      {
+        "account": "TJX Companies",
+        "download_cost": 0,
+        "yolo_cost": 0,
+        "vlm_cost": 0,
+        "total": 0
+      },
+      {
+        "account": "The PNC Financial Services Group, Inc.",
+        "download_cost": 0,
+        "yolo_cost": 0,
+        "vlm_cost": 0,
+        "total": 0
+      },
+      {
+        "account": "The Cigna Group Corporation - Evernorth Health Services Division",
+        "download_cost": 0,
+        "yolo_cost": 0,
+        "vlm_cost": 0.013,
+        "total": 0.013
+      },
+      {
+        "account": "Bridgestone Americas",
+        "download_cost": 0,
+        "yolo_cost": 0,
+        "vlm_cost": 0.0013,
+        "total": 0.0013
+      },
+      {
+        "account": "Zillow Group",
+        "download_cost": 0,
+        "yolo_cost": 0,
+        "vlm_cost": 0.0013,
+        "total": 0.0013
+      },
+      {
+        "account": "Nutanix",
+        "download_cost": 0,
+        "yolo_cost": 0,
+        "vlm_cost": 0.009,
+        "total": 0.009
+      },
+      {
+        "account": "Tractor Supply Co.",
+        "download_cost": 0,
+        "yolo_cost": 0,
+        "vlm_cost": 0,
+        "total": 0
+      }
+    ],
+    "total": 0.03
+  },
+  "image_channel": {
+    "accounts": [
+      {
+        "account": "Marathon Petroleum",
+        "search_cost": 0.02,
+        "yolo_cost": 0,
+        "vlm_cost": 0.0017,
+        "total": 0.0217
+      },
+      {
+        "account": "TJX Companies",
+        "search_cost": 0.02,
+        "yolo_cost": 0,
+        "vlm_cost": 0.008399999999999998,
+        "total": 0.028399999999999998
+      },
+      {
+        "account": "PNC Financial Services",
+        "search_cost": 0.02,
+        "yolo_cost": 0,
+        "vlm_cost": 0.0040999999999999995,
+        "total": 0.0241
+      },
+      {
+        "account": "Tractor Supply",
+        "search_cost": 0.02,
+        "yolo_cost": 0,
+        "vlm_cost": 0.0009,
+        "total": 0.020900000000000002
+      },
+      {
+        "account": "Eaton",
+        "search_cost": 0.02,
+        "yolo_cost": 0,
+        "vlm_cost": 0.005999999999999999,
+        "total": 0.026
+      },
+      {
+        "account": "Costco Wholesale",
+        "search_cost": 0.02,
+        "yolo_cost": 0,
+        "vlm_cost": 0.0037,
+        "total": 0.0237
+      },
+      {
+        "account": "Bridgestone Americas",
+        "search_cost": 0.02,
+        "yolo_cost": 0,
+        "vlm_cost": 0.0017,
+        "total": 0.0217
+      },
+      {
+        "account": "Zillow Group",
+        "search_cost": 0.02,
+        "yolo_cost": 0,
+        "vlm_cost": 0.0027,
+        "total": 0.0227
+      },
+      {
+        "account": "Nutanix",
+        "search_cost": 0.02,
+        "yolo_cost": 0,
+        "vlm_cost": 0.0024,
+        "total": 0.0224
+      }
+    ],
+    "total": 0.2116
+  },
+  "grand_total": 0.2416,
+  "cost_per_account": 0.0242,
+  "projection": {
+    "full_corporate_list_size": 209,
+    "projected_total_cost": 5.05
+  }
+}
