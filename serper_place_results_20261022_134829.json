@@ -1,0 +1,47 @@
+[
+  {
+    "business_name": "Yard House",
+    "location": "Chicago, IL",
+    "top_result": {
+      "title": "Yard House",
+      "address": "2301 Fountain Square Dr, Lombard, IL 60148",
+      "cid": "2160066513739200282",
+      "latitude": 41.843685,
+      "longitude": -87.99216
+    },
+    "total_locations_found": 3,
+    "name_match": true,
+    "status": "success",
+    "ambiguous": true
+  },
+  {
+    "business_name": "Twin Peaks Restaurant",
+    "location": "New York, NY",
+    "top_result": {
+      "title": "Twin Peaks",
+      "address": "1891 Skibo Rd, Fayetteville, NC 28303",
+      "cid": "15405509976612657091",
+      "latitude": 35.072,
+      "longitude": -78.96449
+    },
+    "total_locations_found": 0,
+    "name_match": false,
+    "status": "success",
+    "ambiguous": false
+  },
+  {
+    "business_name": "Gentle Dental",
+    "location": "Seattle, WA",
+    "top_result": {
+      "title": "Gentle Dental Capitol Hill",
+      "address": "535 Broadway E",
+      "cid": "11022141752571326387",
+      "latitude": 47.624096,
+      "longitude": -122.32113
+    },
+    "total_locations_found": 2,
+    "name_match": true,
+    "status": "success",
+    "ambiguous": true
+  }
+]

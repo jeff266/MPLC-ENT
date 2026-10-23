@@ -1,0 +1,83 @@
+[
+  {
+    "company": "Marathon Petroleum",
+    "website": "marathonpetroleum.com",
+    "images_found": 15,
+    "images_analyzed": 10,
+    "confirmations": 2,
+    "total_cost": 0.0129,
+    "coverage": true
+  },
+  {
+    "company": "TJX Companies",
+    "website": "www.tjx.com",
+    "images_found": 20,
+    "images_analyzed": 10,
+    "confirmations": 0,
+    "total_cost": 0.0137,
+    "coverage": false
+  },
+  {
+    "company": "The PNC Financial Services Group",
+    "website": "www.pnc.com",
+    "images_found": 20,
+    "images_analyzed": 10,
+    "confirmations": 1,
+    "total_cost": 0.0136,
+    "coverage": true
+  },
+  {
+    "company": "Tractor Supply",
+    "website": "www.tractorsupply.com",
+    "images_found": 15,
+    "images_analyzed": 10,
+    "confirmations": 0,
+    "total_cost": 0.0127,
+    "coverage": false
+  },
+  {
+    "company": "Eaton",
+    "website": "https://www.eaton.com/us/en-us.html",
+    "images_found": 15,
+    "images_analyzed": 10,
+    "confirmations": 1,
+    "total_cost": 0.014,
+    "coverage": true
+  },
+  {
+    "company": "Costco Wholesale",
+    "website": "www.costco.com",
+    "images_found": 15,
+    "images_analyzed": 10,
+    "confirmations": 0,
+    "total_cost": 0.0161,
+    "coverage": false
+  },
+  {
+    "company": "Bridgestone Americas",
+    "website": "https://www.bridgestoneamericas.com/en/index",
+    "images_found": 10,
+    "images_analyzed": 10,
+    "confirmations": 2,
+    "total_cost": 0.0143,
+    "coverage": true
+  },
+  {
+    "company": "Zillow Group",
+    "website": "www.zillowgroup.com",
+    "images_found": 20,
+    "images_analyzed": 10,
+    "confirmations": 1,
+    "total_cost": 0.0151,
+    "coverage": true
+  },
+  {
+    "company": "Nutanix",
+    "website": "www.nutanix.com",
+    "images_found": 15,
+    "images_analyzed": 10,
+    "confirmations": 0,
+    "total_cost": 0.0165,
+    "coverage": false
+  }
+]

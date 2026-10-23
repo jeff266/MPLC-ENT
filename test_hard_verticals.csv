@@ -1,0 +1,7 @@
+18 Digit Account ID,Account Name,Website,Industry_Bucket,Segment,Account Street,Account State/Province
+TEST_CORP_GOOGLE,Google Mountain View,https://www.google.com,Corporations,ENT,"1600 Amphitheatre Parkway, Mountain View",CA
+TEST_CORP_SALESFORCE,Salesforce Tower,https://www.salesforce.com,Corporations,ENT,"415 Mission Street, San Francisco",CA
+TEST_DENTAL_ASPEN,Aspen Dental Manhattan,https://www.aspendental.com,Health Care Services,MM,"123 Broadway, New York",NY
+TEST_DENTAL_SMILE,Smile Designers,https://www.smiledesigners.com,Health Care Services,MM,"456 Main Street, Boston",MA
+TEST_AUTO_TOYOTA,Toyota of Manhattan,https://www.toyotaofmanhattan.com,Corporations,MM,"543 West 57th Street, New York",NY
+TEST_AUTO_CARMAX,CarMax San Francisco,https://www.carmax.com,Corporations,ENT,"1301 Van Ness Avenue, San Francisco",CA

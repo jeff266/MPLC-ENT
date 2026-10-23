@@ -1,0 +1,42 @@
+{
+  "total_accounts": 15,
+  "very_strong_matches": 4,
+  "genuine": 1,
+  "false_positive": 1,
+  "ambiguous": 2,
+  "accuracy_pct": 25.0,
+  "snippets": [
+    {
+      "account": "Twin Peaks Restaurant",
+      "keyword": "Sports Bar",
+      "score": 100,
+      "text": "ating selection of fan favorites and in-house brews are your trusted companion in victory or defeat. Find Your Lodge #1 Sports Bar Discover Scenic Views of Every Game Step inside and you\u2019ll find wall-to-wall TVs fit for the ultimate watch party. From",
+      "url": "https://www.twinpeaksrestaurant.com/",
+      "pattern_group": "high"
+    },
+    {
+      "account": "Walk-Ons Sports Bistreaux",
+      "keyword": "wall-to-wall TVs",
+      "score": 90,
+      "text": "it easy to bring big flavor to the table. Explore Catering Walk-On's Sports Bistreaux For The Win Scratch-made dishes, wall-to-wall TVs, craft beers and cocktails. Dig into our mouthwatering menu items like Poboys, Gumbo, and Voodoo Shrimp. Plus fan-favor",
+      "url": "https://walk-ons.com/",
+      "pattern_group": "high"
+    },
+    {
+      "account": "Topgolf",
+      "keyword": "Game Day",
+      "score": 93,
+      "text": "ked hourly rate per bay and room for six to play, it\u2019s easy to wrap up your weekend with Sunday Funday. Plan Your Visit Game Day Meets Game Play Tackle the Field Goal Challenge, make the call on which game is on in your bay and enjoy beer specials",
+      "url": "https://topgolf.com/",
+      "pattern_group": "high"
+    },
+    {
+      "account": "Chilis Bar and Grill",
+      "keyword": "Watch Party",
+      "score": 93,
+      "text": "up three premium frozen margs made with Patr\u00f3n tequila - just in time for summer. TASTE THE FREEZE BRING HOME THE PARTY Watch Party? Birthday? Just really hungry? For any occasion our Party Platters have you covered. Choose from wings, pasta, salads,",
+      "url": "https://www.chilis.com/",
+      "pattern_group": "high"
+    }
+  ]
+}

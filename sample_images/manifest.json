@@ -1,0 +1,56 @@
+[
+  {
+    "account": "Inspire Brands",
+    "file": "sample_images/Inspire_Brands_1_.jpg",
+    "alt": "",
+    "source_page": "/about-us"
+  },
+  {
+    "account": "Inspire Brands",
+    "file": "sample_images/Inspire_Brands_2_.jpg",
+    "alt": "",
+    "source_page": "/team"
+  },
+  {
+    "account": "Inspire Brands",
+    "file": "sample_images/Inspire_Brands_3_.jpg",
+    "alt": "",
+    "source_page": "/team"
+  },
+  {
+    "account": "Hilton",
+    "file": "sample_images/Hilton_1_.jpg",
+    "alt": "",
+    "source_page": "/careers"
+  },
+  {
+    "account": "Hilton",
+    "file": "sample_images/Hilton_2_Concierge_smiling_in_a_sunny_v.jpg",
+    "alt": "Concierge smiling in a sunny verdant hotel courtyard",
+    "source_page": "/careers"
+  },
+  {
+    "account": "Hilton",
+    "file": "sample_images/Hilton_3_Smiling_concierge_in_Singapore.jpg",
+    "alt": "Smiling concierge in Singapore in hotel reception",
+    "source_page": "/careers"
+  },
+  {
+    "account": "CarMax",
+    "file": "sample_images/CarMax_1_A_smiling_CarMax_service_consu.jpg",
+    "alt": "A smiling CarMax service consultant is greeting a family with a child at a service counter.",
+    "source_page": "/careers"
+  },
+  {
+    "account": "CarMax",
+    "file": "sample_images/CarMax_2_Two_smiling_CarMax_corporate_e.webp",
+    "alt": "Two smiling CarMax corporate employees are chatting by a coffee machine in a modern office.",
+    "source_page": "/careers"
+  },
+  {
+    "account": "CarMax",
+    "file": "sample_images/CarMax_3_A_smiling_CarMax_truck_driver_.webp",
+    "alt": "A smiling CarMax truck driver is sitting in the cab of a car transport carrier.",
+    "source_page": "/careers"
+  }
+]

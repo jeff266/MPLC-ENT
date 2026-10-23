@@ -1,0 +1,455 @@
+[
+  {
+    "account_name": "Inspire Brands",
+    "category": "Corporate",
+    "input_address": "Three Glenlake Parkway NE, Atlanta, GA 30328",
+    "website": "https://www.inspirebrands.com",
+    "tests": {
+      "place_resolution": {
+        "status": "success",
+        "place_id": "ChIJtWS_aFQJ9YgRFjoCEeSTimA",
+        "name": "Inspire Brands",
+        "address": "3 Glenlake Pkwy NE, Sandy Springs, GA 30328, USA",
+        "match": "MISMATCH",
+        "lat": 33.9354036,
+        "lng": -84.3600179,
+        "cost": 0.017
+      },
+      "street_view": {
+        "images_downloaded": 0,
+        "total_cost": 0.0,
+        "images": []
+      },
+      "places_photos": {
+        "status": "error",
+        "cost": 0.0
+      },
+      "careers_pages": {
+        "pages_checked": [
+          "/about",
+          "/about-us",
+          "/team"
+        ],
+        "total_images": 19,
+        "sample_images": [
+          {
+            "url": "https://inspirebrands.com/wp-content/uploads/2025/02/Inspire-Purpose-and-Vision-Image-Generator-scaled.jpg",
+            "alt": "",
+            "src_page": "/about-us",
+            "page_url": "https://www.inspirebrands.com/about-us"
+          },
+          {
+            "url": "https://inspirebrands.com/wp-content/uploads/2025/02/Jerid-Grandinetti-Scaled-Circle.jpg",
+            "alt": "",
+            "src_page": "/team",
+            "page_url": "https://www.inspirebrands.com/team"
+          },
+          {
+            "url": "https://inspirebrands.com/wp-content/uploads/2026/01/Palmer-Proctor-Scaled-Circle-2026.jpg",
+            "alt": "",
+            "src_page": "/team",
+            "page_url": "https://www.inspirebrands.com/team"
+          },
+          {
+            "url": "https://inspirebrands.com/wp-content/uploads/2023/07/Wonya-Lucas.jpg",
+            "alt": "",
+            "src_page": "/team",
+            "page_url": "https://www.inspirebrands.com/team"
+          },
+          {
+            "url": "https://inspirebrands.com/wp-content/uploads/2023/07/Marc-Rosen.jpg",
+            "alt": "",
+            "src_page": "/team",
+            "page_url": "https://www.inspirebrands.com/team"
+          },
+          {
+            "url": "https://inspirebrands.com/wp-content/uploads/2026/01/Michelle-Jarrard-Scaled-Circle-2026.jpg",
+            "alt": "",
+            "src_page": "/team",
+            "page_url": "https://www.inspirebrands.com/team"
+          },
+          {
+            "url": "https://inspirebrands.com/wp-content/uploads/2026/01/Neal-Aronson-Scaled-Circle-2026.png",
+            "alt": "",
+            "src_page": "/team",
+            "page_url": "https://www.inspirebrands.com/team"
+          },
+          {
+            "url": "https://inspirebrands.com/wp-content/uploads/2026/01/Steven-Romaniello-Scaled-Circle-2026.jpg",
+            "alt": "",
+            "src_page": "/team",
+            "page_url": "https://www.inspirebrands.com/team"
+          },
+          {
+            "url": "https://inspirebrands.com/wp-content/uploads/2025/05/Joel-Blanchard-Headshot-Scaled-Circle-May-13.jpg",
+            "alt": "",
+            "src_page": "/team",
+            "page_url": "https://www.inspirebrands.com/team"
+          },
+          {
+            "url": "https://inspirebrands.com/wp-content/uploads/2025/07/kate-e1753728553994-300x300.jpg",
+            "alt": "",
+            "src_page": "/team",
+            "page_url": "https://www.inspirebrands.com/team"
+          }
+        ],
+        "cost": 0.0
+      }
+    }
+  },
+  {
+    "account_name": "LA Fitness",
+    "category": "Corporate",
+    "input_address": "3161 Michelson Dr Ste 600, Irvine, CA 92612",
+    "website": "https://www.lafitness.com",
+    "tests": {
+      "place_resolution": {
+        "status": "success",
+        "place_id": "ChIJSUGFjVHf3IAR6GteONK0Rxs",
+        "name": "LA Fitness",
+        "address": "3161 Michelson Dr Ste 600, Irvine, CA 92612, USA",
+        "match": "CLOSE",
+        "lat": 33.6751147,
+        "lng": -117.84332300000001,
+        "cost": 0.017
+      },
+      "street_view": {
+        "images_downloaded": 0,
+        "total_cost": 0.0,
+        "images": []
+      },
+      "places_photos": {
+        "status": "error",
+        "cost": 0.0
+      },
+      "careers_pages": {
+        "pages_checked": [
+          "/careers",
+          "/careers/"
+        ],
+        "total_images": 16,
+        "sample_images": [
+          {
+            "url": "https://www.lafitness.com/Pages/Images/NewNav/facebook-f-brands.svg",
+            "alt": "Facebook",
+            "src_page": "/careers/",
+            "page_url": "https://www.lafitness.com/careers/"
+          },
+          {
+            "url": "https://www.lafitness.com/Pages/Images/NewNav/instagram.svg",
+            "alt": "Instagram",
+            "src_page": "/careers/",
+            "page_url": "https://www.lafitness.com/careers/"
+          },
+          {
+            "url": "https://www.lafitness.com/Pages/Images/NewNav/x.svg",
+            "alt": "X",
+            "src_page": "/careers/",
+            "page_url": "https://www.lafitness.com/careers/"
+          },
+          {
+            "url": "https://www.lafitness.com/Pages/Images/NewNav/youtube.svg",
+            "alt": "Youtube",
+            "src_page": "/careers/",
+            "page_url": "https://www.lafitness.com/careers/"
+          },
+          {
+            "url": "https://www.lafitness.com/Pages/Images/NewNav/shopping-bag-solid.svg",
+            "alt": "Cart",
+            "src_page": "/careers/",
+            "page_url": "https://www.lafitness.com/careers/"
+          },
+          {
+            "url": "https://www.lafitness.com/Pages/Images/NewNav/search-solid.svg",
+            "alt": "",
+            "src_page": "/careers/",
+            "page_url": "https://www.lafitness.com/careers/"
+          },
+          {
+            "url": "https://www.lafitness.com/Pages/Images/NewNav/user-solid.svg",
+            "alt": "Login",
+            "src_page": "/careers/",
+            "page_url": "https://www.lafitness.com/careers/"
+          },
+          {
+            "url": "https://www.lafitness.com/Pages/Images/NewNav/map-marker-alt.png",
+            "alt": "Location",
+            "src_page": "/careers/",
+            "page_url": "https://www.lafitness.com/careers/"
+          },
+          {
+            "url": "https://www.lafitness.com/Pages/Images/NewNav/location_marker.svg",
+            "alt": "Location",
+            "src_page": "/careers/",
+            "page_url": "https://www.lafitness.com/careers/"
+          },
+          {
+            "url": "https://www.lafitness.com/Pages/Images/NewNav/menu.svg",
+            "alt": "Alternate Text",
+            "src_page": "/careers/",
+            "page_url": "https://www.lafitness.com/careers/"
+          }
+        ],
+        "cost": 0.0
+      }
+    }
+  },
+  {
+    "account_name": "Hilton",
+    "category": "Corporate",
+    "input_address": "7930 Jones Branch Dr, McLean, VA 22102",
+    "website": "https://www.hilton.com",
+    "tests": {
+      "place_resolution": {
+        "status": "success",
+        "place_id": "ChIJ9VukDLlLtokRGnAH4l80Gnc",
+        "name": "Hilton McLean Tysons Corner",
+        "address": "7920 Jones Branch Dr, McLean, VA 22102, USA",
+        "match": "MISMATCH",
+        "lat": 38.9265061,
+        "lng": -77.21596420000002,
+        "cost": 0.017
+      },
+      "street_view": {
+        "images_downloaded": 0,
+        "total_cost": 0.0,
+        "images": []
+      },
+      "places_photos": {
+        "status": "error",
+        "cost": 0.0
+      },
+      "careers_pages": {
+        "pages_checked": [
+          "/careers"
+        ],
+        "total_images": 29,
+        "sample_images": [
+          {
+            "url": "https://jobs-editor.hilton.com/wp-content/uploads/2025/01/hero_bg.jpg",
+            "alt": "",
+            "src_page": "/careers",
+            "page_url": "https://www.hilton.com/careers"
+          },
+          {
+            "url": "https://jobs-editor.hilton.com/wp-content/uploads/2025/03/home-hero-full.webp",
+            "alt": "Concierge smiling in a sunny verdant hotel courtyard",
+            "src_page": "/careers",
+            "page_url": "https://www.hilton.com/careers"
+          },
+          {
+            "url": "https://jobs-editor.hilton.com/wp-content/uploads/2025/07/conrad-singapore-marina-bay-concierge.jpg",
+            "alt": "Smiling concierge in Singapore in hotel reception",
+            "src_page": "/careers",
+            "page_url": "https://www.hilton.com/careers"
+          },
+          {
+            "url": "https://jobs-editor.hilton.com/wp-content/uploads/2025/07/hilton-london-metropole-UK-concierge.jpg",
+            "alt": "Concierge in hotel lobby smiling and holding her jacket over her shoulder",
+            "src_page": "/careers",
+            "page_url": "https://www.hilton.com/careers"
+          },
+          {
+            "url": "https://jobs-editor.hilton.com/wp-content/uploads/2025/07/jeddah-hilton-saudi-arabia-pastry-chef.jpg",
+            "alt": "Pastry chef grinning over a platter of fresh cream puffs",
+            "src_page": "/careers",
+            "page_url": "https://www.hilton.com/careers"
+          },
+          {
+            "url": "https://jobs-editor.hilton.com/wp-content/uploads/2025/07/gardner-at-hilton-china.jpg",
+            "alt": "Grinning gardener in a straw hat carrying a shovel through a sunny courtyard",
+            "src_page": "/careers",
+            "page_url": "https://www.hilton.com/careers"
+          },
+          {
+            "url": "https://jobs-editor.hilton.com/wp-content/uploads/2025/07/japanese-woman-wearing-yukata-square.jpg",
+            "alt": "A Japanese woman wearing a pink yukata and gold obi, standing in a large Hilton hotel dining room full of tables with elegant place settings",
+            "src_page": "/careers",
+            "page_url": "https://www.hilton.com/careers"
+          },
+          {
+            "url": "https://jobs-editor.hilton.com/wp-content/uploads/2025/02/text-media-home.png",
+            "alt": "A chef leaning forward and enjoying the scent of a sprig of rosemary",
+            "src_page": "/careers",
+            "page_url": "https://www.hilton.com/careers"
+          },
+          {
+            "url": "https://jobs-editor.hilton.com/wp-content/uploads/2025/07/hilton-china-cocktail-waitress_23b927.png",
+            "alt": "A Chinese waitress holding a tray and cocktails",
+            "src_page": "/careers",
+            "page_url": "https://www.hilton.com/careers"
+          },
+          {
+            "url": "https://jobs-editor.hilton.com/wp-content/uploads/2025/07/japanese-chef-holding-dessert.png",
+            "alt": "A smiling chef in Japan holding serving trays with dessert and coffee",
+            "src_page": "/careers",
+            "page_url": "https://www.hilton.com/careers"
+          }
+        ],
+        "cost": 0.0
+      }
+    }
+  },
+  {
+    "account_name": "AutoNation Ford Miami",
+    "category": "Auto Dealership",
+    "input_address": "16800 NW 57th Ave, Miami Lakes, FL 33015",
+    "website": "https://www.autonationfordmiami.com",
+    "tests": {
+      "place_resolution": {
+        "status": "success",
+        "place_id": "ChIJ2ZHy60Gl2YgRyk6WfD6k1Y0",
+        "name": "AutoNation Ford Miami",
+        "address": "16800 NW 57th Ave, Miami Gardens, FL 33015, USA",
+        "match": "CLOSE",
+        "lat": 25.9269389,
+        "lng": -80.2946712,
+        "cost": 0.017
+      },
+      "street_view": {
+        "images_downloaded": 0,
+        "total_cost": 0.0,
+        "images": []
+      },
+      "places_photos": {
+        "status": "error",
+        "cost": 0.0
+      },
+      "careers_pages": {
+        "pages_checked": [],
+        "total_images": 0,
+        "sample_images": [],
+        "cost": 0.0
+      }
+    }
+  },
+  {
+    "account_name": "CarMax",
+    "category": "Auto Dealership",
+    "input_address": "11090 W Broad St, Glen Allen, VA 23060",
+    "website": "https://www.carmax.com",
+    "tests": {
+      "place_resolution": {
+        "status": "success",
+        "place_id": "ChIJMYRUSJdqsYkRxKqvea86nOo",
+        "name": "CarMax",
+        "address": "11090 W Broad St, Glen Allen, VA 23060, USA",
+        "match": "CLOSE",
+        "lat": 37.649234899999996,
+        "lng": -77.5915082,
+        "cost": 0.017
+      },
+      "street_view": {
+        "images_downloaded": 0,
+        "total_cost": 0.0,
+        "images": []
+      },
+      "places_photos": {
+        "status": "error",
+        "cost": 0.0
+      },
+      "careers_pages": {
+        "pages_checked": [
+          "/careers"
+        ],
+        "total_images": 11,
+        "sample_images": [
+          {
+            "url": "https://d25zu39ynyitwy.cloudfront.net/oms/4260/image/2025/12/CVH2T_1765302172854/1765302172854.jpeg",
+            "alt": "A smiling CarMax service consultant is greeting a family with a child at a service counter.",
+            "src_page": "/careers",
+            "page_url": "https://www.carmax.com/careers"
+          },
+          {
+            "url": "https://d25zu39ynyitwy.cloudfront.net/oms/4260/image/2025/10/UH50Q_overview-corporate/overview-corporate.webp",
+            "alt": "Two smiling CarMax corporate employees are chatting by a coffee machine in a modern office.",
+            "src_page": "/careers",
+            "page_url": "https://www.carmax.com/careers"
+          },
+          {
+            "url": "https://d25zu39ynyitwy.cloudfront.net/oms/4260/image/2025/10/2VYA7_overview-fleet-driver/overview-fleet-driver.webp",
+            "alt": "A smiling CarMax truck driver is sitting in the cab of a car transport carrier.",
+            "src_page": "/careers",
+            "page_url": "https://www.carmax.com/careers"
+          },
+          {
+            "url": "https://d25zu39ynyitwy.cloudfront.net/oms/4260/image/2025/10/QD7PK_overview-retail/overview-retail.webp",
+            "alt": "A CarMax sales consultant is smiling while assisting a customer at a service desk.",
+            "src_page": "/careers",
+            "page_url": "https://www.carmax.com/careers"
+          },
+          {
+            "url": "https://d25zu39ynyitwy.cloudfront.net/oms/4260/image/2025/10/NYMRD_overview-technology/overview-technology.webp",
+            "alt": "Two CarMax employees are smiling while walking across a modern office bridge outdoors.",
+            "src_page": "/careers",
+            "page_url": "https://www.carmax.com/careers"
+          },
+          {
+            "url": "https://d25zu39ynyitwy.cloudfront.net/oms/4260/image/2025/10/WYLMZ_overview-students/overview-students.webp",
+            "alt": "A smiling female intern or student is happily working on her laptop in a bright office space.",
+            "src_page": "/careers",
+            "page_url": "https://www.carmax.com/careers"
+          },
+          {
+            "url": "https://d25zu39ynyitwy.cloudfront.net/oms/4260/image/2025/10/6E3ZC_overview-fuel/overview-fuel.webp",
+            "alt": "A CarMax employee is happily shaking hands with a customer receiving a new car outside the store.",
+            "src_page": "/careers",
+            "page_url": "https://www.carmax.com/careers"
+          },
+          {
+            "url": "https://d25zu39ynyitwy.cloudfront.net/oms/4260/image/2025/10/WVEBT_overview-military/overview-military.webp",
+            "alt": "A military veteran in uniform is smiling while standing in a bright, modern office hallway.",
+            "src_page": "/careers",
+            "page_url": "https://www.carmax.com/careers"
+          },
+          {
+            "url": "https://d25zu39ynyitwy.cloudfront.net/oms/4260/image/2025/10/4LGRW_overview-student/overview-student.webp",
+            "alt": "A smiling female student or intern is walking with a cup of coffee in a bright office hallway.",
+            "src_page": "/careers",
+            "page_url": "https://www.carmax.com/careers"
+          },
+          {
+            "url": "https://d25zu39ynyitwy.cloudfront.net/oms/4260/image/2025/10/6HB2H_overview-learn/overview-learn.webp",
+            "alt": "A smiling CarMax mentor is discussing documents with a young colleague in an office.",
+            "src_page": "/careers",
+            "page_url": "https://www.carmax.com/careers"
+          }
+        ],
+        "cost": 0.0
+      }
+    }
+  },
+  {
+    "account_name": "Ron Tonkin Honda",
+    "category": "Auto Dealership",
+    "input_address": "300 SE 122nd Ave, Portland, OR 97233",
+    "website": "https://www.rontonkinhonda.com",
+    "tests": {
+      "place_resolution": {
+        "status": "success",
+        "place_id": "ChIJ8QmnZoWhlVQR8R-3vliuMX0",
+        "name": "Ron Tonkin Honda",
+        "address": "300 SE 122nd Ave, Portland, OR 97233, USA",
+        "match": "CLOSE",
+        "lat": 45.520432299999996,
+        "lng": -122.53634229999999,
+        "cost": 0.017
+      },
+      "street_view": {
+        "images_downloaded": 0,
+        "total_cost": 0.0,
+        "images": []
+      },
+      "places_photos": {
+        "status": "error",
+        "cost": 0.0
+      },
+      "careers_pages": {
+        "pages_checked": [],
+        "total_images": 0,
+        "sample_images": [],
+        "cost": 0.0
+      }
+    }
+  }
+]

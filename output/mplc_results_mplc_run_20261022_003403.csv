@@ -1,0 +1,7 @@
+account_id,MPLC_EvidenceStrength,MPLC_EvidenceReason,evidence_source_urls,model_provider,resolution_stage,text_matches_count,images_collected,yolo_passed_count,vlm_analyzed_count,total_cost_usd
+TEST_CORP_GOOGLE,Not Applicable,"Insufficient data, needs manual research",[],none,stage_3_yolo,0,0,0,0,0.0
+TEST_CORP_SALESFORCE,Not Applicable,"Insufficient data, needs manual research",[],none,stage_3_yolo,0,0,0,0,0.0
+TEST_DENTAL_ASPEN,Not Applicable,"Insufficient data, needs manual research",[],none,stage_3_yolo,0,52,0,0,0.0
+TEST_DENTAL_SMILE,Not Applicable,"Insufficient data, needs manual research",[],none,stage_3_yolo,0,39,0,0,0.0
+TEST_AUTO_TOYOTA,Not Applicable,"Insufficient data, needs manual research",[],none,stage_3_yolo,0,0,0,0,0.0
+TEST_AUTO_CARMAX,Not Applicable,"Insufficient data, needs manual research",[],none,stage_3_yolo,0,1,0,0,0.0

@@ -1,0 +1,21 @@
+{
+  "account": "Pacific Dental Services (Smile Generation)",
+  "final_tier": "REJECTED",
+  "search_variants": [
+    {
+      "search_term": "Smile Generation dental",
+      "label": "Network brand"
+    },
+    {
+      "search_term": "Pacific Dental Group",
+      "label": "Local practice name (CA)"
+    },
+    {
+      "search_term": "Dental Care of Walnut Creek",
+      "label": "Local practice name (CA)"
+    }
+  ],
+  "total_reviews_with_tv": 0,
+  "classifications": [],
+  "cost": 0.06
+}

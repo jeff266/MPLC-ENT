@@ -1,0 +1,3 @@
+account_id,MPLC_EvidenceStrength,MPLC_EvidenceReason,evidence_source_urls,model_provider,resolution_stage,text_matches_count,images_collected,yolo_passed_count,vlm_analyzed_count,total_cost_usd
+TEST_DENTAL_RETEST,Not Applicable,"Insufficient data, needs manual research",[],none,stage_3_yolo,0,17,0.0,0.0,0.0
+TEST_SPORTSBAR_RETEST,Very Strong,Direct evidence from text,['https://www.buffalowildwings.com'],none,stage_2_text_gate,1,0,,,0.0

@@ -1,0 +1,4 @@
+account_id,MPLC_EvidenceStrength,MPLC_EvidenceReason,evidence_source_urls,model_provider,resolution_stage,text_matches_count,images_collected,yolo_passed_count,vlm_analyzed_count,total_cost_usd
+TEST001HOOTERS01,Not Applicable,"Insufficient data, needs manual research",[],none,stage_3_yolo,0,70,0.0,0.0,0.0
+TEST002DAVEBUSTR,Very Strong,Direct evidence from text,"['https://www.daveandbusters.com', 'https://www.daveandbusters.com', 'https://www.daveandbusters.com']",none,stage_2_text_gate,16,86,,,0.0
+TEST003TOPGOLF01,Very Strong,Direct evidence from text,"['https://www.topgolf.com', 'https://www.google.com/maps/search/Topgolf/@13.6438915,100.6753747,271m/data=!3m1!1e3?authuser=0&entry=ttu&g_ep=EgoyMDI0MTEyNC4xIKXMDSoASAFQAw%3D%3D', 'https://www.google.com/maps/search/Topgolf/@13.6438915,100.6753747,271m/data=!3m1!1e3?authuser=0&entry=ttu&g_ep=EgoyMDI0MTEyNC4xIKXMDSoASAFQAw%3D%3D']",none,stage_2_text_gate,6,51,,,0.0

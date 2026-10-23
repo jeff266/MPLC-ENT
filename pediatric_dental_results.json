@@ -1,0 +1,62 @@
+[
+  {
+    "chain": "Kool Smiles",
+    "practices": 120,
+    "type": "Pediatric",
+    "tier": "REJECTED",
+    "reviews_with_tv": 0,
+    "vlm_analyzed": 0,
+    "cost": 0.02,
+    "time": 27.663843154907227
+  },
+  {
+    "chain": "Small Smiles Dental Centers",
+    "practices": 70,
+    "type": "Pediatric",
+    "tier": "REJECTED",
+    "reviews_with_tv": 0,
+    "vlm_analyzed": 0,
+    "cost": 0.02,
+    "time": 84.77253007888794
+  },
+  {
+    "chain": "Mortenson Family Dental",
+    "practices": 50,
+    "type": "Family/Pediatric",
+    "tier": "REJECTED",
+    "reviews_with_tv": 0,
+    "vlm_analyzed": 0,
+    "cost": 0.02,
+    "time": 0.5091891288757324
+  },
+  {
+    "chain": "Sunshine Smiles Pediatric Dentistry",
+    "practices": 25,
+    "type": "Pediatric",
+    "tier": "REJECTED",
+    "reviews_with_tv": 0,
+    "vlm_analyzed": 0,
+    "cost": 0.02,
+    "time": 0.4680900573730469
+  },
+  {
+    "chain": "Cavity Busters Pediatric Dental",
+    "practices": 15,
+    "type": "Pediatric",
+    "tier": "REJECTED",
+    "reviews_with_tv": 0,
+    "vlm_analyzed": 0,
+    "cost": 0.02,
+    "time": 0.4099612236022949
+  },
+  {
+    "chain": "Smile Doctors",
+    "practices": 550,
+    "type": "Orthodontics (kids-adjacent)",
+    "tier": "REJECTED",
+    "reviews_with_tv": 0,
+    "vlm_analyzed": 0,
+    "cost": 0.02,
+    "time": 0.43373584747314453
+  }
+]
