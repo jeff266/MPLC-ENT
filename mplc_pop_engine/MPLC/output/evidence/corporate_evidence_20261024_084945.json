@@ -1,0 +1,71 @@
+{
+  "summary": {
+    "total_accounts": 2,
+    "total_evidence_items": 2,
+    "by_tier": {
+      "PROSPECT": 2,
+      "SUSPECT": 0,
+      "REJECTED": 0
+    },
+    "by_channel": {
+      "video": 0,
+      "image": 0,
+      "text": 0
+    },
+    "total_cost": 0.136718
+  },
+  "records": [
+    {
+      "account_name": "CSX Corporation",
+      "channel": "yelp_photos",
+      "tier": "PROSPECT",
+      "vertical": "corporate",
+      "evidence": {
+        "photo_location": "temp_images/001VV00000E4c3TYAR_4.jpg",
+        "description": "Modern corporate lobby with curved reception desk featuring a wall-mounted TV displaying blue-tinted content on the burgundy accent wall behind the desk.",
+        "source_url": "https://www.yelp.com/biz/element-tampa-2"
+      },
+      "confidence": {
+        "yolo_detection": 0.7444542050361633,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "lobby",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.075508
+      },
+      "metadata": {
+        "timestamp": "2026-10-24T08:30:25.134029",
+        "evidence_id": "414d3ff0f59e"
+      }
+    },
+    {
+      "account_name": "Krispy Kreme",
+      "channel": "yelp_photos",
+      "tier": "PROSPECT",
+      "vertical": "corporate",
+      "evidence": {
+        "photo_location": "temp_images/001VV00000E9MioYAF_9.jpg",
+        "description": "A Krispy Kreme donut shop interior showing a powered-on display screen advertising \"ALL NEW COFFEE\" above the service counter with donut display cases and kitchen area visible.",
+        "source_url": "https://www.yelp.com/biz/krispy-kreme-charlotte-8"
+      },
+      "confidence": {
+        "yolo_detection": 0.8109493255615234,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "service_area",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.06121
+      },
+      "metadata": {
+        "timestamp": "2026-10-24T08:43:32.156506",
+        "evidence_id": "9247313707ca"
+      }
+    }
+  ]
+}
