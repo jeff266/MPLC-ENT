@@ -33,7 +33,7 @@ from core.evidence_persistence import EvidenceRecorder
 
 # Import API clients (need config)
 try:
-    sys.path.insert(0, '/Users/jeffignacio/mplc_pop_engine')
+    sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))  # repo root
     from config import APIFY_API_TOKEN, ANTHROPIC_API_KEY
     from apify_client import ApifyClient
     from anthropic import Anthropic
