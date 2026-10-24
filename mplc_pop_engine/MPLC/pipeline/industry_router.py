@@ -42,11 +42,18 @@ INDUSTRY_ROUTE_MAP: dict[str, VerticalRoute] = {
     "Auto Dealers":                                "auto",
     "Auto Dealerships":                            "auto",
 
-    # --- New verticals (pipelines designed, not yet built) ---
+    # --- New verticals (text-mining pipelines built) ---
     "Religious Institutions":                      "religious",
     "Churches":                                    "religious",
     "Education":                                   "education",
     "Schools":                                     "education",
+
+    # --- Route to existing pipelines (additional CSV values) ---
+    "Doctors":                                     "healthcare",
+    "Medical":                                     "healthcare",
+    "Seniors":                                     "mdu",       # Senior living = residential
+    "Commercial Establishments & Waiting Areas":   "corporate", # Waiting rooms → Yelp-findable
+    "Activity Centers":                            "corporate", # Rec/community centers
 
     # --- Skip: known non-viable or evidence-unavailable ---
     "Dentists":                                    "skip",
@@ -56,6 +63,16 @@ INDUSTRY_ROUTE_MAP: dict[str, VerticalRoute] = {
     "Government":                                  "skip",
     "Correctional Facilities":                     "skip",
     "Military":                                    "skip",
+    "Transportation":                              "skip",      # Transit/airports — restricted
+    "Electronics":                                 "skip",      # Retail electronics — staff areas
+    "Child Care/Nurseries":                        "skip",      # No public evidence path
+
+    # --- Manual review: insufficient data to route confidently ---
+    "Campgrounds":                                 "manual_review",
+    "Museums":                                     "manual_review",
+    "Misc":                                        "manual_review",
+    "Other":                                       "manual_review",
+    "CHU CV":                                      "manual_review",
 }
 
 # Industries routed to skip with a specific reason logged
@@ -67,10 +84,13 @@ SKIP_REASONS: dict[str, str] = {
     "Government":                                  "industry_skip_government",
     "Correctional Facilities":                     "industry_skip_government",
     "Military":                                    "industry_skip_government",
+    "Transportation":                              "industry_skip_transportation",
+    "Electronics":                                 "industry_skip_electronics_retail",
+    "Child Care/Nurseries":                        "industry_skip_childcare_no_evidence_path",
 }
 
 # Verticals that are designed but pipeline not yet implemented
-NOT_YET_BUILT: set[str] = {"religious", "education"}
+NOT_YET_BUILT: set[str] = set()  # religious + education pipelines now live in verticals/
 
 
 def route_account(account: dict) -> tuple[VerticalRoute, str | None]:
