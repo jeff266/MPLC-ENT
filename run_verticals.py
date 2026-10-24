@@ -31,6 +31,7 @@ if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
 from mplc_pop_engine.MPLC.pipeline.industry_router import route_accounts, print_routing_summary
+from step3_vertical_router.industry_reclassifier import VerticalReclassifier
 
 
 # ---------------------------------------------------------------------------
@@ -165,6 +166,12 @@ def main():
                         help="Output CSV path (auto-generated if not set)")
     parser.add_argument("--verbose", action="store_true", default=True,
                         help="Show per-account progress")
+    parser.add_argument("--use-llm", dest="use_llm", action="store_true",
+                        help="Enable Tier-2 LLM re-classification for ambiguous account names")
+    parser.add_argument("--force-reclassify", dest="force_reclassify", action="store_true",
+                        help="Re-classify all accounts even if already in cache")
+    parser.add_argument("--reclassifier-db", default="vertical_corrections.db",
+                        help="Path to the vertical corrections SQLite cache")
     args = parser.parse_args()
 
     target_verticals = [v.strip() for v in args.verticals.split(",")]
@@ -174,6 +181,27 @@ def main():
     print(f"\nLoading: {args.csv_path}")
     accounts = load_csv(args.csv_path)
     print(f"Loaded {len(accounts):,} accounts")
+
+    # --- Phase 0: Industry re-classification ---
+    rc = VerticalReclassifier(db_path=args.reclassifier_db)
+    rc_stats = rc.reclassify_batch(
+        accounts,
+        use_llm=args.use_llm,
+        force=args.force_reclassify,
+    )
+    rc.close()
+
+    if rc_stats["corrected"]:
+        print(f"\nIndustry re-classifier: {rc_stats['corrected']} correction(s) "
+              f"| {rc_stats['from_cache']} from cache | {rc_stats['total']} total")
+        for a in accounts:
+            if a.get("_industry_corrected"):
+                print(f"  ✎ {a['account_name']}: "
+                      f"{a['_original_industry']!r} → {a['industry']!r}  "
+                      f"[{a['_industry_reason']}]")
+    else:
+        print(f"\nIndustry re-classifier: all {rc_stats['total']} labels confirmed "
+              f"({rc_stats['from_cache']} from cache)")
 
     # --- Route ---
     buckets = route_accounts(accounts)
