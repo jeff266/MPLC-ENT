@@ -12,9 +12,13 @@ __pycache__/
 # Run artifacts — belong in output/, not root
 output/runs/
 output/logs/
+output/*.csv
 mplc_results_*.csv
 *_output.txt
 *.log
 
-# Keep enrichment ledger tracked (it's the live dedup cache)
-!enrichment_ledger.db
+# Salesforce exports — large files, never commit
+data/salesforce/*.csv
+
+# Keep root enrichment ledger tracked (it's the live dedup cache)
+!/enrichment_ledger.db
