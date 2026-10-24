@@ -47,6 +47,15 @@ TV_KEYWORDS_HIGH = [
     # "television ministry" / "television broadcast" = outbound production, not in-building TV
     r"\btelevision\s+(?:lounge|room|area|screen)\b",
     r"\b(?:lounge|room|area|screen)\s+television\b",
+    # University dining / residential spaces — physical TV evidence
+    r"\bdining\s+hall\b.*\b(?:TV|screen|display|monitor)\b",
+    r"\b(?:TV|screen|display|monitor)\b.*\bdining\s+hall\b",
+    r"\bfood\s+court\b.*\b(?:TV|screen|display)\b",
+    r"\b(?:TV|screen|display)\b.*\bfood\s+court\b",
+    r"\bresidence\s+hall\b.*\b(?:common\s+(?:room|area|lounge)|TV|screen)\b",
+    r"\b(?:TV|screen)\b.*\bresidence\s+hall\b.*\bcommon\b",
+    r"\bdorm\s+(?:lounge|common\s+(?:room|area))\b.*\b(?:TV|screen)\b",
+    r"\b(?:TV|screen)\b.*\bdorm\s+(?:lounge|common\s+(?:room|area))\b",
 ]
 
 TV_KEYWORDS_MEDIUM = [
@@ -99,6 +108,14 @@ _SNIPPET_VETO_PATTERNS = [
     re.compile(r"\btelevision\s+ministry\b", re.IGNORECASE),   # church produces a TV show
     re.compile(r"\bwatch\s+livestream\b", re.IGNORECASE),       # website CTA for home viewers
     re.compile(r"\bstream\s+(?:our\s+)?(?:service|sermon|worship)\b", re.IGNORECASE),
+    # Booking-aggregator proximity metrics — snippet is from a travel site, not the institution
+    re.compile(r"\bfrom\s+the\s+hotel\b", re.IGNORECASE),      # "X km from the hotel"
+    re.compile(r"\b\d+(?:\.\d+)?\s*km\s*/\s*\d+(?:\.\d+)?\s*mi\b", re.IGNORECASE),  # "4.2 km / 2.6 mi"
+    # Hotel amenity lists — flat screen TV here is a guest-room amenity, not institutional display
+    re.compile(r"\bhair\s+dryer\b", re.IGNORECASE),
+    re.compile(r"\bironing\s+board\b", re.IGNORECASE),
+    # Film/event screening — not institutional TV display
+    re.compile(r"\b(?:premiere|film|movie)\s+screening\b", re.IGNORECASE),
 ]
 
 # Domains where snippets cannot be PoP evidence for an institutional account.
@@ -183,6 +200,12 @@ _TV_SEARCH_TERMS = (
     '"large screen TV" OR "flat screen TV" OR "television" OR "simulcast"'
 )
 
+# University-specific: dining hall / dorm common area spatial terms instead of generic "television"
+_TV_SEARCH_TERMS_EDUCATION = (
+    '"big screen" OR "flat screen" OR "TV lounge" OR "common room" OR '
+    '"large screen TV" OR "flat screen TV" OR "dining hall" OR "residence hall"'
+)
+
 _KNOWN_BOGUS_WEBSITES = {
     "outlook.com", "yahoo.com", "gmail.com", "hotmail.com",
     "google.com", "facebook.com", "linkedin.com",
@@ -220,7 +243,9 @@ def _account_name_tokens(account_name: str) -> list[str]:
 
 
 def _serper_av_snippet_search(
-    account_name: str, state: str
+    account_name: str,
+    state: str,
+    search_terms: Optional[str] = None,
 ) -> tuple[list[str], list[str]]:
     """
     Search Serper for AV/TV keywords near the account name.
@@ -233,7 +258,8 @@ def _serper_av_snippet_search(
       (prevents nearby hotel/venue results from being attributed to the searched account)
     - The snippet contains no veto patterns (hotel rooms, cinema formats, etc.)
     """
-    query = f'"{account_name}" {state} {_TV_SEARCH_TERMS}'
+    terms = search_terms if search_terms is not None else _TV_SEARCH_TERMS
+    query = f'"{account_name}" {state} {terms}'
     data = _serper_search(query)
     if not data:
         return [], []
@@ -372,7 +398,10 @@ def _subpages(base_url: str, keywords: list[str]) -> list[str]:
 
 
 RELIGIOUS_SUBPAGES = ["about", "facilities", "campus", "visitor", "worship"]
-EDUCATION_SUBPAGES = ["campus-life", "student-union", "dining", "recreation", "facilities"]
+EDUCATION_SUBPAGES = [
+    "campus-life", "student-union", "dining", "recreation", "facilities",
+    "housing", "residence-life", "dining-services", "residence-halls",
+]
 
 
 # ---------------------------------------------------------------------------
@@ -464,7 +493,8 @@ def mine_website(
     # Step 1: Serper snippet search (primary — uses Google's full index)
     # ------------------------------------------------------------------
     if serper_fallback and config.SERPER_API_KEY:
-        tv_snippets, snippet_urls = _serper_av_snippet_search(account_name, state)
+        serper_terms = _TV_SEARCH_TERMS_EDUCATION if vertical == "education" else None
+        tv_snippets, snippet_urls = _serper_av_snippet_search(account_name, state, search_terms=serper_terms)
         cost += 0.001  # 1 Serper credit
         all_tv_hits.extend(tv_snippets)
         if snippet_urls:
