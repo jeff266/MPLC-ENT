@@ -114,8 +114,20 @@ _SNIPPET_VETO_PATTERNS = [
     # Hotel amenity lists — flat screen TV here is a guest-room amenity, not institutional display
     re.compile(r"\bhair\s+dryer\b", re.IGNORECASE),
     re.compile(r"\bironing\s+board\b", re.IGNORECASE),
+    re.compile(r"\bin[\s-]room\s+entertainment\b", re.IGNORECASE),   # hotel guest room
+    re.compile(r"\bpremium\s+channels?\b", re.IGNORECASE),            # cable TV in hotel
+    re.compile(r"\bcome\s+with\s+(?:a\s+)?flat[\s-]?screen\b", re.IGNORECASE),    # per-unit amenity
+    re.compile(r"\bequipped\s+with\s+(?:a\s+)?flat[\s-]?screen\b", re.IGNORECASE),  # per-unit amenity
+    re.compile(r"\brooms?\s+are\s+(?:air[\s-]?conditioned|fully)", re.IGNORECASE),  # hotel room description
     # Film/event screening — not institutional TV display
     re.compile(r"\b(?:premiere|film|movie)\s+screening\b", re.IGNORECASE),
+    # Residential real estate context — TV is a home amenity near the institution
+    re.compile(r"\blarge\s+family\s+room\b", re.IGNORECASE),
+    re.compile(r"\bperfect\s+for\s+(?:that\s+)?big\s+screen\b", re.IGNORECASE),
+    # Hotel smart TV instruction on a self-service property
+    re.compile(r"\bbring\s+your\s+own\s+(?:entertainment|streaming)\b", re.IGNORECASE),
+    # Personal possessive + furniture = fictional/residential context (not institutional)
+    re.compile(r"\bhis\b.{0,50}\b(?:couch|sofa|loveseat)\b", re.IGNORECASE),
 ]
 
 # Domains where snippets cannot be PoP evidence for an institutional account.
@@ -149,6 +161,12 @@ _EXCLUDED_SNIPPET_DOMAINS = {
     # Retail / product pages — TV mentioned as product for sale
     "bestbuy.com", "target.com", "walmart.com", "costco.com", "bhphotovideo.com",
     "newegg.com", "adorama.com", "lg.com", "samsung.com", "sony.com",
+    # More real estate — TV is a home/property amenity, not institutional display
+    "realty.com", "movoto.com", "loopnet.com", "crexi.com", "costar.com",
+    # Hotel booking aggregators — TV is a guest-room amenity
+    "reservations.com", "hotelscombined.com", "cheaphotels.com", "bestwestern.com",
+    # Digital magazine / publishing platforms — article about the institution ≠ institutional TV
+    "issuu.com", "fliphtml5.com", "yumpu.com",
 }
 
 # Keep for backward compat (referenced in _serper_find_website)
