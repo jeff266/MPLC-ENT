@@ -1,7 +1,9 @@
 # Industry Routing Issue - Critical Finding
 
 **Date Discovered:** 2026-10-24
+**Date Resolved:** 2026-10-24
 **Impact:** HIGH - 69% of accounts misrouted to wrong pipeline
+**Status:** ✅ RESOLVED - Merged to main (commit 6dff6c2)
 
 ---
 
@@ -159,3 +161,47 @@ For 471 education (with new pipeline):
 - Estimated 15-25% conversion with campus-specific approach
 
 **Total improvement:** 3-5x more sales-ready leads from same account base.
+
+---
+
+## ✅ RESOLUTION (2026-10-24)
+
+**Merged to main:** commit 6dff6c2 (branch: claude/serene-ride-6t2f41)
+
+### Implemented Components
+
+1. **Industry Pre-Router** (`pipeline/industry_router.py`)
+   - Routes accounts by industry before vertical pipelines
+   - 76 industry mappings covering all discovered types
+   - Explicit skip routing with logged reasons
+   - Manual review queue for unknown industries
+
+2. **Text Mining Channel** (`channels/text_miner.py`)
+   - Lightweight website scraping for religious/education accounts
+   - Keyword-based evidence scoring (HIGH/MEDIUM tiers)
+   - Cost: ~$0.001/account (vs. $0.018 for Yelp+YOLO+VLM)
+   - Solves "churches don't have Yelp pages" problem
+
+3. **Religious Institutions Pipeline** (`verticals/religious_institutions/`)
+   - Handles 637 accounts (16% of CSV)
+   - Evidence: fellowship halls, overflow rooms, lobbies
+   - Expected coverage: 10-20%
+
+4. **Education Pipeline** (`verticals/education/`)
+   - Handles 471 accounts (12% of CSV)
+   - Sub-segments: University (25-40% expected) vs. K-12 (<10%)
+   - Evidence: student unions, dining halls, rec centers, dorm lounges
+
+5. **Industry Reclassifier** (`step3_vertical_router/industry_reclassifier.py`)
+   - Phase 0 correction for Salesforce industry labels
+   - Tier 1: Regex rules (zero cost)
+   - Tier 2: Claude Haiku fallback (~$0.0002/account)
+   - SQLite cache prevents re-classification
+
+### Next Steps
+
+1. Re-split `corporate_accounts_to_process_2026-10-23.csv` using industry router
+2. Run 1,224 true corporations through corporate pipeline (expected ~200 PROSPECTs)
+3. Run 637 religious accounts through new text mining pipeline (expected ~64-127 PROSPECTs)
+4. Run 471 education accounts through education pipeline (expected ~47-94 PROSPECTs)
+5. Validate coverage improvements match projections
