@@ -255,13 +255,19 @@ def _serper_av_snippet_search(
         if any(pat.search(combined) for pat in _SNIPPET_VETO_PATTERNS):
             continue
 
-        # Attribution check: snippet+title must mention at least one meaningful
-        # token from the account name so we don't credit nearby venues.
-        # If the account name is too short/generic to produce any tokens (e.g. "A",
-        # "NPU"), require the exact account name to appear in the snippet.
+        # Attribution check: the result must be attributable to the searched account.
+        # We accept the result if EITHER:
+        #   a) The source URL's domain contains an account name token
+        #      (snippet is from the account's own website — trust it)
+        #   b) The snippet+title contains an account name token
+        #      (the snippet text mentions the account)
+        # This prevents nearby hotel/venue hits while still accepting snippets from
+        # the account's own domain that don't repeat the name in the snippet text.
         combined_lower = combined.lower()
         if name_tokens:
-            if not any(tok in combined_lower for tok in name_tokens):
+            domain_match   = any(tok in domain for tok in name_tokens)
+            snippet_match  = any(tok in combined_lower for tok in name_tokens)
+            if not domain_match and not snippet_match:
                 continue
         else:
             # Degenerate name (e.g. "A", "NPU") — skip snippet attribution entirely.
