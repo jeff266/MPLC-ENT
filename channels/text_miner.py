@@ -264,9 +264,10 @@ def _serper_av_snippet_search(
             if not any(tok in combined_lower for tok in name_tokens):
                 continue
         else:
-            # Degenerate name (e.g. "A", "NPU") — require exact word match
-            if not re.search(r"\b" + re.escape(account_name.lower()) + r"\b", combined_lower):
-                continue
+            # Degenerate name (e.g. "A", "NPU") — skip snippet attribution entirely.
+            # Single letters and short abbreviations match in every English sentence
+            # so Serper snippets are unattributable; skip them (website scraping may still work).
+            continue
 
         # Only count HIGH-signal keyword matches in snippets
         # (medium-signal like bare "TV" is too noisy without a scraped page for context)
