@@ -128,6 +128,10 @@ _SNIPPET_VETO_PATTERNS = [
     re.compile(r"\bbring\s+your\s+own\s+(?:entertainment|streaming)\b", re.IGNORECASE),
     # Personal possessive + furniture = fictional/residential context (not institutional)
     re.compile(r"\bhis\b.{0,50}\b(?:couch|sofa|loveseat)\b", re.IGNORECASE),
+    # Residential living room context (student housing in-unit or home listing)
+    re.compile(r"\bliving\s+room\s+with\s+(?:a\s+)?(?:\w+\s+){0,3}(?:couch|sofa)\b", re.IGNORECASE),
+    # "heading/coming/going to the big screen" = theatrical film release, not a display
+    re.compile(r"\b(?:heading|coming|going|debuts?)\s+to\s+the\s+big\s+screen\b", re.IGNORECASE),
 ]
 
 # Domains where snippets cannot be PoP evidence for an institutional account.
