@@ -74,6 +74,25 @@ REJECTION_KEYWORDS = [
     r"\bchalkboard\b",
 ]
 
+# Context patterns that veto a snippet regardless of TV keyword match.
+# These indicate the snippet is from accommodation/real-estate/theater, not an institution.
+_SNIPPET_VETO_PATTERNS = [
+    re.compile(r"\bmaster\s+bedroom\b", re.IGNORECASE),
+    re.compile(r"\bguest\s+room\b", re.IGNORECASE),
+    re.compile(r"\bhotel\s+room\b", re.IGNORECASE),
+    re.compile(r"\bcable\s+channels?\b", re.IGNORECASE),
+    re.compile(r"\bcheck[\s-]in\b.*\bcheck[\s-]out\b", re.IGNORECASE),
+    re.compile(r"\bnightly\s+rate\b", re.IGNORECASE),
+    re.compile(r"\bScreenX\b", re.IGNORECASE),      # movie-theater format
+    re.compile(r"\bIMAX\b", re.IGNORECASE),
+    re.compile(r"\bcinema\b", re.IGNORECASE),
+    re.compile(r"\bbroadcast\s+television\s+station\b", re.IGNORECASE),  # TV station list
+    re.compile(r"\btelevision\s+station[s]?\s+(?:in|licensed)\b", re.IGNORECASE),
+    re.compile(r"\b(?:king|queen|twin)\s+bed\b", re.IGNORECASE),        # hotel/lodging room
+    re.compile(r"\bper\s+night\b", re.IGNORECASE),
+    re.compile(r"\broom\s+(?:amenities|service)\b", re.IGNORECASE),
+]
+
 # Domains where snippets cannot be PoP evidence for an institutional account.
 # Entertainment platforms and real estate listing sites are the main culprits:
 # - Entertainment: snippets reference movies/shows, not physical displays
@@ -92,8 +111,19 @@ _EXCLUDED_SNIPPET_DOMAINS = {
     "har.com", "ntreis.com",
     # Job boards (TV mentioned in office amenities, not customer-facing space)
     "indeed.com", "glassdoor.com", "linkedin.com",
-    # Generic social platforms — need dedicated handling
+    # Social platforms — TV mentions are for shows/events, not institutional displays
     "instagram.com", "twitter.com", "x.com", "tiktok.com",
+    "facebook.com", "fb.com",
+    # Local business directories — snippet is the directory listing, not the institution
+    "yelp.com", "foursquare.com", "yellowpages.com",
+    # Hospitality / hotel booking — TV is a room amenity, not institutional display
+    "tripadvisor.com", "booking.com", "expedia.com", "hotels.com",
+    "marriott.com", "hilton.com", "hyatt.com", "ihg.com",
+    "kayak.com", "priceline.com", "hoteltonight.com", "airbnb.com",
+    "vrbo.com",
+    # Retail / product pages — TV mentioned as product for sale
+    "bestbuy.com", "target.com", "walmart.com", "costco.com", "bhphotovideo.com",
+    "newegg.com", "adorama.com", "lg.com", "samsung.com", "sony.com",
 }
 
 # Keep for backward compat (referenced in _serper_find_website)
@@ -165,6 +195,22 @@ def _serper_search(query: str) -> Optional[dict]:
         return None
 
 
+def _account_name_tokens(account_name: str) -> list[str]:
+    """
+    Return significant tokens from the account name for snippet attribution checks.
+    Strips common generic words so "First Baptist Church" → ["first", "baptist"].
+    A snippet must contain at least one of these tokens to be attributed to the account.
+    """
+    stopwords = {
+        "the", "a", "an", "of", "and", "at", "in", "for", "to", "by",
+        "church", "school", "college", "university", "inc", "llc", "ltd",
+        "association", "foundation", "academy",
+    }
+    tokens = re.findall(r"[a-z]+", account_name.lower())
+    meaningful = [t for t in tokens if t not in stopwords and len(t) > 2]
+    return meaningful[:4]  # cap at 4 to avoid over-filtering
+
+
 def _serper_av_snippet_search(
     account_name: str, state: str
 ) -> tuple[list[str], list[str]]:
@@ -173,25 +219,55 @@ def _serper_av_snippet_search(
     Returns (tv_snippet_hits, source_urls).
 
     Only counts a snippet as a hit if:
-    - The source URL is not an entertainment/streaming platform
+    - The source URL is not an excluded domain (entertainment, real estate, hospitality)
     - The match is a HIGH-signal keyword (not bare "TV" or "television")
+    - The snippet or title mentions at least one meaningful token from the account name
+      (prevents nearby hotel/venue results from being attributed to the searched account)
+    - The snippet contains no veto patterns (hotel rooms, cinema formats, etc.)
     """
     query = f'"{account_name}" {state} {_TV_SEARCH_TERMS}'
     data = _serper_search(query)
     if not data:
         return [], []
 
+    name_tokens = _account_name_tokens(account_name)
+
     tv_hits = []
     source_urls = []
     for result in data.get("organic", []):
         snippet = result.get("snippet", "")
+        title   = result.get("title", "")
         link    = result.get("link", "")
         if not snippet or not link:
             continue
-        # Skip entertainment and real estate URLs
+
+        # Skip excluded domains (entertainment, real estate, hospitality, retail)
         domain = urlparse(link).netloc.lower().lstrip("www.")
         if any(excl in domain for excl in _EXCLUDED_SNIPPET_DOMAINS):
             continue
+        # Also skip any domain that looks like a hotel/inn/resort/motel property
+        # (e.g. quality-inn-62864.allhotelsillinois.com, bestwestern-chicago.com)
+        if re.search(r"(?:hotel|motel|inn(?:suite)?|resort|lodge|suites)\b", domain):
+            continue
+
+        # Veto hospitality/cinema/TV-station context regardless of TV keyword match
+        combined = f"{title} {snippet}"
+        if any(pat.search(combined) for pat in _SNIPPET_VETO_PATTERNS):
+            continue
+
+        # Attribution check: snippet+title must mention at least one meaningful
+        # token from the account name so we don't credit nearby venues.
+        # If the account name is too short/generic to produce any tokens (e.g. "A",
+        # "NPU"), require the exact account name to appear in the snippet.
+        combined_lower = combined.lower()
+        if name_tokens:
+            if not any(tok in combined_lower for tok in name_tokens):
+                continue
+        else:
+            # Degenerate name (e.g. "A", "NPU") — require exact word match
+            if not re.search(r"\b" + re.escape(account_name.lower()) + r"\b", combined_lower):
+                continue
+
         # Only count HIGH-signal keyword matches in snippets
         # (medium-signal like bare "TV" is too noisy without a scraped page for context)
         high_hits = [m for pat in _TV_HIGH for m in [pat.search(snippet)] if m]
@@ -289,7 +365,11 @@ EDUCATION_SUBPAGES = ["campus-life", "student-union", "dining", "recreation", "f
 # ---------------------------------------------------------------------------
 
 def _score_text(text: str) -> tuple[list[str], list[str]]:
-    """Return (tv_hits, rejection_hits)."""
+    """Return (tv_hits, rejection_hits). Veto patterns hard-cancel the result."""
+    # If the page text itself reads like a hotel or cinema, reject immediately
+    if any(pat.search(text) for pat in _SNIPPET_VETO_PATTERNS):
+        return [], ["[veto: hospitality/cinema context detected]"]
+
     tv_hits = []
     for pat in _TV_HIGH + _TV_MED:
         m = pat.search(text)
