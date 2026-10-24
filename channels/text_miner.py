@@ -38,11 +38,15 @@ TV_KEYWORDS_HIGH = [
     r"\bHDTV\b",
     r"\bHD TV\b",
     r"\bmultiple\s+(?:large\s+)?(?:TV|screen)s?\b",
-    r"\blive[\s-]stream(?:ing)?\s+(?:screen|display|monitor|TV)\b",
+    # Overflow room / nursery with physical screen — strong spatial evidence
     r"\boverflow\s+room\b.*\b(?:screen|TV|monitor|display)\b",
     r"\b(?:screen|TV|monitor|display)\b.*\boverflow\s+room\b",
-    r"\btelevision\s+(?:ministry|broadcast|lounge|room|area|screen)\b",
-    r"\b(?:ministry|broadcast|lounge|room|area|screen)\s+television\b",
+    r"\bnursery\b.*\b(?:flat[ -]?screen|big[ -]?screen|TV|monitor)\b",
+    r"\b(?:flat[ -]?screen|big[ -]?screen|TV|monitor)\b.*\bnursery\b",
+    # "television lounge/room/area/screen" — physical spaces, NOT "television ministry"
+    # "television ministry" / "television broadcast" = outbound production, not in-building TV
+    r"\btelevision\s+(?:lounge|room|area|screen)\b",
+    r"\b(?:lounge|room|area|screen)\s+television\b",
 ]
 
 TV_KEYWORDS_MEDIUM = [
@@ -91,6 +95,10 @@ _SNIPPET_VETO_PATTERNS = [
     re.compile(r"\b(?:king|queen|twin)\s+bed\b", re.IGNORECASE),        # hotel/lodging room
     re.compile(r"\bper\s+night\b", re.IGNORECASE),
     re.compile(r"\broom\s+(?:amenities|service)\b", re.IGNORECASE),
+    # Church outbound broadcasting — NOT evidence of in-building TV
+    re.compile(r"\btelevision\s+ministry\b", re.IGNORECASE),   # church produces a TV show
+    re.compile(r"\bwatch\s+livestream\b", re.IGNORECASE),       # website CTA for home viewers
+    re.compile(r"\bstream\s+(?:our\s+)?(?:service|sermon|worship)\b", re.IGNORECASE),
 ]
 
 # Domains where snippets cannot be PoP evidence for an institutional account.
