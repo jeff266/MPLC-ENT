@@ -1,0 +1,825 @@
+{
+  "summary": {
+    "total_accounts": 30,
+    "total_evidence_items": 31,
+    "by_tier": {
+      "PROSPECT": 21,
+      "SUSPECT": 10,
+      "REJECTED": 0
+    },
+    "by_channel": {
+      "video": 0,
+      "image": 0,
+      "text": 0
+    },
+    "total_cost": 1.799154
+  },
+  "records": [
+    {
+      "account_name": "Philadelphia Eagles",
+      "channel": "yelp_photos",
+      "tier": "SUSPECT",
+      "vertical": "corporate",
+      "evidence": {
+        "photo_location": "temp_images/0016e00002vwgjQAAQ_5.jpg",
+        "description": "Television displaying NFL playoff game coverage with State Farm branding and final score (Giants 7, Eagles 38), but cannot confirm this is a customer-facing area in a corporate facility versus a residential or other setting.",
+        "source_url": "https://www.yelp.com/biz/philadelphia-eagles-philadelphia"
+      },
+      "confidence": {
+        "yolo_detection": 0.2117552012205124,
+        "vlm_assessment": "medium"
+      },
+      "space_classification": {
+        "type": "unclear",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.070343
+      },
+      "metadata": {
+        "timestamp": "2026-10-24T17:57:34.223791",
+        "evidence_id": "b8b29f3c5891"
+      }
+    },
+    {
+      "account_name": "Phoenix Children's Pediatrics - Gilbert",
+      "channel": "yelp_photos",
+      "tier": "PROSPECT",
+      "vertical": "corporate",
+      "evidence": {
+        "photo_location": "temp_images/0016e00002vwsc0AAA_5.jpg",
+        "description": "Veterinary clinic waiting area with a powered-on TV mounted on the wall displaying visible content, featuring distinctive barn-themed d\u00e9cor with cow artwork and customer seating.",
+        "source_url": "https://www.yelp.com/biz/phoenix-childrens-pediatrics-gilbert-4"
+      },
+      "confidence": {
+        "yolo_detection": 0.7615725994110107,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "waiting_area",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.029149999999999995
+      },
+      "metadata": {
+        "timestamp": "2026-10-24T17:59:41.575990",
+        "evidence_id": "b7e022173515"
+      }
+    },
+    {
+      "account_name": "Chevy Chase Neighborhood Public Library",
+      "channel": "yelp_photos",
+      "tier": "PROSPECT",
+      "vertical": "corporate",
+      "evidence": {
+        "photo_location": "temp_images/0016e00002vwosSAAQ_0.jpg",
+        "description": "School or public library with colorful floor tiles, reading tables, bookshelves, and a powered-on monitor/TV visible in the background customer area.",
+        "source_url": "https://www.yelp.com/biz/chevy-chase-neighborhood-library-washington"
+      },
+      "confidence": {
+        "yolo_detection": 0.21806858479976654,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "lounge",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.076345
+      },
+      "metadata": {
+        "timestamp": "2026-10-24T18:03:55.026540",
+        "evidence_id": "b418c340c2ce"
+      }
+    },
+    {
+      "account_name": "First Baptist Church",
+      "channel": "yelp_photos",
+      "tier": "SUSPECT",
+      "vertical": "corporate",
+      "evidence": {
+        "photo_location": "temp_images/0016e00002vxTrUAAU_0.jpg",
+        "description": "Large auditorium or church sanctuary with multiple screens visible displaying content, but this appears to be a religious/event venue rather than a typical corporate facility with customer waiting areas.",
+        "source_url": "https://www.yelp.com/biz/first-baptist-church-of-columbia-columbia"
+      },
+      "confidence": {
+        "yolo_detection": 0.8682151436805725,
+        "vlm_assessment": "medium"
+      },
+      "space_classification": {
+        "type": "customer_seating",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.05137000000000001
+      },
+      "metadata": {
+        "timestamp": "2026-10-24T18:07:10.411708",
+        "evidence_id": "40b326950794"
+      }
+    },
+    {
+      "account_name": "Coldwell Banker",
+      "channel": "yelp_photos",
+      "tier": "SUSPECT",
+      "vertical": "corporate",
+      "evidence": {
+        "photo_location": "temp_images/0016e00002vwwFRAAY_0.jpg",
+        "description": "An upscale residential-style living room with fireplace, decorative mirror, and a wall-mounted TV that appears to be off, presented in a professional real estate or catalog photography style.",
+        "source_url": "https://www.yelp.com/biz/coldwell-banker-residential-brokerage-boston-15"
+      },
+      "confidence": {
+        "yolo_detection": 0.6148871183395386,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "unclear",
+        "tv_powered_on": false
+      },
+      "cost": {
+        "total_account_cost": 0.043248
+      },
+      "metadata": {
+        "timestamp": "2026-10-24T18:10:08.869552",
+        "evidence_id": "7d7fd07e6ac9"
+      }
+    },
+    {
+      "account_name": "Allianz",
+      "channel": "yelp_photos",
+      "tier": "PROSPECT",
+      "vertical": "corporate",
+      "evidence": {
+        "photo_location": "temp_images/001UW00001JGLg9YAH_5.jpg",
+        "description": "Modern sports venue or arena dining area with customers seated at white counter tables, featuring multiple powered-on TV screens mounted on the back wall displaying what appears to be live sports content, with pendant lighting overhead and views into the arena seating area through large windows.",
+        "source_url": "https://www.yelp.com/biz/allianz-field-saint-paul"
+      },
+      "confidence": {
+        "yolo_detection": 0.37367936968803406,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "customer_seating",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.06142
+      },
+      "metadata": {
+        "timestamp": "2026-10-24T18:12:40.187942",
+        "evidence_id": "040add84f7bf"
+      }
+    },
+    {
+      "account_name": "Subaru of Indiana Automotive",
+      "channel": "yelp_photos",
+      "tier": "PROSPECT",
+      "vertical": "corporate",
+      "evidence": {
+        "photo_location": "temp_images/001UW000019qc91YAA_0.jpg",
+        "description": "A modern office or business waiting area with gray tufted chairs, colorful circular-patterned rug, round glass coffee table, and a wall-mounted TV displaying \"NNY G\" content that is clearly powered on.",
+        "source_url": "https://www.yelp.com/biz/eagle-auto-zionsville"
+      },
+      "confidence": {
+        "yolo_detection": 0.499803751707077,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "waiting_area",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.06736
+      },
+      "metadata": {
+        "timestamp": "2026-10-24T18:20:10.139729",
+        "evidence_id": "260c9f28238a"
+      }
+    },
+    {
+      "account_name": "Titan International, Inc.",
+      "channel": "yelp_photos",
+      "tier": "PROSPECT",
+      "vertical": "corporate",
+      "evidence": {
+        "photo_location": "temp_images/001UW000019r4sCYAQ_1.jpg",
+        "description": "Apple Store interior with customers at wooden tables, large digital displays on the wall showing iPad Pro and Vision Pro advertisements, and a monitor on the right displaying an active workshop demonstration.",
+        "source_url": "https://www.yelp.com/biz/apple-stonestown-san-francisco"
+      },
+      "confidence": {
+        "yolo_detection": 0.6799244284629822,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "lobby",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.07073499999999999
+      },
+      "metadata": {
+        "timestamp": "2026-10-24T18:22:27.017339",
+        "evidence_id": "306e72578b25"
+      }
+    },
+    {
+      "account_name": "TVH",
+      "channel": "yelp_photos",
+      "tier": "SUSPECT",
+      "vertical": "corporate",
+      "evidence": {
+        "photo_location": "temp_images/001UW000019r4sTYAQ_7.jpg",
+        "description": "A medical office waiting area with brick accent wall displaying \"LET US BE YOUR OTHER FAMILY DOCTOR\" signage, orange seating chairs, and a wall-mounted flat screen TV that appears to be off or dark.",
+        "source_url": "https://www.yelp.com/biz/tama-veterinary-hospital-and-urgent-care-milpitas"
+      },
+      "confidence": {
+        "yolo_detection": 0.6827210783958435,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "waiting_area",
+        "tv_powered_on": false
+      },
+      "cost": {
+        "total_account_cost": 0.066931
+      },
+      "metadata": {
+        "timestamp": "2026-10-24T18:24:30.341826",
+        "evidence_id": "e57e01eb1177"
+      }
+    },
+    {
+      "account_name": "University of Minnesota",
+      "channel": "yelp_photos",
+      "tier": "PROSPECT",
+      "vertical": "corporate",
+      "evidence": {
+        "photo_location": "temp_images/0016e00002vwslZAAQ_1.jpg",
+        "description": "A bubble tea shop lounge area with a powered-on TV/monitor displaying animated content visible on the left side, customer seating areas, and a person waiting with their drink on a white table in the foreground.",
+        "source_url": "https://www.yelp.com/biz/university-of-minnesota-saint-paul-2"
+      },
+      "confidence": {
+        "yolo_detection": 0.35534223914146423,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "lounge",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.06328500000000001
+      },
+      "metadata": {
+        "timestamp": "2026-10-24T18:29:45.279415",
+        "evidence_id": "41b073a3dcc4"
+      }
+    },
+    {
+      "account_name": "Sutter Valley Medical Foundation",
+      "channel": "yelp_photos",
+      "tier": "PROSPECT",
+      "vertical": "corporate",
+      "evidence": {
+        "photo_location": "temp_images/0016e00002vwl0FAAQ_0.jpg",
+        "description": "Healthcare or corporate lobby with a large wall-mounted TV display showing visible content (purple background with a person's face), modern seating arrangements, skylight, and a retail/gift shop area visible to the right.",
+        "source_url": "https://www.yelp.com/biz/mercy-medical-center-dignity-health-merced"
+      },
+      "confidence": {
+        "yolo_detection": 0.5346181988716125,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "lobby",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.07158099999999999
+      },
+      "metadata": {
+        "timestamp": "2026-10-24T18:50:37.964065",
+        "evidence_id": "40c408de5159"
+      }
+    },
+    {
+      "account_name": "First Baptist Church",
+      "channel": "yelp_photos",
+      "tier": "PROSPECT",
+      "vertical": "corporate",
+      "evidence": {
+        "photo_location": "temp_images/0016e00002vxjVqAAI_5.jpg",
+        "description": "Church or auditorium sanctuary with multiple powered-on screens displaying content visible on side monitors, featuring rows of seating facing an illuminated stage area with purple lighting and Christmas decorations.",
+        "source_url": "https://www.yelp.com/biz/first-baptist-church-atlanta-atlanta-5"
+      },
+      "confidence": {
+        "yolo_detection": 0.7030174732208252,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "customer_seating",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.06589
+      },
+      "metadata": {
+        "timestamp": "2026-10-24T18:51:56.088447",
+        "evidence_id": "395933bb6565"
+      }
+    },
+    {
+      "account_name": "Carahsoft",
+      "channel": "yelp_photos",
+      "tier": "PROSPECT",
+      "vertical": "corporate",
+      "evidence": {
+        "photo_location": "temp_images/001UW00001AbNiYYAV_1.jpg",
+        "description": "Large corporate meeting or presentation space with multiple rows of attendees seated at long tables facing multiple powered-on screens displaying blue content throughout the room.",
+        "source_url": "https://www.yelp.com/biz/carahsoft-reston"
+      },
+      "confidence": {
+        "yolo_detection": 0.3129575848579407,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "lobby",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.01303
+      },
+      "metadata": {
+        "timestamp": "2026-10-24T19:03:20.508618",
+        "evidence_id": "abec81c4d961"
+      }
+    },
+    {
+      "account_name": "Campus Women`s Center",
+      "channel": "yelp_photos",
+      "tier": "PROSPECT",
+      "vertical": "corporate",
+      "evidence": {
+        "photo_location": "temp_images/0016e00002vx0YxAAI_2.jpg",
+        "description": "Healthcare facility waiting room with multiple patients seated in chairs, a wheelchair visible in foreground marked \"HBO\", and a wall-mounted TV displaying colorful content.",
+        "source_url": "https://www.yelp.com/biz/aurora-st-lukes-medical-center-milwaukee-3"
+      },
+      "confidence": {
+        "yolo_detection": 0.7388226985931396,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "waiting_area",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.04312200000000001
+      },
+      "metadata": {
+        "timestamp": "2026-10-24T19:09:10.864301",
+        "evidence_id": "4af2ecb5d366"
+      }
+    },
+    {
+      "account_name": "Google: Food Waste Event",
+      "channel": "yelp_photos",
+      "tier": "SUSPECT",
+      "vertical": "corporate",
+      "evidence": {
+        "photo_location": "temp_images/0016e00002vy4gyAAA_8.jpg",
+        "description": "A cafe or juice bar counter with three powered-on digital menu boards displaying food items, matcha drinks, and classics menu against white subway tile wall.",
+        "source_url": "https://www.yelp.com/biz/junbi-matcha-and-tea-san-francisco-2"
+      },
+      "confidence": {
+        "yolo_detection": 0.4649893641471863,
+        "vlm_assessment": ""
+      },
+      "space_classification": {
+        "type": "service_area",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.061612
+      },
+      "metadata": {
+        "timestamp": "2026-10-24T19:11:47.452224",
+        "evidence_id": "2a54de986337"
+      }
+    },
+    {
+      "account_name": "Omicron Delta Epsilon",
+      "channel": "yelp_photos",
+      "tier": "PROSPECT",
+      "vertical": "corporate",
+      "evidence": {
+        "photo_location": "temp_images/0016e00002vx0d8AAA_1.jpg",
+        "description": "A wings and ramen restaurant dining area with yellow walls, black ceiling tiles, wooden tables with black chairs, and illuminated menu boards displaying food items visible above the service counter.",
+        "source_url": "https://www.yelp.com/biz/tasty-wings-and-ramen-lake-wales"
+      },
+      "confidence": {
+        "yolo_detection": 0.2161223441362381,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "customer_seating",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.07300499999999999
+      },
+      "metadata": {
+        "timestamp": "2026-10-24T19:15:44.992102",
+        "evidence_id": "6a02e017e18c"
+      }
+    },
+    {
+      "account_name": "Ashland",
+      "channel": "yelp_photos",
+      "tier": "PROSPECT",
+      "vertical": "corporate",
+      "evidence": {
+        "photo_location": "temp_images/001VV00000czVVdYAM_1.jpg",
+        "description": "Restaurant/diner dining room with patrons seated at tables and a wall-mounted TV displaying blue-toned content, plus a smaller monitor showing what appears to be data/schedules in the upper right.",
+        "source_url": "https://www.yelp.com/biz/ashland-caf%C3%A9-bar-and-grill-cockeysville"
+      },
+      "confidence": {
+        "yolo_detection": 0.8817414045333862,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "customer_seating",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.062961
+      },
+      "metadata": {
+        "timestamp": "2026-10-24T19:25:16.110634",
+        "evidence_id": "7d97a7969342"
+      }
+    },
+    {
+      "account_name": "Arizona State University- Center for the Study of Race and Democracy",
+      "channel": "yelp_photos",
+      "tier": "PROSPECT",
+      "vertical": "corporate",
+      "evidence": {
+        "photo_location": "temp_images/0016e00002vwwb7AAA_1.jpg",
+        "description": "Stadium seating area at Arizona State University showing five people in yellow \"Proud Sun Devil\" shirts with a large powered-on display screen visible in the background showing broadcast content.",
+        "source_url": "https://www.yelp.com/biz/arizona-state-university-phoenix-7"
+      },
+      "confidence": {
+        "yolo_detection": 0.7756308913230896,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "customer_seating",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.050316
+      },
+      "metadata": {
+        "timestamp": "2026-10-24T19:27:47.973803",
+        "evidence_id": "e42867a54534"
+      }
+    },
+    {
+      "account_name": "Molson Coors Beverage Company",
+      "channel": "yelp_photos",
+      "tier": "PROSPECT",
+      "vertical": "corporate",
+      "evidence": {
+        "photo_location": "temp_images/0016e000030K14kAAC_8.jpg",
+        "description": "A retail store interior showing a powered-on TV/monitor mounted on a central wooden column displaying content, with clothing racks and merchandise displays visible throughout the customer shopping area.",
+        "source_url": "https://www.yelp.com/biz/coors-golden"
+      },
+      "confidence": {
+        "yolo_detection": 0.5419538617134094,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "customer_area",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.060502
+      },
+      "metadata": {
+        "timestamp": "2026-10-24T19:35:48.951504",
+        "evidence_id": "a100f18a0e04"
+      }
+    },
+    {
+      "account_name": "First United Methodist Church",
+      "channel": "yelp_photos",
+      "tier": "PROSPECT",
+      "vertical": "corporate",
+      "evidence": {
+        "photo_location": "temp_images/0016e000033F2ecAAC_0.jpg",
+        "description": "Three large illuminated screens displaying blue cloudy sky content mounted above an audience seating area in what appears to be a church or cathedral setting with Gothic architecture.",
+        "source_url": "https://www.yelp.com/biz/first-united-methodist-church-charlotte"
+      },
+      "confidence": {
+        "yolo_detection": 0.26128748059272766,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "lounge",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.043017
+      },
+      "metadata": {
+        "timestamp": "2026-10-24T19:37:14.480372",
+        "evidence_id": "4ece271e5ad6"
+      }
+    },
+    {
+      "account_name": "Detroit Health Department",
+      "channel": "yelp_photos",
+      "tier": "SUSPECT",
+      "vertical": "corporate",
+      "evidence": {
+        "photo_location": "temp_images/0016e00002vwt5GAAQ_4.jpg",
+        "description": "A high-ceiling medical or corporate lobby with brick and tiled walls, reception desk, and waiting area seating, but no clearly visible or confirmed powered-on television monitor.",
+        "source_url": "https://www.yelp.com/biz/karmanos-cancer-institute-detroit-2"
+      },
+      "confidence": {
+        "yolo_detection": 0.7064205408096313,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "waiting_area",
+        "tv_powered_on": false
+      },
+      "cost": {
+        "total_account_cost": 0.021105
+      },
+      "metadata": {
+        "timestamp": "2026-10-24T19:50:32.452015",
+        "evidence_id": "827190776692"
+      }
+    },
+    {
+      "account_name": "University of Missouri - Columbia",
+      "channel": "yelp_photos",
+      "tier": "SUSPECT",
+      "vertical": "corporate",
+      "evidence": {
+        "photo_location": "temp_images/0016e00002vwlOTAAY_3.jpg",
+        "description": "Modern collaborative learning or training space with multiple long tables, teal office chairs, ceiling-mounted monitors displaying content, and computer workstations with dividers, but the space appears to be an educational/training facility rather than a traditional customer waiting area.",
+        "source_url": "https://www.yelp.com/biz/university-of-missouri-kansas-city-4"
+      },
+      "confidence": {
+        "yolo_detection": 0.7415177822113037,
+        "vlm_assessment": "medium"
+      },
+      "space_classification": {
+        "type": "unclear",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.03336
+      },
+      "metadata": {
+        "timestamp": "2026-10-24T20:01:11.960984",
+        "evidence_id": "9bb9c5381627"
+      }
+    },
+    {
+      "account_name": "Precision Medicine Group",
+      "channel": "yelp_photos",
+      "tier": "SUSPECT",
+      "vertical": "corporate",
+      "evidence": {
+        "photo_location": "temp_images/001VV00000dBC7RYAW_1.jpg",
+        "description": "A bright waiting area or lounge with white seating, fireplace, retail display shelves, and a wall-mounted TV that is not clearly shown as powered on.",
+        "source_url": "https://www.yelp.com/biz/ft-hunt-health-and-wellness-center-ft-hunt-massage-and-spa-alexandria-3"
+      },
+      "confidence": {
+        "yolo_detection": 0.6358031630516052,
+        "vlm_assessment": "medium"
+      },
+      "space_classification": {
+        "type": "waiting_area",
+        "tv_powered_on": false
+      },
+      "cost": {
+        "total_account_cost": 0.066568
+      },
+      "metadata": {
+        "timestamp": "2026-10-24T20:05:34.194731",
+        "evidence_id": "be96b4142f70"
+      }
+    },
+    {
+      "account_name": "Kennesaw State University",
+      "channel": "yelp_photos",
+      "tier": "PROSPECT",
+      "vertical": "corporate",
+      "evidence": {
+        "photo_location": "temp_images/0018X00003Em8TYQAZ_4.jpg",
+        "description": "A cafeteria or dining hall with students lined up at drink dispensers and a \"Dish Return\" area, with a wall-mounted TV in the upper left displaying visible content.",
+        "source_url": "https://www.yelp.com/biz/kennesaw-state-university-marietta-4"
+      },
+      "confidence": {
+        "yolo_detection": 0.8591792583465576,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "lounge",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.06718
+      },
+      "metadata": {
+        "timestamp": "2026-10-24T20:18:34.280126",
+        "evidence_id": "abbd23a3ba8b"
+      }
+    },
+    {
+      "account_name": "Atlantic Delray Beach, LLC",
+      "channel": "yelp_photos",
+      "tier": "PROSPECT",
+      "vertical": "corporate",
+      "evidence": {
+        "photo_location": "temp_images/0016e00002vwds0AAA_5.jpg",
+        "description": "Modern residential-style lounge with large curved sectional sofa, two wall-mounted TVs both displaying content (left TV showing dark content, right TV showing bright blue oceanscape), white tile flooring, and glass doors leading to outdoor view.",
+        "source_url": "https://www.yelp.com/biz/ocean-ridge-realty-delray-beach-4"
+      },
+      "confidence": {
+        "yolo_detection": 0.3613488972187042,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "lounge",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.076183
+      },
+      "metadata": {
+        "timestamp": "2026-10-24T20:21:41.575846",
+        "evidence_id": "2bfba8a033ea"
+      }
+    },
+    {
+      "account_name": "KIA Motors America Inc",
+      "channel": "yelp_photos",
+      "tier": "SUSPECT",
+      "vertical": "corporate",
+      "evidence": {
+        "photo_location": "temp_images/0016e00002vwtGsAAI_1.jpg",
+        "description": "A waiting area with light wood cabinetry featuring decorative eyes, a wall-mounted TV that appears powered off or in standby mode, wire basket organizers, chairs visible in the background, and tiled flooring.",
+        "source_url": "https://www.yelp.com/biz/blackstone-chevrolet-fresno-2"
+      },
+      "confidence": {
+        "yolo_detection": 0.8358351588249207,
+        "vlm_assessment": "medium"
+      },
+      "space_classification": {
+        "type": "waiting_area",
+        "tv_powered_on": false
+      },
+      "cost": {
+        "total_account_cost": 0.052609
+      },
+      "metadata": {
+        "timestamp": "2026-10-24T20:29:19.048891",
+        "evidence_id": "a5e423714e2e"
+      }
+    },
+    {
+      "account_name": "Leidos",
+      "channel": "yelp_photos",
+      "tier": "PROSPECT",
+      "vertical": "corporate",
+      "evidence": {
+        "photo_location": "temp_images/0018X00003KJWn6QAH_1.jpg",
+        "description": "Restaurant/bar lounge area with wooden wine storage shelving, black granite bar counter with seating, and a TV mounted on the back bar displaying what appears to be a sports broadcast (football player visible wearing number 10).",
+        "source_url": "https://www.yelp.com/biz/antonios-restaurant-and-wine-bar-chester"
+      },
+      "confidence": {
+        "yolo_detection": 0.5734297633171082,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "lounge",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.0673
+      },
+      "metadata": {
+        "timestamp": "2026-10-24T20:44:04.246380",
+        "evidence_id": "a4fe28501334"
+      }
+    },
+    {
+      "account_name": "UCSF School of Dentistry",
+      "channel": "yelp_photos",
+      "tier": "SUSPECT",
+      "vertical": "corporate",
+      "evidence": {
+        "photo_location": "temp_images/0016e00002vx1CjAAI_4.jpg",
+        "description": "Dental consultation meeting at a round table with computers and dental models visible, but this appears to be a professional promotional photo rather than a candid facility shot, and while monitors are present in the background, none are confirmed to be powered on with visible content.",
+        "source_url": "https://www.yelp.com/biz/diciccio-freeman-orthodontics-clovis-5"
+      },
+      "confidence": {
+        "yolo_detection": 0.7483458518981934,
+        "vlm_assessment": "medium"
+      },
+      "space_classification": {
+        "type": "unclear",
+        "tv_powered_on": false
+      },
+      "cost": {
+        "total_account_cost": 0.077233
+      },
+      "metadata": {
+        "timestamp": "2026-10-24T20:56:53.824271",
+        "evidence_id": "23da03c12dcb"
+      }
+    },
+    {
+      "account_name": "South Asian Student Association at Towson University",
+      "channel": "yelp_photos",
+      "tier": "PROSPECT",
+      "vertical": "corporate",
+      "evidence": {
+        "photo_location": "temp_images/0016e00002vx1DLAAY_0.jpg",
+        "description": "A modern corporate cafeteria/lounge area with multiple seating tables, exposed brick columns, yellow ceiling accents, and a digital display screen mounted on the right column showing visible blue content.",
+        "source_url": "https://www.yelp.com/biz/towson-university-towson-2"
+      },
+      "confidence": {
+        "yolo_detection": 0.6461434960365295,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "lounge",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.076435
+      },
+      "metadata": {
+        "timestamp": "2026-10-24T21:01:23.578023",
+        "evidence_id": "cdfd3e92c241"
+      }
+    },
+    {
+      "account_name": "The Metropolitan Association",
+      "channel": "yelp_photos",
+      "tier": "PROSPECT",
+      "vertical": "corporate",
+      "evidence": {
+        "photo_location": "temp_images/0016e00002vx1ERAAY_1.jpg",
+        "description": "A hotel or corporate lounge room with a wall-mounted TV displaying active video content of a person in a blue shirt, viewed from a white seating area with a round coffee table containing water bottles and glasses.",
+        "source_url": "https://www.yelp.com/biz/visalia-marriott-at-the-convention-center-visalia"
+      },
+      "confidence": {
+        "yolo_detection": 0.8513084650039673,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "lounge",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.07042000000000001
+      },
+      "metadata": {
+        "timestamp": "2026-10-24T21:08:24.611319",
+        "evidence_id": "2dfd14656eb0"
+      }
+    },
+    {
+      "account_name": "Deluxe",
+      "channel": "yelp_photos",
+      "tier": "PROSPECT",
+      "vertical": "corporate",
+      "evidence": {
+        "photo_location": "temp_images/0018X00003AfuSgQAJ_2.jpg",
+        "description": "Corporate office lobby/collaboration area with a conference table and multiple branded panels on the wall, including a powered-on monitor displaying blue content on the right side.",
+        "source_url": "https://www.yelp.com/biz/deluxe-minneapolis-4"
+      },
+      "confidence": {
+        "yolo_detection": 0.2278493195772171,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "lobby",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.045537999999999995
+      },
+      "metadata": {
+        "timestamp": "2026-10-24T21:09:06.153323",
+        "evidence_id": "04e87f4a39cb"
+      }
+    }
+  ]
+}
