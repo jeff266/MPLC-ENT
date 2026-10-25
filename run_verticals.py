@@ -69,6 +69,20 @@ def load_csv(path: str) -> list[dict]:
             # Support both 'account name' and 'account_name' variants
             if "account name" in normalized and "account_name" not in normalized:
                 normalized["account_name"] = normalized.pop("account name")
+
+            # Map Salesforce column names to expected pipeline columns
+            if "account_state" in normalized and "state" not in normalized:
+                normalized["state"] = normalized["account_state"]
+            if "account_street" in normalized and "city" not in normalized:
+                # City not in CSV - leave empty, text miner will use state only
+                normalized["city"] = ""
+
+            # Fix website URLs - add http:// if missing
+            if "website" in normalized and normalized["website"]:
+                website = normalized["website"].strip()
+                if website and not website.startswith(("http://", "https://")):
+                    normalized["website"] = f"http://{website}"
+
             rows.append(normalized)
     return rows
 
