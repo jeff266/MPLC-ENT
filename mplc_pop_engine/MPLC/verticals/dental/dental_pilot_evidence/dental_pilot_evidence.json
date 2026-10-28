@@ -1,0 +1,18 @@
+{
+  "summary": {
+    "total_accounts": 0,
+    "total_evidence_items": 0,
+    "by_tier": {
+      "PROSPECT": 0,
+      "SUSPECT": 0,
+      "REJECTED": 0
+    },
+    "by_channel": {
+      "video": 0,
+      "image": 0,
+      "text": 0
+    },
+    "total_cost": 0
+  },
+  "records": []
+}

@@ -1,0 +1,79 @@
+[
+  {
+    "name": "W Dentistry",
+    "alias": "w-dentistry-san-francisco-2",
+    "url": "https://www.yelp.com/biz/w-dentistry-san-francisco-2",
+    "address": "490 Post St, Ste 606",
+    "city": "San Francisco",
+    "state": "CA",
+    "rating": 4.5,
+    "review_count": 61,
+    "chain": "PDS/Smile Generation"
+  },
+  {
+    "name": "Itani Dental San Francisco",
+    "alias": "itani-dental-san-francisco-san-francisco",
+    "url": "https://www.yelp.com/biz/itani-dental-san-francisco-san-francisco",
+    "address": "450 Sutter St, Fl 23 Ste 2318",
+    "city": "San Francisco",
+    "state": "CA",
+    "rating": 4.5,
+    "review_count": 130,
+    "chain": "PDS/Smile Generation"
+  },
+  {
+    "name": "Dentists of Pittsburg",
+    "alias": "dentists-of-pittsburg-pittsburg",
+    "url": "https://www.yelp.com/biz/dentists-of-pittsburg-pittsburg",
+    "address": "4297 Century Blvd",
+    "city": "Pittsburg",
+    "state": "CA",
+    "rating": 3.5,
+    "review_count": 35,
+    "chain": "PDS/Smile Generation"
+  },
+  {
+    "name": "Miller Family Dental",
+    "alias": "miller-family-dental-houston",
+    "url": "https://www.yelp.com/biz/miller-family-dental-houston",
+    "address": "13131 W Lake Houston Pkwy",
+    "city": "Houston",
+    "state": "TX",
+    "rating": 4.5,
+    "review_count": 13,
+    "chain": "Kool Smiles"
+  },
+  {
+    "name": "Topaz Dentistry",
+    "alias": "topaz-dentistry-bryan-3",
+    "url": "https://www.yelp.com/biz/topaz-dentistry-bryan-3",
+    "address": "3111 S Texas Ave",
+    "city": "Bryan",
+    "state": "TX",
+    "rating": 2.5,
+    "review_count": 18,
+    "chain": "Kool Smiles"
+  },
+  {
+    "name": "Small Smiles",
+    "alias": "small-smiles-naperville-3",
+    "url": "https://www.yelp.com/biz/small-smiles-naperville-3",
+    "address": "1980 Three Farms Ave, Ste 108",
+    "city": "Naperville",
+    "state": "IL",
+    "rating": 3.5,
+    "review_count": 15,
+    "chain": "Small Smiles"
+  },
+  {
+    "name": "Small Smiles",
+    "alias": "small-smiles-mishawaka",
+    "url": "https://www.yelp.com/biz/small-smiles-mishawaka",
+    "address": "2332 Miracle Ln",
+    "city": "Mishawaka",
+    "state": "IN",
+    "rating": 0,
+    "review_count": 0,
+    "chain": "Small Smiles"
+  }
+]

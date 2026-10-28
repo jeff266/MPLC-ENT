@@ -1,0 +1,6 @@
+﻿reit,community_name,city,state,tier,tvs_detected,pop_evidence_count,cost
+AvalonBay,Avalon San Bruno,Daly City,California,PROSPECT,3,3,0.022347
+AvalonBay,eaves Pacifica,Daly City,California,PROSPECT,2,1,0.037347
+AvalonBay,Avalon Dublin Station,Dublin,California,REJECTED,0,0,0.0
+AvalonBay,Avalon West Dublin,Dublin,California,REJECTED,0,0,0.0
+AvalonBay,eaves Dublin,Dublin,California,SUSPECT,3,0,0.061803000000000004

@@ -1,0 +1,63 @@
+﻿reit,property_name,city,state,address,units,property_url,enriched_address,lat,lng,address_found,address_source
+AvalonBay,Avalon San Bruno,Daly City,California,,,https://www.avaloncommunities.com/california/san-bruno-apartments/avalon-san-bruno,,,,False,
+AvalonBay,eaves Pacifica,Daly City,California,,,https://www.avaloncommunities.com/california/pacifica-apartments/eaves-pacifica,"265 Gateway Dr, Pacifica, CA 94044",,,True,snippet
+AvalonBay,Avalon Dublin Station,Dublin,California,,,https://www.avaloncommunities.com/california/dublin-apartments/avalon-dublin-station,,,,False,
+AvalonBay,Avalon West Dublin,Dublin,California,,,https://www.avaloncommunities.com/california/dublin-apartments/avalon-west-dublin,,,,False,
+AvalonBay,eaves Dublin,Dublin,California,,,https://www.avaloncommunities.com/california/dublin-apartments/eaves-dublin,"7904 Fall Creek Rd, Dublin, CA 94568",,,True,snippet
+AvalonBay,Avalon Dublin Station,East Bay,California,,,https://www.avaloncommunities.com/california/dublin-apartments/avalon-dublin-station,,,,False,
+AvalonBay,Avalon Fremont,East Bay,California,,,https://www.avaloncommunities.com/california/fremont-apartments/avalon-fremont,,,,False,
+AvalonBay,Avalon Pleasanton,East Bay,California,,,https://www.avaloncommunities.com/california/pleasanton-apartments/avalon-pleasanton,,,,False,
+AvalonBay,Avalon Public Market,East Bay,California,,,https://www.avaloncommunities.com/california/emeryville-apartments/avalon-public-market,"6301 Shellmound St, Emeryville, CA 94608",,,True,snippet
+AvalonBay,Avalon Union City,East Bay,California,,,https://www.avaloncommunities.com/california/union-city-apartments/avalon-union-city,,,,False,
+AvalonBay,Avalon Walnut Creek,East Bay,California,,,https://www.avaloncommunities.com/california/walnut-creek-apartments/avalon-walnut-creek,,,,False,
+AvalonBay,Avalon Walnut Ridge,East Bay,California,,,https://www.avaloncommunities.com/california/walnut-creek-apartments/avalon-walnut-ridge,,,,False,
+AvalonBay,Avalon West Dublin,East Bay,California,,,https://www.avaloncommunities.com/california/dublin-apartments/avalon-west-dublin,,,,False,
+AvalonBay,eaves Dublin,East Bay,California,,,https://www.avaloncommunities.com/california/dublin-apartments/eaves-dublin,"7904 Fall Creek Rd, Dublin, CA 94568",,,True,snippet
+AvalonBay,eaves Fremont,East Bay,California,,,https://www.avaloncommunities.com/california/fremont-apartments/eaves-fremont,,,,False,
+AvalonBay,eaves Pleasanton,East Bay,California,,,https://www.avaloncommunities.com/california/pleasanton-apartments/eaves-pleasanton,"3650 Andrews Dr, Pleasanton, CA 94588",,,True,snippet
+AvalonBay,eaves Union City,East Bay,California,,,https://www.avaloncommunities.com/california/union-city-apartments/eaves-union-city,,,,False,
+AvalonBay,eaves Walnut Creek,East Bay,California,,,https://www.avaloncommunities.com/california/walnut-creek-apartments/eaves-walnut-creek,,,,False,
+AvalonBay,Avalon Fremont,Fremont,California,,,https://www.avaloncommunities.com/california/fremont-apartments/avalon-fremont,,,,False,
+AvalonBay,Avalon Union City,Fremont,California,,,https://www.avaloncommunities.com/california/union-city-apartments/avalon-union-city,,,,False,
+AvalonBay,eaves Fremont,Fremont,California,,,https://www.avaloncommunities.com/california/fremont-apartments/eaves-fremont,,,,False,
+AvalonBay,eaves Union City,Fremont,California,,,https://www.avaloncommunities.com/california/union-city-apartments/eaves-union-city,"2175 Decoto Rd, Union City, CA 94587",,,True,snippet
+AvalonBay,Avalon Mountain View,Mountain View,California,,,https://www.avaloncommunities.com/california/mountain-view-apartments/avalon-mountain-view,"1600 Villa St, Mountain View, CA 94041",,,True,snippet
+AvalonBay,Avalon Towers on the Peninsula,Mountain View,California,,,https://www.avaloncommunities.com/california/mountain-view-apartments/avalon-towers-on-the-peninsula,,,,False,
+AvalonBay,eaves Creekside,Mountain View,California,,,https://www.avaloncommunities.com/california/mountain-view-apartments/eaves-creekside,"151 Calderon Ave, Mountain View, CA 94041",,,True,snippet
+AvalonBay,eaves Mountain View at Middlefield,Mountain View,California,,,https://www.avaloncommunities.com/california/mountain-view-apartments/eaves-mountain-view-at-middlefield,"555 W Middlefield Rd, Mountain View, CA 94043",,,True,snippet
+AvalonBay,AVA 55 Ninth,San Francisco,California,,,https://www.avaloncommunities.com/california/san-francisco-apartments/ava-55-ninth,"55 Ninth Street, San Francisco, CA 94103",,,True,snippet
+AvalonBay,AVA Nob Hill,San Francisco,California,,,https://www.avaloncommunities.com/california/san-francisco-apartments/ava-nob-hill,"965 Sutter St, San Francisco, CA 94109",,,True,snippet
+AvalonBay,Avalon at Mission Bay,San Francisco,California,,,https://www.avaloncommunities.com/california/san-francisco-apartments/avalon-at-mission-bay,"255 King St, San Francisco, CA 94107",,,True,snippet
+AvalonBay,Avalon Dogpatch,San Francisco,California,,,https://www.avaloncommunities.com/california/san-francisco-apartments/avalon-dogpatch,"800 Indiana St, San Francisco, CA 94107",,,True,snippet
+AvalonBay,Avalon Hayes Valley,San Francisco,California,,,https://www.avaloncommunities.com/california/san-francisco-apartments/avalon-hayes-valley,"325 Octavia St, San Francisco, CA 94102",,,True,snippet
+AvalonBay,Avalon Ocean Avenue,San Francisco,California,,,https://www.avaloncommunities.com/california/san-francisco-apartments/avalon-ocean-avenue,"1200 Ocean Ave, San Francisco, CA 94112",,,True,snippet
+AvalonBay,Avalon Public Market,San Francisco,California,,,https://www.avaloncommunities.com/california/emeryville-apartments/avalon-public-market,"6301 Shellmound St, Emeryville, CA 94608",,,True,snippet
+AvalonBay,Avalon San Bruno,San Francisco,California,,,https://www.avaloncommunities.com/california/san-bruno-apartments/avalon-san-bruno,,,,False,
+AvalonBay,eaves Foster City,San Francisco,California,,,https://www.avaloncommunities.com/california/foster-city-apartments/eaves-foster-city,,,,False,
+AvalonBay,eaves Mountain View at Middlefield,San Francisco,California,,,https://www.avaloncommunities.com/california/mountain-view-apartments/eaves-mountain-view-at-middlefield,"555 W Middlefield Rd, Mountain View, CA 94043",,,True,snippet
+AvalonBay,eaves Pacifica,San Francisco,California,,,https://www.avaloncommunities.com/california/pacifica-apartments/eaves-pacifica,"265 Gateway Dr, Pacifica, CA 94044",,,True,snippet
+AvalonBay,eaves West Valley,San Francisco,California,,,https://www.avaloncommunities.com/california/san-jose-apartments/eaves-west-valley,"700 S Saratoga Ave, San Jose, CA 95129",,,True,snippet
+AvalonBay,Avalon at Cahill Park,San Jose,California,,,https://www.avaloncommunities.com/california/san-jose-apartments/avalon-at-cahill-park,,,,False,
+AvalonBay,Avalon Campbell,San Jose,California,,,https://www.avaloncommunities.com/california/san-jose-apartments/avalon-campbell,"508 Railway Ave, Campbell, CA 95008",,,True,snippet
+AvalonBay,Avalon on the Alameda,San Jose,California,,,https://www.avaloncommunities.com/california/san-jose-apartments/avalon-on-the-alameda,,,,False,
+AvalonBay,Avalon Willow Glen,San Jose,California,,,https://www.avaloncommunities.com/california/san-jose-apartments/avalon-willow-glen,"3200 Rubino Dr, San Jose, CA 95125",,,True,snippet
+AvalonBay,eaves San Jose,San Jose,California,,,https://www.avaloncommunities.com/california/san-jose-apartments/eaves-san-jose,"1895 N Capitol Ave, San Jose, CA 95132",,,True,snippet
+AvalonBay,eaves West Valley,San Jose,California,,,https://www.avaloncommunities.com/california/san-jose-apartments/eaves-west-valley,"700 S Saratoga Ave, San Jose, CA 95129",,,True,snippet
+AvalonBay,Avalon Fremont,Union City,California,,,https://www.avaloncommunities.com/california/fremont-apartments/avalon-fremont,,,,False,
+AvalonBay,Avalon Union City,Union City,California,,,https://www.avaloncommunities.com/california/union-city-apartments/avalon-union-city,,,,False,
+AvalonBay,eaves Fremont,Union City,California,,,https://www.avaloncommunities.com/california/fremont-apartments/eaves-fremont,"34655 Skylark Dr, Union City, CA 94587",,,True,snippet
+AvalonBay,eaves Union City,Union City,California,,,https://www.avaloncommunities.com/california/union-city-apartments/eaves-union-city,,,,False,
+AvalonBay,Avalon Walnut Creek,Walnut Creek,California,,,https://www.avaloncommunities.com/california/walnut-creek-apartments/avalon-walnut-creek,,,,False,
+AvalonBay,Avalon Walnut Ridge,Walnut Creek,California,,,https://www.avaloncommunities.com/california/walnut-creek-apartments/avalon-walnut-ridge,,,,False,
+AvalonBay,eaves Walnut Creek,Walnut Creek,California,,,https://www.avaloncommunities.com/california/walnut-creek-apartments/eaves-walnut-creek,,,,False,
+AvalonBay,Avalon Cerritos,Artesia,California,,,https://www.avaloncommunities.com/california/artesia-apartments/avalon-cerritos,"12651 Artesia Blvd, Cerritos, CA 90703",,,True,snippet
+AvalonBay,eaves Cerritos,Artesia,California,,,https://www.avaloncommunities.com/california/artesia-apartments/eaves-cerritos,"11421 E 186th St, Artesia, CA 90701",,,True,snippet
+AvalonBay,AVA Burbank,Burbank,California,,,https://www.avaloncommunities.com/california/burbank-apartments/ava-burbank,,,,False,
+AvalonBay,Avalon Burbank,Burbank,California,,,https://www.avaloncommunities.com/california/burbank-apartments/avalon-burbank,"350 S San Fernando Blvd, Burbank, CA 91502",,,True,snippet
+AvalonBay,Avalon Camarillo,Camarillo,California,,,https://www.avaloncommunities.com/california/camarillo-apartments/avalon-camarillo,"1571 Flynn Rd, Camarillo, CA 93012",,,True,snippet
+AvalonBay,Avalon Mission Oaks,Camarillo,California,,,https://www.avaloncommunities.com/california/camarillo-apartments/avalon-mission-oaks,,,,False,
+AvalonBay,AVA Newport,Costa Mesa,California,,,https://www.avaloncommunities.com/california/costa-mesa-apartments/ava-newport,"1765 Santa Ana Ave , Costa Mesa, CA 92627",,,True,snippet
+AvalonBay,eaves South Coast,Costa Mesa,California,,,https://www.avaloncommunities.com/california/costa-mesa-apartments/eaves-south-coast,"555 Paularino Ave, Costa Mesa, CA 92626",,,True,snippet
+AvalonBay,AVA Hollywood at La Pietra Place,Hollywood,California,,,https://www.avaloncommunities.com/california/los-angeles-apartments/ava-hollywood-at-la-pietra-place,"6677 Santa Monica Blvd, Los Angeles, CA 90038",,,True,snippet
+AvalonBay,Avalon West Hollywood,Hollywood,California,,,https://www.avaloncommunities.com/california/west-hollywood-apartments/avalon-west-hollywood,"7316 Santa Monica Blvd, West Hollywood, CA 90046",,,True,snippet
+AvalonBay,Avalon Wilshire,Hollywood,California,,,https://www.avaloncommunities.com/california/los-angeles-apartments/avalon-wilshire,"5115 Wilshire Blvd, Los Angeles, CA 90036",,,True,snippet
