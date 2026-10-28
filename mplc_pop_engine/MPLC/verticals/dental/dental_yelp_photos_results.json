@@ -1,0 +1,72 @@
+[
+  {
+    "location": "Pacific Dental Group - San Francisco",
+    "chain": "PDS/Smile Generation",
+    "type": "General",
+    "tier": "REJECTED",
+    "photos_found": 0,
+    "yolo_detections": 0,
+    "vlm_calls": 0,
+    "cost": 0.002
+  },
+  {
+    "location": "Dental Care of Walnut Creek",
+    "chain": "PDS/Smile Generation",
+    "type": "General",
+    "tier": "REJECTED",
+    "photos_found": 0,
+    "yolo_detections": 0,
+    "vlm_calls": 0,
+    "cost": 0.002
+  },
+  {
+    "location": "Smile Generation - Phoenix",
+    "chain": "PDS/Smile Generation",
+    "type": "General",
+    "tier": "REJECTED",
+    "photos_found": 0,
+    "yolo_detections": 0,
+    "vlm_calls": 0,
+    "cost": 0.002
+  },
+  {
+    "location": "Kool Smiles - Dallas",
+    "chain": "Kool Smiles",
+    "type": "Pediatric",
+    "tier": "REJECTED",
+    "photos_found": 0,
+    "yolo_detections": 0,
+    "vlm_calls": 0,
+    "cost": 0.002
+  },
+  {
+    "location": "Kool Smiles - Houston",
+    "chain": "Kool Smiles",
+    "type": "Pediatric",
+    "tier": "REJECTED",
+    "photos_found": 0,
+    "yolo_detections": 0,
+    "vlm_calls": 0,
+    "cost": 0.002
+  },
+  {
+    "location": "Small Smiles - Chicago",
+    "chain": "Small Smiles",
+    "type": "Pediatric",
+    "tier": "REJECTED",
+    "photos_found": 0,
+    "yolo_detections": 0,
+    "vlm_calls": 0,
+    "cost": 0.002
+  },
+  {
+    "location": "Small Smiles - Atlanta",
+    "chain": "Small Smiles",
+    "type": "Pediatric",
+    "tier": "REJECTED",
+    "photos_found": 0,
+    "yolo_detections": 0,
+    "vlm_calls": 0,
+    "cost": 0.002
+  }
+]

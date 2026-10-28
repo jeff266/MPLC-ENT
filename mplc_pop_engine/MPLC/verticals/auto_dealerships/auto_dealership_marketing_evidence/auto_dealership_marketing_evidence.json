@@ -1,0 +1,580 @@
+{
+  "summary": {
+    "total_accounts": 6,
+    "total_evidence_items": 17,
+    "by_tier": {
+      "PROSPECT": 16,
+      "SUSPECT": 1,
+      "REJECTED": 0
+    },
+    "by_channel": {
+      "video": 0,
+      "image": 17,
+      "text": 0
+    },
+    "total_cost": 0.877551
+  },
+  "records": [
+    {
+      "account_name": "AutoNation USA Houston",
+      "channel": "image",
+      "tier": "PROSPECT",
+      "vertical": "Auto Dealership",
+      "evidence": {
+        "photo_location": "auto_dealership_marketing_photos/AutoNation_USA_Houston/image_000.jpg",
+        "description": "Modern service lounge with multiple seating areas features three wall-mounted screens displaying \"TOP VEHICLES THAT RETAIN VALUE\" with an SUV image and rankings, clearly powered on with broadcast content visible to waiting customers.",
+        "source_url": "https://www.autonation.com/dealers/usa-houston-tx-77037"
+      },
+      "confidence": {
+        "yolo_detection": 0.5990469455718994,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "service_lounge",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.028659
+      },
+      "metadata": {
+        "timestamp": "2026-10-22T22:21:33.092868",
+        "evidence_id": "0f499a5af83c",
+        "dealership_group": "AutoNation",
+        "search_query": "\"AutoNation USA Houston\" Houston showroom interior",
+        "search_type": "showroom",
+        "image_title": "Car Dealers in USA Houston, TX | AutoNation",
+        "verification_source": "https://www.yelp.com/biz/auto-nation-usa-houston",
+        "sample_type": "exploratory_public_group",
+        "channel": "marketing_press"
+      }
+    },
+    {
+      "account_name": "AutoNation USA Houston",
+      "channel": "image",
+      "tier": "PROSPECT",
+      "vertical": "Auto Dealership",
+      "evidence": {
+        "photo_location": "auto_dealership_marketing_photos/AutoNation_USA_Houston/image_002.jpg",
+        "description": "Modern dealership customer lounge with light wood service desks, seating areas, and two ceiling-mounted monitors\u2014one displaying purple content (clearly powered on) and one appearing dark.",
+        "source_url": "https://www.autonation.com/dealers/usa-houston-tx-77037"
+      },
+      "confidence": {
+        "yolo_detection": 0.6032727360725403,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "service_lounge",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.041778
+      },
+      "metadata": {
+        "timestamp": "2026-10-22T22:21:44.394097",
+        "evidence_id": "53b942645a79",
+        "dealership_group": "AutoNation",
+        "search_query": "\"AutoNation USA Houston\" Houston showroom interior",
+        "search_type": "showroom",
+        "image_title": "Car Dealers in USA Houston, TX | AutoNation",
+        "verification_source": "https://www.yelp.com/biz/auto-nation-usa-houston",
+        "sample_type": "exploratory_public_group",
+        "channel": "marketing_press"
+      }
+    },
+    {
+      "account_name": "AutoNation USA Houston",
+      "channel": "image",
+      "tier": "PROSPECT",
+      "vertical": "Auto Dealership",
+      "evidence": {
+        "photo_location": "auto_dealership_marketing_photos/AutoNation_USA_Houston/image_004.jpg",
+        "description": "Modern dealership showroom customer lounge area with two gray armchairs, coffee table, and wall-mounted TV clearly displaying powered-on entertainment content (appears to be an action scene), with retail merchandise display visible in background.",
+        "source_url": "https://www.autonation.com/dealers/land-rover-west-houston"
+      },
+      "confidence": {
+        "yolo_detection": 0.7655238509178162,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "showroom_customer_seating",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.05532
+      },
+      "metadata": {
+        "timestamp": "2026-10-22T22:21:53.339874",
+        "evidence_id": "b5f8da8fc79c",
+        "dealership_group": "AutoNation",
+        "search_query": "\"AutoNation USA Houston\" Houston showroom interior",
+        "search_type": "showroom",
+        "image_title": "Land Rover Dealership In West Houston | Jaguar Authorized Service West  Houston",
+        "verification_source": "https://www.yelp.com/biz/auto-nation-usa-houston",
+        "sample_type": "exploratory_public_group",
+        "channel": "marketing_press"
+      }
+    },
+    {
+      "account_name": "AutoNation USA Houston",
+      "channel": "image",
+      "tier": "PROSPECT",
+      "vertical": "Auto Dealership",
+      "evidence": {
+        "photo_location": "auto_dealership_marketing_photos/AutoNation_USA_Houston/image_007.jpg",
+        "description": "A car dealership showroom reception area with a TV monitor mounted on the left wall column displaying what appears to be broadcast content (visible person on screen), positioned in the customer-facing front desk area.",
+        "source_url": "https://www.autonation.com/service"
+      },
+      "confidence": {
+        "yolo_detection": 0.5625796318054199,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "showroom_customer_seating",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.068862
+      },
+      "metadata": {
+        "timestamp": "2026-10-22T22:22:01.476856",
+        "evidence_id": "553f6688403b",
+        "dealership_group": "AutoNation",
+        "search_query": "\"AutoNation USA Houston\" Houston showroom interior",
+        "search_type": "showroom",
+        "image_title": "Car Dealership Near Me | Find a Location | AutoNation",
+        "verification_source": "https://www.yelp.com/biz/auto-nation-usa-houston",
+        "sample_type": "exploratory_public_group",
+        "channel": "marketing_press"
+      }
+    },
+    {
+      "account_name": "AutoNation USA Houston",
+      "channel": "image",
+      "tier": "PROSPECT",
+      "vertical": "Auto Dealership",
+      "evidence": {
+        "photo_location": "auto_dealership_marketing_photos/AutoNation_USA_Houston/image_010.jpg",
+        "description": "Modern dealership service lounge with light wood furnishings and two ceiling-mounted monitors, one clearly displaying purple broadcast content while powered on.",
+        "source_url": "https://www.autonation.com/dealers/usa-houston-tx-77037"
+      },
+      "confidence": {
+        "yolo_detection": 0.6032727360725403,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "service_lounge",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.081951
+      },
+      "metadata": {
+        "timestamp": "2026-10-22T22:22:13.213549",
+        "evidence_id": "65f158128b38",
+        "dealership_group": "AutoNation",
+        "search_query": "\"AutoNation USA Houston\" Houston service lounge waiting area",
+        "search_type": "service_lounge",
+        "image_title": "Car Dealers in USA Houston, TX | AutoNation",
+        "verification_source": "https://www.yelp.com/biz/auto-nation-usa-houston",
+        "sample_type": "exploratory_public_group",
+        "channel": "marketing_press"
+      }
+    },
+    {
+      "account_name": "AutoNation USA Houston",
+      "channel": "image",
+      "tier": "PROSPECT",
+      "vertical": "Auto Dealership",
+      "evidence": {
+        "photo_location": "auto_dealership_marketing_photos/AutoNation_USA_Houston/image_012.jpg",
+        "description": "Modern automotive service lounge with multiple seating areas featuring a wall-mounted TV display that is clearly powered on showing \"TOP VEHICLES THAT RETAIN VALUE\" with an SUV graphic and list content, along with pink ambient ceiling lighting and large windows.",
+        "source_url": "https://www.autonation.com/dealers/usa-houston-tx-77037"
+      },
+      "confidence": {
+        "yolo_detection": 0.5990469455718994,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "service_lounge",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.095415
+      },
+      "metadata": {
+        "timestamp": "2026-10-22T22:22:25.703034",
+        "evidence_id": "cd66fcf81f7c",
+        "dealership_group": "AutoNation",
+        "search_query": "\"AutoNation USA Houston\" Houston service lounge waiting area",
+        "search_type": "service_lounge",
+        "image_title": "Car Dealers in USA Houston, TX | AutoNation",
+        "verification_source": "https://www.yelp.com/biz/auto-nation-usa-houston",
+        "sample_type": "exploratory_public_group",
+        "channel": "marketing_press"
+      }
+    },
+    {
+      "account_name": "AutoNation USA Houston",
+      "channel": "image",
+      "tier": "PROSPECT",
+      "vertical": "Auto Dealership",
+      "evidence": {
+        "photo_location": "auto_dealership_marketing_photos/AutoNation_USA_Houston/image_013.jpg",
+        "description": "A modern dealership showroom customer lounge area with two gray armchairs, a coffee table, and a wall-mounted TV displaying what appears to be an action movie or entertainment content with visible bright scenes.",
+        "source_url": "https://www.autonation.com/dealers/land-rover-west-houston"
+      },
+      "confidence": {
+        "yolo_detection": 0.7655238509178162,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "showroom_customer_seating",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.108447
+      },
+      "metadata": {
+        "timestamp": "2026-10-22T22:22:31.569690",
+        "evidence_id": "e79be55dd535",
+        "dealership_group": "AutoNation",
+        "search_query": "\"AutoNation USA Houston\" Houston service lounge waiting area",
+        "search_type": "service_lounge",
+        "image_title": "Land Rover Dealership In West Houston | Jaguar Authorized Service West  Houston",
+        "verification_source": "https://www.yelp.com/biz/auto-nation-usa-houston",
+        "sample_type": "exploratory_public_group",
+        "channel": "marketing_press"
+      }
+    },
+    {
+      "account_name": "AutoNation Toyota Hayward",
+      "channel": "image",
+      "tier": "PROSPECT",
+      "vertical": "Auto Dealership",
+      "evidence": {
+        "photo_location": "auto_dealership_marketing_photos/AutoNation_Toyota_Hayward/image_005.jpg",
+        "description": "Service waiting lounge with blue seating chairs where a wall-mounted TV displays what appears to be broadcast content (visible blue/purple imagery on screen), along with wood cabinetry and tile flooring typical of customer waiting areas.",
+        "source_url": "https://m.yelp.com/biz/autonation-toyota-hayward-hayward?start=380"
+      },
+      "confidence": {
+        "yolo_detection": 0.5738822817802429,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "service_lounge",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.033741
+      },
+      "metadata": {
+        "timestamp": "2026-10-22T22:22:55.337411",
+        "evidence_id": "c2568bc8978f",
+        "dealership_group": "AutoNation",
+        "search_query": "\"AutoNation Toyota Hayward\" Hayward showroom interior",
+        "search_type": "showroom",
+        "image_title": "AUTONATION TOYOTA - Updated October 2026 - 1181 Reviews - 151 Photos -  24773 Mission Blvd, Hayward, California - Auto Repair - Phone Number - Yelp",
+        "verification_source": "https://www.autonationtoyotahayward.com/",
+        "sample_type": "exploratory_public_group",
+        "channel": "marketing_press"
+      }
+    },
+    {
+      "account_name": "AutoNation Toyota Hayward",
+      "channel": "image",
+      "tier": "PROSPECT",
+      "vertical": "Auto Dealership",
+      "evidence": {
+        "photo_location": "auto_dealership_marketing_photos/AutoNation_Toyota_Hayward/image_010.jpg",
+        "description": "Customer waiting area with blue seating chairs and a wall-mounted TV displaying what appears to be broadcast content (visible blue imagery on screen).",
+        "source_url": "https://m.yelp.com/biz/autonation-toyota-hayward"
+      },
+      "confidence": {
+        "yolo_detection": 0.6564981937408447,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "waiting_area",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.038322
+      },
+      "metadata": {
+        "timestamp": "2026-10-22T22:23:02.807277",
+        "evidence_id": "5b7f285b7ea7",
+        "dealership_group": "AutoNation",
+        "search_query": "\"AutoNation Toyota Hayward\" Hayward service lounge waiting area",
+        "search_type": "service_lounge",
+        "image_title": "AUTONATION TOYOTA - Updated October 2026 - 1184 Reviews - 151 Photos -  24773 Mission Blvd, Hayward, California - Auto Repair - Phone Number - Yelp",
+        "verification_source": "https://www.autonationtoyotahayward.com/",
+        "sample_type": "exploratory_public_group",
+        "channel": "marketing_press"
+      }
+    },
+    {
+      "account_name": "AutoNation Toyota Hayward",
+      "channel": "image",
+      "tier": "PROSPECT",
+      "vertical": "Auto Dealership",
+      "evidence": {
+        "photo_location": "auto_dealership_marketing_photos/AutoNation_Toyota_Hayward/image_011.jpg",
+        "description": "A customer service lounge with rows of black seating chairs facing a wall-mounted TV displaying what appears to be a news broadcast, with amenities including a kitchenette area with coffee maker and water cooler.",
+        "source_url": "https://www.cars.com/dealers/25556/autonation-toyota-hayward/"
+      },
+      "confidence": {
+        "yolo_detection": 0.6637370586395264,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "service_lounge",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.051789
+      },
+      "metadata": {
+        "timestamp": "2026-10-22T22:23:16.990455",
+        "evidence_id": "d90747519de8",
+        "dealership_group": "AutoNation",
+        "search_query": "\"AutoNation Toyota Hayward\" Hayward service lounge waiting area",
+        "search_type": "service_lounge",
+        "image_title": "AutoNation Toyota Hayward - Hayward, CA | Cars.com",
+        "verification_source": "https://www.autonationtoyotahayward.com/",
+        "sample_type": "exploratory_public_group",
+        "channel": "marketing_press"
+      }
+    },
+    {
+      "account_name": "AutoNation Ford Sanford",
+      "channel": "image",
+      "tier": "PROSPECT",
+      "vertical": "Auto Dealership",
+      "evidence": {
+        "photo_location": "auto_dealership_marketing_photos/AutoNation_Ford_Sanford/image_004.jpg",
+        "description": "Auto service center waiting lounge with wall-mounted TV clearly showing a live broadcast (two people on a news/talk show set), multiple blue customer chairs, coffee table with magazines and hand sanitizer, and service-related signage on walls.",
+        "source_url": "https://www.autonation.com/dealers/ford-sanford-fl"
+      },
+      "confidence": {
+        "yolo_detection": 0.8030617237091064,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "service_lounge",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.041259
+      },
+      "metadata": {
+        "timestamp": "2026-10-22T22:23:51.563758",
+        "evidence_id": "907d48173f13",
+        "dealership_group": "AutoNation",
+        "search_query": "\"AutoNation Ford Sanford\" Sanford showroom interior",
+        "search_type": "showroom",
+        "image_title": "Ford Dealership in Sanford , FL | AutoNation",
+        "verification_source": "https://www.autonationfordsanford.com/",
+        "sample_type": "exploratory_public_group",
+        "channel": "marketing_press"
+      }
+    },
+    {
+      "account_name": "AutoNation Ford Sanford",
+      "channel": "image",
+      "tier": "PROSPECT",
+      "vertical": "Auto Dealership",
+      "evidence": {
+        "photo_location": "auto_dealership_marketing_photos/AutoNation_Ford_Sanford/image_010.jpg",
+        "description": "Auto service center waiting lounge with wall-mounted TV clearly displaying a live morning show broadcast with two people on a blue set, accompanied by multiple blue customer chairs, coffee table with magazines and hand sanitizer, product displays, and framed service center signage.",
+        "source_url": "https://www.autonation.com/dealers/ford-sanford-fl"
+      },
+      "confidence": {
+        "yolo_detection": 0.8030617237091064,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "service_lounge",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.054425999999999995
+      },
+      "metadata": {
+        "timestamp": "2026-10-22T22:24:00.361812",
+        "evidence_id": "22a2409ec9de",
+        "dealership_group": "AutoNation",
+        "search_query": "\"AutoNation Ford Sanford\" Sanford service lounge waiting area",
+        "search_type": "service_lounge",
+        "image_title": "Ford Dealership in Sanford , FL | AutoNation",
+        "verification_source": "https://www.autonationfordsanford.com/",
+        "sample_type": "exploratory_public_group",
+        "channel": "marketing_press"
+      }
+    },
+    {
+      "account_name": "AutoNation Chevrolet North",
+      "channel": "image",
+      "tier": "PROSPECT",
+      "vertical": "Auto Dealership",
+      "evidence": {
+        "photo_location": "auto_dealership_marketing_photos/AutoNation_Chevrolet_North/image_001.jpg",
+        "description": "A car dealership showroom reception area with a TV mounted on the left wall displaying what appears to be broadcast content (visible person on screen), positioned in the customer service/reception area near the wooden counter.",
+        "source_url": "https://www.autonation.com/service/schedule-service"
+      },
+      "confidence": {
+        "yolo_detection": 0.5625796318054199,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "showroom_customer_seating",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.028182
+      },
+      "metadata": {
+        "timestamp": "2026-10-22T22:24:19.266409",
+        "evidence_id": "5100ae89cb6c",
+        "dealership_group": "AutoNation",
+        "search_query": "\"AutoNation Chevrolet North\" Denver showroom interior",
+        "search_type": "showroom",
+        "image_title": "Car Dealership Near Me | Find a Location | AutoNation",
+        "verification_source": "https://www.yelp.com/biz/autonation-chevrolet-north-denver-3",
+        "sample_type": "exploratory_public_group",
+        "channel": "marketing_press"
+      }
+    },
+    {
+      "account_name": "AutoNation Chevrolet North",
+      "channel": "image",
+      "tier": "PROSPECT",
+      "vertical": "Auto Dealership",
+      "evidence": {
+        "photo_location": "auto_dealership_marketing_photos/AutoNation_Chevrolet_North/image_010.jpg",
+        "description": "A modern automotive service lounge with blue leather seating, automotive artwork on walls, and a wall-mounted TV displaying what appears to be broadcast content with visible blue imagery and interface elements.",
+        "source_url": "https://www.autonation.com/dealers/chevrolet-north-richland-hills-tx"
+      },
+      "confidence": {
+        "yolo_detection": 0.564662754535675,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "service_lounge",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.041138999999999995
+      },
+      "metadata": {
+        "timestamp": "2026-10-22T22:24:37.534499",
+        "evidence_id": "f8439ea95b71",
+        "dealership_group": "AutoNation",
+        "search_query": "\"AutoNation Chevrolet North\" Denver service lounge waiting area",
+        "search_type": "service_lounge",
+        "image_title": "Chevrolet Dealership in North Riichland Hills , TX | AutoNation",
+        "verification_source": "https://www.yelp.com/biz/autonation-chevrolet-north-denver-3",
+        "sample_type": "exploratory_public_group",
+        "channel": "marketing_press"
+      }
+    },
+    {
+      "account_name": "AutoNation Chevrolet North",
+      "channel": "image",
+      "tier": "SUSPECT",
+      "vertical": "Auto Dealership",
+      "evidence": {
+        "photo_location": "auto_dealership_marketing_photos/AutoNation_Chevrolet_North/image_013.jpg",
+        "description": "Service lounge with red chairs, white cabinets, and two wall-mounted screens, but neither display shows clearly visible broadcast content to confirm they're powered on with entertainment programming.",
+        "source_url": "https://m.yelp.com/search?find_desc=Car+Dealers&find_loc=Denver%2C+CO"
+      },
+      "confidence": {
+        "yolo_detection": 0.904443621635437,
+        "vlm_assessment": "medium"
+      },
+      "space_classification": {
+        "type": "service_lounge",
+        "tv_powered_on": false
+      },
+      "cost": {
+        "total_account_cost": 0.052506
+      },
+      "metadata": {
+        "timestamp": "2026-10-22T22:24:45.275099",
+        "evidence_id": "36b94df54a85",
+        "dealership_group": "AutoNation",
+        "search_query": "\"AutoNation Chevrolet North\" Denver service lounge waiting area",
+        "search_type": "service_lounge",
+        "image_title": "TOP 10 BEST Car Dealers in Denver, CO - Updated 2026 - Quality &  Affordability - Yelp",
+        "verification_source": "https://www.yelp.com/biz/autonation-chevrolet-north-denver-3",
+        "sample_type": "exploratory_public_group",
+        "channel": "marketing_press"
+      }
+    },
+    {
+      "account_name": "AutoNation Nissan Chandler",
+      "channel": "image",
+      "tier": "PROSPECT",
+      "vertical": "Auto Dealership",
+      "evidence": {
+        "photo_location": "auto_dealership_marketing_photos/AutoNation_Nissan_Chandler/image_001.jpg",
+        "description": "Auto dealership service waiting area with gray seating, visible TV monitor mounted on wall displaying content, customers present in waiting area, and AutoNation branding visible at service desk.",
+        "source_url": "https://www.autonationnissanchandler.com/dealership/about.htm"
+      },
+      "confidence": {
+        "yolo_detection": 0.7969182133674622,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "service_lounge",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.027645
+      },
+      "metadata": {
+        "timestamp": "2026-10-22T22:24:59.953295",
+        "evidence_id": "b8034ee48cbf",
+        "dealership_group": "AutoNation",
+        "search_query": "\"AutoNation Nissan Chandler\" Chandler showroom interior",
+        "search_type": "showroom",
+        "image_title": "About AutoNation Nissan Chandler | Your Chandler Nissan Dealer",
+        "verification_source": "https://www.yelp.com/biz/autonation-nissan-chandler",
+        "sample_type": "exploratory_public_group",
+        "channel": "marketing_press"
+      }
+    },
+    {
+      "account_name": "Group 1 Toyota Southwest Houston",
+      "channel": "image",
+      "tier": "PROSPECT",
+      "vertical": "Auto Dealership",
+      "evidence": {
+        "photo_location": "auto_dealership_marketing_photos/Group_1_Toyota_Southwest_Houston/image_010.jpg",
+        "description": "A service lounge waiting area with orange chairs arranged in rows, featuring a wall-mounted TV displaying broadcast content with visible faces/people on screen, positioned near restrooms/lounge signage.",
+        "source_url": "https://www.cars.com/dealers/22229/group-1-toyota-southwest-houston/"
+      },
+      "confidence": {
+        "yolo_detection": 0.8316604495048523,
+        "vlm_assessment": "high"
+      },
+      "space_classification": {
+        "type": "service_lounge",
+        "tv_powered_on": true
+      },
+      "cost": {
+        "total_account_cost": 0.02811
+      },
+      "metadata": {
+        "timestamp": "2026-10-22T22:27:39.921633",
+        "evidence_id": "ea2e1ef80e47",
+        "dealership_group": "Group 1 Automotive",
+        "search_query": "\"Group 1 Toyota Southwest Houston\" Houston service lounge waiting area",
+        "search_type": "service_lounge",
+        "image_title": "Group 1 Toyota Southwest Houston - Houston, TX | Cars.com",
+        "verification_source": "https://www.group1toyotasouthwesthouston.com/",
+        "sample_type": "exploratory_public_group",
+        "channel": "marketing_press"
+      }
+    }
+  ]
+}

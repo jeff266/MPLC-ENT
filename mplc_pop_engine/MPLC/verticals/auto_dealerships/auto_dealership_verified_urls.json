@@ -1,0 +1,101 @@
+[
+  {
+    "name": "AutoNation USA Houston",
+    "address": "8526 North Fwy",
+    "city": "Houston",
+    "state": "TX",
+    "group": "AutoNation",
+    "verification": "https://www.yelp.com/biz/auto-nation-usa-houston",
+    "notes": "Confirmed AutoNation USA store"
+  },
+  {
+    "name": "AutoNation Toyota Hayward",
+    "address": "24773 Mission Blvd",
+    "city": "Hayward",
+    "state": "CA",
+    "group": "AutoNation",
+    "verification": "https://www.autonationtoyotahayward.com/",
+    "notes": "Serves San Francisco area"
+  },
+  {
+    "name": "AutoNation Ford Sanford",
+    "address": "4911 Wayside Dr",
+    "city": "Sanford",
+    "state": "FL",
+    "group": "AutoNation",
+    "verification": "https://www.autonationfordsanford.com/",
+    "notes": "Serves Orlando area"
+  },
+  {
+    "name": "AutoNation Chevrolet North",
+    "address": "7320 North Broadway",
+    "city": "Denver",
+    "state": "CO",
+    "group": "AutoNation",
+    "verification": "https://www.yelp.com/biz/autonation-chevrolet-north-denver-3",
+    "notes": "Denver market"
+  },
+  {
+    "name": "AutoNation Nissan Chandler",
+    "address": "1350 South Gilbert Rd",
+    "city": "Chandler",
+    "state": "AZ",
+    "group": "AutoNation",
+    "verification": "https://www.yelp.com/biz/autonation-nissan-chandler",
+    "notes": "Serves Phoenix area"
+  },
+  {
+    "name": "Lithia Toyota of Medford",
+    "address": "1420 N Riverside Ave",
+    "city": "Medford",
+    "state": "OR",
+    "group": "Lithia Motors",
+    "verification": "https://www.yelp.com/biz/lithia-toyota-of-medford-medford",
+    "notes": "Confirmed Lithia Toyota"
+  },
+  {
+    "name": "Honda of Downtown Los Angeles",
+    "address": "780 W Martin Luther King Jr Blvd",
+    "city": "Los Angeles",
+    "state": "CA",
+    "group": "Lithia Motors",
+    "verification": "https://www.yelp.com/biz/honda-of-downtown-los-angeles-2",
+    "notes": "Lithia-owned Honda dealer"
+  },
+  {
+    "name": "Michael's Subaru of Bellevue",
+    "address": "15150 SE Eastgate Way",
+    "city": "Bellevue",
+    "state": "WA",
+    "group": "Lithia Motors",
+    "verification": "https://www.michaelssubaru.com/",
+    "notes": "Lithia's Michael's Auto Group"
+  },
+  {
+    "name": "Group 1 Toyota Southwest Houston",
+    "address": "9400 Southwest Freeway",
+    "city": "Houston",
+    "state": "TX",
+    "group": "Group 1 Automotive",
+    "verification": "https://www.group1toyotasouthwesthouston.com/",
+    "notes": "Confirmed Group 1 Toyota"
+  },
+  {
+    "name": "Group 1 Ford of Shreveport",
+    "address": "8770 Business Park Dr",
+    "city": "Shreveport",
+    "state": "LA",
+    "group": "Group 1 Automotive",
+    "verification": "https://www.yelp.com/biz/group-1-ford-of-shreveport-shreveport",
+    "notes": "Group 1 Ford location"
+  },
+  {
+    "name": "McGavock Nissan Lubbock",
+    "address": "6312 Milwaukee Ave",
+    "city": "Lubbock",
+    "state": "TX",
+    "group": "Group 1 Automotive",
+    "verification": "https://www.yelp.com/biz/mcgavock-nissan-lubbock-lubbock",
+    "notes": "Group 1 owned, operates as McGavock"
+  }
+]

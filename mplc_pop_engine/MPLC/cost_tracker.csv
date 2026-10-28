@@ -1,0 +1,7 @@
+date,vertical,sample_size,prospect_count,prospect_pct,cost_per_account,total_cost,status,notes
+2024-10-22,Corporate,42,7,16.7,0.022,0.924,validated,"Ground truth: Cigna, PNC, Costco + 39 others"
+2024-10-22,Auto Dealerships (Yelp),10,3,30.0,0.119,1.190,exploratory,"No confirmed MPLC customer, exploratory only"
+2024-10-22,Auto Dealerships (Marketing),10,0,0.0,0.045,0.450,parked,"Source-noise problem: vehicle interiors, ads, staff areas"
+2024-10-22,Dental (Text-mining),7,0,0.0,0.020,0.140,non-viable,"PDS confirmed customer, 0% via text-mining"
+2024-10-22,Dental (Yelp),7,0,0.0,0.140,0.980,non-viable,"PDS confirmed customer, 0% via Yelp photos"
+2024-10-22,Restaurants/Bars,5,4,93.0,n/a,n/a,solved,"Pre-existing text-mining pipeline, positive control"

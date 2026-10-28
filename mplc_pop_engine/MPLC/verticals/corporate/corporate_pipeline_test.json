@@ -1,0 +1,58 @@
+[
+  {
+    "name": "Microsoft HQ Employee Areas",
+    "status": "success",
+    "frames": 209,
+    "detections": 22,
+    "flagged": 16,
+    "top_detections": [
+      {
+        "frame": "frame_026.jpg",
+        "class": "tv",
+        "conf": 0.6510119438171387
+      },
+      {
+        "frame": "frame_027.jpg",
+        "class": "tv",
+        "conf": 0.5038661956787109
+      },
+      {
+        "frame": "frame_031.jpg",
+        "class": "tv",
+        "conf": 0.2629624307155609
+      }
+    ]
+  },
+  {
+    "name": "Meta HQ Campus Tour 2025",
+    "status": "success",
+    "frames": 190,
+    "detections": 43,
+    "flagged": 34,
+    "top_detections": [
+      {
+        "frame": "frame_005.jpg",
+        "class": "tv",
+        "conf": 0.3826185166835785
+      },
+      {
+        "frame": "frame_015.jpg",
+        "class": "tv",
+        "conf": 0.7918319702148438
+      },
+      {
+        "frame": "frame_020.jpg",
+        "class": "tv",
+        "conf": 0.5423197150230408
+      }
+    ]
+  },
+  {
+    "name": "Google HQ Tour",
+    "status": "success",
+    "frames": 80,
+    "detections": 0,
+    "flagged": 0,
+    "top_detections": []
+  }
+]
