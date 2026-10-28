@@ -118,7 +118,7 @@ Accounts flow from weekly Salesforce extract to either sales-ready Prospect lead
 | Corporate (ENT) | 16.7% | $0.022 | Validated, ready to scale | 42 |
 | Auto dealerships | 30.0% | $0.119 | Exploratory (Yelp only) | 10 |
 | Dental | 0% | $0.02-$0.14 | Non-viable (2 channels) | — |
-| Healthcare | Untested | — | Largest segment (~45%) | — |
+| Healthcare (Assisted Living) | 28.6% | ~$0.005 | Validated (Facility Tour Videos + VLM) | 7 |
 | MDU | Untested | — | Hypothesis pending | — |
 
 **Ground truth accounts (for regression testing):**
@@ -126,6 +126,7 @@ Accounts flow from weekly Salesforce extract to either sales-ready Prospect lead
 - **Dental:** PDS (Pacific Dental Services), Smile Generation DSO
 - **Restaurants/bars:** 5-location sports bar set (positive control)
 - **Auto:** 10 verified dealerships (5 AutoNation, 3 Lithia, 2 Group 1) - exploratory only
+- **Healthcare:** 7 assisted living/senior living facilities (Claiborne, Alta, Northstar, Chelsea, AHEPA, Pleasant Acres, ComForCare)
 
 ---
 

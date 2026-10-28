@@ -1,0 +1,112 @@
+[
+  {
+    "dealership": "AutoNation USA Houston",
+    "group": "AutoNation",
+    "city": "Houston",
+    "state": "TX",
+    "tier": "PROSPECT",
+    "total_images": 30,
+    "yolo_detections": 7,
+    "vlm_calls": 7,
+    "cost": 0.108447
+  },
+  {
+    "dealership": "AutoNation Toyota Hayward",
+    "group": "AutoNation",
+    "city": "Hayward",
+    "state": "CA",
+    "tier": "PROSPECT",
+    "total_images": 30,
+    "yolo_detections": 5,
+    "vlm_calls": 5,
+    "cost": 0.064815
+  },
+  {
+    "dealership": "AutoNation Ford Sanford",
+    "group": "AutoNation",
+    "city": "Sanford",
+    "state": "FL",
+    "tier": "PROSPECT",
+    "total_images": 30,
+    "yolo_detections": 4,
+    "vlm_calls": 4,
+    "cost": 0.067608
+  },
+  {
+    "dealership": "AutoNation Chevrolet North",
+    "group": "AutoNation",
+    "city": "Denver",
+    "state": "CO",
+    "tier": "PROSPECT",
+    "total_images": 30,
+    "yolo_detections": 3,
+    "vlm_calls": 3,
+    "cost": 0.052506
+  },
+  {
+    "dealership": "AutoNation Nissan Chandler",
+    "group": "AutoNation",
+    "city": "Chandler",
+    "state": "AZ",
+    "tier": "PROSPECT",
+    "total_images": 30,
+    "yolo_detections": 3,
+    "vlm_calls": 3,
+    "cost": 0.051348
+  },
+  {
+    "dealership": "Lithia Toyota of Medford",
+    "group": "Lithia Motors",
+    "city": "Medford",
+    "state": "OR",
+    "tier": "REJECTED",
+    "total_images": 30,
+    "yolo_detections": 0,
+    "vlm_calls": 0,
+    "cost": 0.015
+  },
+  {
+    "dealership": "Honda of Downtown Los Angeles",
+    "group": "Lithia Motors",
+    "city": "Los Angeles",
+    "state": "CA",
+    "tier": "REJECTED",
+    "total_images": 30,
+    "yolo_detections": 1,
+    "vlm_calls": 1,
+    "cost": 0.028227
+  },
+  {
+    "dealership": "Michael's Subaru of Bellevue",
+    "group": "Lithia Motors",
+    "city": "Bellevue",
+    "state": "WA",
+    "tier": "REJECTED",
+    "total_images": 30,
+    "yolo_detections": 0,
+    "vlm_calls": 0,
+    "cost": 0.015
+  },
+  {
+    "dealership": "Group 1 Toyota Southwest Houston",
+    "group": "Group 1 Automotive",
+    "city": "Houston",
+    "state": "TX",
+    "tier": "PROSPECT",
+    "total_images": 30,
+    "yolo_detections": 1,
+    "vlm_calls": 1,
+    "cost": 0.02811
+  },
+  {
+    "dealership": "Group 1 Ford of Shreveport",
+    "group": "Group 1 Automotive",
+    "city": "Shreveport",
+    "state": "LA",
+    "tier": "REJECTED",
+    "total_images": 30,
+    "yolo_detections": 0,
+    "vlm_calls": 0,
+    "cost": 0.015
+  }
+]

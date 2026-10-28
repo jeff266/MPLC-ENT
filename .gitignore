@@ -10,11 +10,69 @@ __pycache__/
 .DS_Store
 
 # Run artifacts — belong in output/, not root
-output/runs/
-output/logs/
+output/
 mplc_results_*.csv
 *_output.txt
 *.log
 
-# Keep enrichment ledger tracked (it's the live dedup cache)
-!enrichment_ledger.db
+# Test runs — temporary files, don't commit
+test_*.csv
+test_*.py
+test_*_summary.md
+extract_*_test.py
+run_*_test.py
+
+# Salesforce exports — large files, never commit
+data/salesforce/*.csv
+
+# Keep root enrichment ledger tracked (it's the live dedup cache)
+!/enrichment_ledger.db
+
+# Personal/system directories (home directory is git root)
+.cache/
+.conda/
+.anaconda/
+.config/
+.local/
+.jupyter/
+.ipynb_checkpoints/
+.ipython/
+.matplotlib/
+.npm/
+.docker/
+.ssh/
+.claude/
+.claude.json*
+.bash_profile
+.zshrc
+.zprofile
+.zsh_sessions/
+.zsh_history
+.viminfo
+.tcshrc
+.xonshrc
+.CFUserTextEncoding
+.cups/
+.dataloader/
+.duckdb/
+.gitconfig
+.homebrew/
+.ngrok/
+.railway/
+.snowflake/
+.supabase/
+.swt/
+.cagent/
+.codex/
+.continuum/
+.hscli/
+.openclaw/
+Desktop/
+Documents/
+Downloads/
+Library/
+Movies/
+Music/
+Pictures/
+Public/
+Applications/

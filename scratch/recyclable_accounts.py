@@ -394,6 +394,19 @@ def main():
         default="output",
         help="Directory to write output files (default: output/)",
     )
+    parser.add_argument(
+        "--market",
+        default="US",
+        help="Filter accounts by Operating Market. Default: 'US' (filters to both "
+             "'United States' and 'CVLI United States'). Pass a specific market name "
+             "to filter to that market only.",
+    )
+    parser.add_argument(
+        "--all-markets",
+        action="store_true",
+        default=False,
+        help="Process all markets (overrides --market). Use only for global analysis.",
+    )
     args = parser.parse_args()
 
     # Auto-discover files if not specified
@@ -439,6 +452,21 @@ def main():
 
     print("\nStep 3: Loading All Accounts master list...")
     accounts, accounts_cols = load_accounts(accounts_path)
+
+    # Market filter — US by default; skipped only with --all-markets
+    if not args.all_markets:
+        market_filter = args.market
+        before = len(accounts)
+        if market_filter.upper() == "US":
+            us_markets = {"United States", "CVLI United States"}
+            accounts = [a for a in accounts if a["_raw"].get("Operating Market", "").strip() in us_markets]
+            print(f"  Market filter 'US': kept {len(accounts):,} of {before:,} accounts "
+                  f"(United States + CVLI United States)")
+        else:
+            accounts = [a for a in accounts if a["_raw"].get("Operating Market", "").strip() == market_filter]
+            print(f"  Market filter '{market_filter}': kept {len(accounts):,} of {before:,} accounts")
+    else:
+        print(f"  --all-markets: processing all {len(accounts):,} accounts across every market")
 
     print("\nStep 4: Applying MPLC US ROE hierarchy rules...")
     accounts = apply_roe(accounts, active_ids, deal_ids, deal_names)

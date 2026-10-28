@@ -10,6 +10,7 @@ deploy/start_all.sh
 *.csv
 !**/test*.csv
 !**/sample*.csv
+data/salesforce/*.csv
 
 # Python
 __pycache__/
