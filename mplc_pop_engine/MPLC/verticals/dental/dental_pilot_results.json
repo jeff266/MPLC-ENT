@@ -1,0 +1,92 @@
+[
+  {
+    "dso": "Heartland Dental",
+    "practices": 1900,
+    "tier": "REJECTED",
+    "reviews_with_tv": 0,
+    "vlm_analyzed": 0,
+    "cost": 0.02,
+    "time": 53.046040296554565
+  },
+  {
+    "dso": "Aspen Dental",
+    "practices": 1300,
+    "tier": "REJECTED",
+    "reviews_with_tv": 0,
+    "vlm_analyzed": 0,
+    "cost": 0.02,
+    "time": 68.44630908966064
+  },
+  {
+    "dso": "Pacific Dental Services",
+    "practices": 1000,
+    "tier": "REJECTED",
+    "reviews_with_tv": 0,
+    "vlm_analyzed": 0,
+    "cost": 0.02,
+    "time": 18.5538911819458
+  },
+  {
+    "dso": "MB2 Dental",
+    "practices": 800,
+    "tier": "REJECTED",
+    "reviews_with_tv": 0,
+    "vlm_analyzed": 0,
+    "cost": 0.02,
+    "time": 20.79551410675049
+  },
+  {
+    "dso": "Smile Brands",
+    "practices": 600,
+    "tier": "REJECTED",
+    "reviews_with_tv": 0,
+    "vlm_analyzed": 0,
+    "cost": 0.02,
+    "time": 20.32039189338684
+  },
+  {
+    "dso": "Sonrava Health",
+    "practices": 600,
+    "tier": "REJECTED",
+    "reviews_with_tv": 0,
+    "vlm_analyzed": 0,
+    "cost": 0.02,
+    "time": 17.888789176940918
+  },
+  {
+    "dso": "Smile Doctors",
+    "practices": 550,
+    "tier": "REJECTED",
+    "reviews_with_tv": 0,
+    "vlm_analyzed": 0,
+    "cost": 0.02,
+    "time": 53.19343900680542
+  },
+  {
+    "dso": "Affordable Care Dental",
+    "practices": 425,
+    "tier": "REJECTED",
+    "reviews_with_tv": 0,
+    "vlm_analyzed": 0,
+    "cost": 0.02,
+    "time": 58.54670977592468
+  },
+  {
+    "dso": "Dental Care Alliance",
+    "practices": 400,
+    "tier": "REJECTED",
+    "reviews_with_tv": 0,
+    "vlm_analyzed": 0,
+    "cost": 0.02,
+    "time": 40.43174695968628
+  },
+  {
+    "dso": "Specialized Dental Partners",
+    "practices": 275,
+    "tier": "REJECTED",
+    "reviews_with_tv": 0,
+    "vlm_analyzed": 0,
+    "cost": 0.02,
+    "time": 23.944201946258545
+  }
+]
