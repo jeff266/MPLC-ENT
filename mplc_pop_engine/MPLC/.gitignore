@@ -1,0 +1,45 @@
+# API Keys and Secrets
+**/config.py
+**/*_API_KEY*
+SESSION_LOG*.md
+deploy/*NOW*.sh
+deploy/run_worker.sh
+deploy/start_all.sh
+
+# Large files
+*.csv
+!**/test*.csv
+!**/sample*.csv
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+
+# Evidence/Results
+evidence/
+*_evidence/
+*_photos/
+frames/
+*.mp4
+*.jpg
+*.png
+!before_search.png
+!dashboard*.png
+
+# Logs
+*.log
+worker.log
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# OS
+.DS_Store
+Thumbs.db
