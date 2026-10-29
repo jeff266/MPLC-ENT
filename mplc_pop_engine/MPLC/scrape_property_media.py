@@ -111,25 +111,43 @@ class PropertyMediaScraper:
             log.error("Playwright not available")
             return None
 
-        try:
-            with sync_playwright() as p:
-                browser = p.chromium.launch(headless=True)
-                context = browser.new_context(
-                    user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-                )
-                page = context.new_page()
+        # Retry logic for flaky websites
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                with sync_playwright() as p:
+                    browser = p.chromium.launch(headless=True)
+                    context = browser.new_context(
+                        user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+                    )
+                    page = context.new_page()
 
-                page.goto(url, wait_until='domcontentloaded', timeout=30000)
-                time.sleep(3)  # Let JS load
+                    # Try with timeout, progressively longer waits
+                    timeout_ms = 30000 + (attempt * 10000)  # 30s, 40s, 50s
+                    page.goto(url, wait_until='domcontentloaded', timeout=timeout_ms)
+                    time.sleep(3)  # Let JS load
 
-                html = page.content()
-                browser.close()
+                    html = page.content()
+                    browser.close()
 
-                return html
+                    return html
 
-        except Exception as e:
-            log.error(f"  Fetch error: {e}")
-            return None
+            except Exception as e:
+                error_msg = str(e)
+
+                # Check if it's a timeout error
+                if 'Timeout' in error_msg and attempt < max_retries - 1:
+                    log.warning(f"  Attempt {attempt+1} timeout, retrying...")
+                    time.sleep(2)  # Brief pause before retry
+                    continue
+                else:
+                    # Final attempt failed or non-timeout error
+                    log.error(f"  Fetch error (attempt {attempt+1}/{max_retries}): {e}")
+                    if attempt == max_retries - 1:
+                        log.error(f"  Giving up on {url} after {max_retries} attempts")
+                    return None
+
+        return None
 
     def _extract_videos(self, soup: BeautifulSoup, base_url: str) -> List[Dict]:
         """Extract video URLs from property page."""
