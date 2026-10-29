@@ -156,7 +156,7 @@ Processed accounts were different facilities not in the database.
 
 **API Keys Configured:**
 - SERPER_API_KEY: df2e4e360d9a636ff721cba10f350b1d71a24cb5
-- ANTHROPIC_API_KEY: REDACTED_API_KEY
+- ANTHROPIC_API_KEY: <redacted>
 - RAPIDAPI_KEY: 7df8cded7emsh4ad2e7a1007cd4dp1027adjsn5b025c1c3acc
 
 ---
