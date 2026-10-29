@@ -15,6 +15,7 @@ Evidence schema: Compliant with CLAUDE.md requirements
 """
 
 import os
+import sys
 import json
 import sqlite3
 import requests
@@ -32,6 +33,15 @@ from contextlib import contextmanager
 import cv2
 from ultralytics import YOLO
 from anthropic import Anthropic
+
+# Import normalization layer
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / "core"))
+try:
+    from data_normalization import create_normalizer
+    NORMALIZATION_AVAILABLE = True
+except ImportError:
+    NORMALIZATION_AVAILABLE = False
+    print("⚠️  WARNING: Normalization layer not available - using raw account names")
 
 # API Keys
 RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
@@ -69,6 +79,14 @@ class HealthcareEnricherUnified:
 
         # Find YOLO model
         self.yolo_model_path = self._find_yolo_model()
+
+        # Initialize normalizer for clean account names
+        if NORMALIZATION_AVAILABLE:
+            self.normalizer = create_normalizer("healthcare")
+            print("✅ Normalization layer enabled")
+        else:
+            self.normalizer = None
+            print("⚠️  Normalization layer disabled - searches will use raw account names")
 
     def _find_procurement_db(self) -> Optional[Path]:
         """Find state procurement database with fallback locations."""
@@ -679,14 +697,25 @@ Answer ONLY with valid JSON:
 
     # ========== WATERFALL ORCHESTRATOR ==========
 
-    def enrich_facility(self, facility_name: str, city: str, state: str, segment: str = 'UNKNOWN') -> Dict:
+    def enrich_facility(self, facility_name: str, city: str, state: str, segment: str = 'UNKNOWN', search_name: str = None) -> Dict:
         """
         7-stage waterfall with early exit on PROSPECT.
+
+        Args:
+            facility_name: Clean name for procurement matching
+            city: City name
+            state: State code
+            segment: SB/MM/ENT
+            search_name: Simplified name for YouTube searches (optional, defaults to facility_name)
 
         Returns evidence-compliant dict with tier, channel, cost, etc.
         """
         total_cost = 0.0
         processing_log = []
+
+        # Use search_name for YouTube if provided, otherwise use facility_name
+        if not search_name:
+            search_name = facility_name
 
         try:
             # Stage 1: Public/Private Detection (instant, FREE)
@@ -744,7 +773,8 @@ Answer ONLY with valid JSON:
 
             # Stage 3: YouTube Video + YOLO + VLM ($0.015-0.025)
             try:
-                video_result = self.search_and_analyze_videos(facility_name, city, state)
+                # Use search_name for YouTube queries (cleaner, better matches)
+                video_result = self.search_and_analyze_videos(search_name, city, state)
                 total_cost += video_result.get('cost', 0.0)
 
                 if video_result['tier'] == 'PROSPECT':
@@ -829,9 +859,27 @@ def process_account(record: Dict) -> Dict:
     """
     enricher = HealthcareEnricherUnified()
 
+    # Normalize account name if normalizer available
+    if enricher.normalizer and not record.get('clean_name'):
+        try:
+            normalized = enricher.normalizer.normalize_batch([record])
+            if normalized and len(normalized) > 0:
+                norm_data = normalized[0]
+                # Use search_name for YouTube searches, clean_name for procurement matching
+                record['clean_name'] = norm_data.get('clean_name', record.get('account_name', ''))
+                record['search_name'] = norm_data.get('search_name', record.get('account_name', ''))
+                record['state_abbrev'] = norm_data.get('state_abbrev', record.get('account_state', ''))
+                record['is_public'] = norm_data.get('is_public', False)
+                record['normalization_cost'] = norm_data.get('normalization_cost', 0.0)
+        except Exception as e:
+            print(f"  ⚠️  Normalization failed: {e} - using raw name")
+            record['clean_name'] = record.get('account_name', '')
+            record['search_name'] = record.get('account_name', '')
+
     facility_name = record.get('clean_name') or record.get('account_name', '')
+    search_name = record.get('search_name') or facility_name  # Use search_name for YouTube
     city = record.get('account_state', '')  # Use full state name for broader search (matches old enricher)
-    state = record.get('state_abbrev', '')
+    state = record.get('state_abbrev', record.get('account_state', ''))
     segment = record.get('segment', 'UNKNOWN')
 
     if not facility_name:
@@ -843,6 +891,11 @@ def process_account(record: Dict) -> Dict:
             'error': 'Missing facility name'
         }
 
-    result = enricher.enrich_facility(facility_name, city, state, segment)
+    # Pass both clean_name (for procurement) and search_name (for YouTube)
+    result = enricher.enrich_facility(facility_name, city, state, segment, search_name=search_name)
+
+    # Add normalization cost if present
+    if 'normalization_cost' in record:
+        result['cost'] = result.get('cost', 0.0) + record['normalization_cost']
 
     return {**record, **result}
