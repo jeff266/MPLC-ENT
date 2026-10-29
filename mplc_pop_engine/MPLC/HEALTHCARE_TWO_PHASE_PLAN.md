@@ -101,7 +101,7 @@ ssh root@178.128.147.34 "cd /root/enrichment && python3 -c 'import sys; sys.path
 ssh root@178.128.147.34 << 'EOF'
 cd /root/enrichment
 export SERPER_API_KEY="REDACTED-ROTATED-SERPER-KEY"
-export ANTHROPIC_API_KEY="REDACTED_API_KEY"
+export ANTHROPIC_API_KEY="<redacted>"
 
 for i in {0..9}; do
     echo "Starting Phase 1 worker $i..."
@@ -184,7 +184,7 @@ ssh root@201.79.28.183 "cd /root/enrichment && split -n l/3 phase2_droplet2.csv 
 ssh root@178.128.147.34 << 'EOF'
 cd /root/enrichment
 export SERPER_API_KEY="REDACTED-ROTATED-SERPER-KEY"
-export ANTHROPIC_API_KEY="REDACTED_API_KEY"
+export ANTHROPIC_API_KEY="<redacted>"
 export RAPIDAPI_KEY="REDACTED-ROTATED-RAPIDAPI-KEY"
 
 for i in {0..2}; do
@@ -201,7 +201,7 @@ EOF
 ssh root@201.79.28.183 << 'EOF'
 cd /root/enrichment
 export SERPER_API_KEY="REDACTED-ROTATED-SERPER-KEY"
-export ANTHROPIC_API_KEY="REDACTED_API_KEY"
+export ANTHROPIC_API_KEY="<redacted>"
 export RAPIDAPI_KEY="REDACTED-ROTATED-RAPIDAPI-KEY"
 
 for i in {0..2}; do

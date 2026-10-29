@@ -67,17 +67,14 @@ def process_healthcare(record: dict) -> dict:
     try:
         sys.path.insert(0, '/root/enrichment/healthcare')
         sys.path.insert(0, '/root/enrichment')
+        from healthcare_enricher_unified import process_account
 
-        # For now, return basic structure - healthcare pipeline needs more setup
-        return {
-            **record,
-            'tier': 'PENDING',
-            'channel': 'not_implemented',
-            'note': 'Healthcare pipeline needs multi_channel_enricher setup'
-        }
+        result = process_account(record)
+
+        return result if result else {**record, 'tier': 'REJECTED', 'error': 'No result'}
     except Exception as e:
         log.error(f"Healthcare processing error: {e}")
-        return {**record, 'tier': 'ERROR', 'error': str(e)}
+        return {**record, 'tier': 'REJECTED', 'error': str(e)}
 
 
 def process_corporate(record: dict) -> dict:
@@ -85,7 +82,7 @@ def process_corporate(record: dict) -> dict:
     try:
         sys.path.insert(0, '/root/enrichment/corporate')
         sys.path.insert(0, '/root/enrichment')
-        from pipeline import process_account
+        from corporate_enricher import process_account
 
         result = process_account(record)
 
@@ -175,11 +172,6 @@ def main():
     log.info(f"Worker ID: {args.worker_id}")
     log.info(f"Batch: {args.batch_file}")
     log.info(f"Vertical: {args.vertical}")
-
-    # Check API key
-    if not os.getenv('SERPER_API_KEY'):
-        log.error("SERPER_API_KEY not set!")
-        sys.exit(1)
 
     # Process batch
     output = process_batch(args.batch_file, args.vertical, args.worker_id)
