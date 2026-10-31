@@ -163,8 +163,8 @@ class MDUPipelineOrchestrator:
         self._log("STAGE 2: SALESFORCE CROSS-REFERENCE")
         self._log("=" * 80)
 
-        # Check for Salesforce accounts file
-        sf_file = self.base_dir / "deployment/mdu_track_a_b_existing_customers_excluded_corrected.csv"
+        # Check for Salesforce accounts file (SOURCE OF TRUTH, not prior run output)
+        sf_file = self.base_dir / "data/salesforce/unique_accounts_2026-10-22.csv"
 
         if not sf_file.exists():
             self._log(f"❌ STOP: Salesforce accounts file not found: {sf_file}")
@@ -275,8 +275,8 @@ class MDUPipelineOrchestrator:
         input_file = self.stage_outputs['properties']
         output_file = self.run_dir / "04_evidence_raw.csv"
 
-        # Note: This would call the YOLO/VLM pipeline
-        # For now, assuming it's the run_mdu_batch.py script that already exists
+        # run_mdu_batch.py takes positional args: batch_file, num_workers
+        # It outputs to mdu_results_<batch_file_stem>.csv
         cmd = [
             "python3",
             str(self.base_dir / "deployment/run_mdu_batch.py"),
@@ -284,16 +284,34 @@ class MDUPipelineOrchestrator:
             "5"  # 5 workers
         ]
 
-        self._log("⚠️  STAGE 4 NOT YET INTEGRATED")
-        self._log("This stage would run YOLO/VLM detection on properties.")
-        self._log("For now, skipping to demonstrate orchestration structure.")
-        self._log("")
-        self._log("To integrate:")
-        self._log("1. Ensure run_mdu_batch.py accepts input CSV and output CSV paths")
-        self._log("2. Update this stage to call it correctly")
-        self._log("3. Apply 2-PROSPECTS-per-operator stop rule")
+        success, output = self._run_command(cmd, "evidence_detection")
 
-        # For now, skip this stage
+        if not success:
+            return False
+
+        # Find and move the output file
+        # run_mdu_batch.py creates mdu_results_<batch_file_stem>.csv
+        expected_output = self.base_dir / "deployment" / f"mdu_results_{input_file.stem}.csv"
+
+        if not expected_output.exists():
+            self._log(f"❌ ERROR: Expected output file not found: {expected_output}")
+            return False
+
+        # Move to 04_evidence_raw.csv
+        import shutil
+        shutil.move(str(expected_output), str(output_file))
+
+        # Validate output
+        evidence_count = self._count_csv_rows(output_file)
+        self._log(f"✓ Evidence rows: {evidence_count}")
+
+        if evidence_count == 0:
+            self._log("❌ STOP: Evidence detection produced zero rows")
+            return False
+
+        self.stage_outputs['evidence'] = output_file
+        self.stats['evidence_count'] = evidence_count
+
         return True
 
     def stage_5_verification_handoff(self) -> bool:
