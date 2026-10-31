@@ -196,7 +196,7 @@ def main(input_path=None, salesforce_path=None, output_netnew=None, output_exist
             for row in reader:
                 account_name = row.get('Name', row.get('account_name', ''))
                 if account_name:
-                    normalized = _normalize(account_name)
+                    normalized = normalize_name_exact(account_name)
                     sf_accounts[normalized] = account_name
         print(f"Loaded {len(sf_accounts)} Salesforce accounts from: {sf_file}")
     else:
