@@ -64,19 +64,48 @@ NAV_FOOTER_BLOCKLIST = {
     '.pdf', '.php', '.jpg', '.png', '.gif', '.mp4',
 }
 
-# URL PATH BLOCKLIST (NEW - fixes contamination)
+# URL PATH BLOCKLIST (V5 - expanded for SFR contamination)
 URL_PATH_BLOCKLIST = [
+    # Content pages
     '/blogs/', '/blog/',
     '/news/', '/press/', '/media/',
     '/case-studies/', '/case-study/',
     '/corporate/', '/about/', '/careers/',
     '/privacy', '/terms', '/legal/',
-    # Service category pages
+
+    # Service area / location landing pages (SFR operators)
+    '/service-areas/',  # Green Residential city pages
+    '/locations/',      # PURE HomeRiver location pages
+    '/our-services/',   # Service category pages
+
+    # Generic service pages (not properties)
+    '/property-leasing',
+    '/property-inspection',
+    '/property-management/',  # Generic PM landing page
+    '/build-to-rent',         # SFR signal
+    '/single-family',         # SFR signal
+    '/rental-analysis',
+    '/free-rental',
+    '/pricing',
+    '/investor',
+
+    # Service categories
     '/property-management/affordable',
     '/property-management/build-to-rent',
     '/property-management/multi-family',
     '/property-management/student',
     '/property-management/services',
+    '/property-management/pricing',
+    '/property-management/first-time',
+    '/property-management/retirees',
+    '/property-management/busy-professionals',
+
+    # Third-party directories (not operator's own properties)
+    'expertise.com',
+    'ipropertymanagement.com',
+    'propertymanagement.com',
+    'apartments.com',
+    'apartmentguide.com',
 ]
 
 # Residential signals (positive indicators)
@@ -141,27 +170,40 @@ def is_landing_page(url: str) -> bool:
     """
     Check if URL is a regional/city landing page rather than a property.
 
-    NEW: Used to skip landing pages before residential signals sampling.
+    Landing pages are generic portfolio pages (e.g., /properties, /communities)
+    NOT specific property URLs (e.g., /kensington-apartments).
     """
     url_lower = url.lower()
     path = urlparse(url).path.rstrip('/')
     segments = [s for s in path.split('/') if s]
 
-    # Too few segments = likely landing page
-    if len(segments) < 3:
+    if not segments:
         return True
 
-    # Ends with generic regional terms
+    # Generic portfolio/landing page terms (exact match on last segment)
     landing_terms = [
         'apartments', 'communities', 'properties', 'locations',
-        'portfolio', 'seattle', 'chicago', 'atlanta', 'dallas',
-        'austin', 'denver', 'california', 'florida', 'texas'
+        'portfolio', 'our-properties', 'our-communities',
+        'find-a-home', 'search', 'browse'
     ]
 
-    if segments:
-        last_segment = segments[-1].lower()
-        if last_segment in landing_terms:
-            return True
+    last_segment = segments[-1].lower()
+
+    # Exact match for generic terms ONLY
+    # /properties → landing page ✓
+    # /kensington-apartments → specific property ✓ (contains "apartments" but not exact match)
+    if last_segment in landing_terms:
+        return True
+
+    # Regional/city-only pages (e.g., /austin, /texas, /seattle)
+    regional_terms = [
+        'seattle', 'chicago', 'atlanta', 'dallas', 'houston',
+        'austin', 'denver', 'california', 'florida', 'texas',
+        'washington', 'oregon', 'colorado', 'arizona'
+    ]
+
+    if last_segment in regional_terms and len(segments) <= 2:
+        return True
 
     return False
 

@@ -41,6 +41,52 @@ BROKERAGES_LENDERS = {
     'deutsche bank', 'wells fargo', 'bank of america', 'jpmorgan'
 }
 
+# Trade associations to exclude
+TRADE_ASSOCIATIONS = {
+    'narpm', 'national association of residential property managers',
+    'national association of residential', 'nmhc', 'naa',
+    'national multifamily housing council', 'national apartment association'
+}
+
+# SFR (Single-Family Rental) operators to exclude from MDU pipeline
+SFR_BRAND_NAMES = {
+    'homeriver', 'home river', 'mynd', 'renters warehouse',
+    'roofstock', 'invitation homes', 'progress residential',
+    'american homes 4 rent', 'tricon residential', 'firstkey homes'
+}
+
+SFR_KEYWORDS = {
+    'single-family rental', 'single family rental', 'sfr',
+    'build-to-rent', 'build to rent', 'btr',
+    'single-family home', 'single family home',
+    'single-family property', 'single family property'
+}
+
+SFR_URL_PATTERNS = [
+    '/build-to-rent',
+    '/single-family',
+    '/sfr',
+    '/service-areas/'  # Common SFR website structure
+]
+
+# Generic/ranking phrases to filter
+GENERIC_PHRASES = {
+    'best property management', 'top property management', 'best apartment',
+    'top apartment', 'property management companies', 'best companies',
+    'top companies', 'top multifamily', 'best multifamily'
+}
+
+# State domain indicators for mismatch detection
+STATE_DOMAINS = {
+    'Virginia': ['virginia', 'va', 'arlington', 'richmond', 'norfolk'],
+    'Maryland': ['maryland', 'md', 'baltimore', 'bethesda'],
+    'DC': ['dc', 'washington'],
+    'Washington': ['washington', 'wa', 'seattle', 'bellevue', 'tacoma'],
+    'Texas': ['texas', 'tx', 'austin', 'dallas', 'houston', 'san antonio'],
+    'Colorado': ['colorado', 'co', 'denver', 'boulder'],
+    'Arizona': ['arizona', 'az', 'phoenix', 'scottsdale', 'tempe']
+}
+
 
 def notify_slack(message: str):
     """Send Slack notification."""
@@ -54,6 +100,65 @@ def is_brokerage_or_lender(company_name: str) -> bool:
     """Check if company is a known brokerage or lender."""
     name_lower = company_name.lower()
     return any(broker in name_lower for broker in BROKERAGES_LENDERS)
+
+
+def is_trade_association(company_name: str) -> bool:
+    """Check if company is a trade association."""
+    name_lower = company_name.lower()
+    return any(assoc in name_lower for assoc in TRADE_ASSOCIATIONS)
+
+
+def is_generic_phrase(company_name: str) -> bool:
+    """Check if company name is actually a generic ranking/blog phrase."""
+    name_lower = company_name.lower()
+    return any(phrase in name_lower for phrase in GENERIC_PHRASES)
+
+
+def is_ranking_or_blog_title(source_title: str) -> bool:
+    """Check if source is a ranking/blog post rather than company site."""
+    title_lower = source_title.lower()
+    ranking_indicators = ['best', 'top', 'ranked', 'list of', '2025', '2026', 'companies in']
+    return any(indicator in title_lower for indicator in ranking_indicators)
+
+
+def check_domain_state_match(website: str, expected_state: str) -> bool:
+    """
+    Check if website domain/content matches expected state.
+
+    Only rejects CLEAR mismatches (e.g., rentseattle.com for Texas).
+    Returns True if match or uncertain, False only if obvious wrong state.
+    """
+    if not website or expected_state not in STATE_DOMAINS:
+        return True  # Can't determine, don't reject
+
+    website_lower = website.lower()
+
+    # Only check for CLEAR geographic indicators in domain
+    # (city names in domain path, like rentseattle.com, denverpost.com, etc.)
+
+    # Check if domain clearly indicates a DIFFERENT state
+    other_states = {state: indicators for state, indicators in STATE_DOMAINS.items()
+                   if state != expected_state}
+
+    for other_state, indicators in other_states.items():
+        for indicator in indicators:
+            # Only reject if the indicator appears in the DOMAIN (not path)
+            # e.g., rentseattle.com, seattleapartments.com
+            domain_part = website_lower.split('/')[2] if len(website_lower.split('/')) > 2 else website_lower
+            if indicator in domain_part:
+                # Additional check: is it part of a longer word? (avoid false positives)
+                # e.g., "marketing" shouldn't match "md"
+                if len(indicator) <= 2:  # State abbreviations
+                    # Check for word boundaries
+                    import re
+                    if re.search(r'\b' + indicator + r'\b', domain_part):
+                        return False
+                else:  # City names
+                    if indicator in domain_part:
+                        return False
+
+    # Default: allow it (no clear mismatch found)
+    return True
 
 
 def serper_search(query: str, num_results: int = 10) -> List[Dict]:
@@ -223,6 +328,10 @@ def track_b_state_search(state: str, region_name: str) -> List[Dict]:
         print(f"  Found {len(results)} results")
 
         for result in results:
+            # Skip ranking/blog posts - these produce generic phrases
+            if is_ranking_or_blog_title(result['title']):
+                continue
+
             # Extract company names from titles and snippets
             # Look for patterns like "XYZ Management", "ABC Properties", etc.
             import re
@@ -237,14 +346,27 @@ def track_b_state_search(state: str, region_name: str) -> List[Dict]:
             for company in matches:
                 company = company.strip()
 
-                # Filter
-                if is_brokerage_or_lender(company):
-                    continue
-
-                if company.lower() in seen_companies:
-                    continue
-
+                # Filter out short names
                 if len(company) < 5:
+                    continue
+
+                # Filter out brokerages/lenders
+                if is_brokerage_or_lender(company):
+                    print(f"  ✗ Filtered: {company} (brokerage/lender)")
+                    continue
+
+                # Filter out trade associations
+                if is_trade_association(company):
+                    print(f"  ✗ Filtered: {company} (trade association)")
+                    continue
+
+                # Filter out generic ranking phrases
+                if is_generic_phrase(company):
+                    print(f"  ✗ Filtered: {company} (generic phrase)")
+                    continue
+
+                # Dedupe
+                if company.lower() in seen_companies:
                     continue
 
                 seen_companies.add(company.lower())
@@ -268,7 +390,7 @@ def track_b_state_search(state: str, region_name: str) -> List[Dict]:
     return operators
 
 
-def verify_operator(operator_name: str) -> Dict:
+def verify_operator(operator_name: str, expected_state: str = None) -> Dict:
     """
     Verify operator is actually an apartment operator by checking their website.
 
@@ -295,6 +417,50 @@ def verify_operator(operator_name: str) -> Dict:
     snippet = results[0]['snippet'].lower()
 
     text = f"{title} {snippet}"
+
+    # Check for domain/state mismatch
+    if expected_state and not check_domain_state_match(website, expected_state):
+        return {
+            'verified': False,
+            'confidence': 'rejected',
+            'website': website,
+            'business_type': 'wrong-state',
+            'reason': f'Domain indicates different state than {expected_state}'
+        }
+
+    # Check for SFR (Single-Family Rental) operators - exclude from MDU pipeline
+    operator_name_lower = operator_name.lower()
+
+    # Brand name check
+    if any(brand in operator_name_lower for brand in SFR_BRAND_NAMES):
+        return {
+            'verified': False,
+            'confidence': 'rejected',
+            'website': website,
+            'business_type': 'sfr-operator',
+            'reason': f'SFR operator (brand name match) - not MDU'
+        }
+
+    # Keyword check in search results
+    if any(keyword in text for keyword in SFR_KEYWORDS):
+        return {
+            'verified': False,
+            'confidence': 'rejected',
+            'website': website,
+            'business_type': 'sfr-operator',
+            'reason': 'SFR operator (keyword match) - not MDU'
+        }
+
+    # URL pattern check
+    website_lower = website.lower()
+    if any(pattern in website_lower for pattern in SFR_URL_PATTERNS):
+        return {
+            'verified': False,
+            'confidence': 'rejected',
+            'website': website,
+            'business_type': 'sfr-operator',
+            'reason': f'SFR operator (URL pattern match) - not MDU'
+        }
 
     # Positive signals: apartment operator
     operator_signals = [
@@ -377,7 +543,7 @@ def process_state(state: str, region_name: str) -> List[Dict]:
 
     verified_operators = []
     for op in unique_operators:
-        verification = verify_operator(op['operator'])
+        verification = verify_operator(op['operator'], expected_state=state)
 
         op['verified'] = verification['verified']
         op['verification_confidence'] = verification['confidence']

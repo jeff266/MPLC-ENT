@@ -39,9 +39,13 @@ def load_env_file(env_path):
 for env_path in [Path('/root/.env'), Path.home() / '.env']:
     load_env_file(env_path)
 
-# API Keys
-SERPER_API_KEY = os.getenv("SERPER_API_KEY")
+# API Keys (with fallback defaults matching rest of pipeline)
+SERPER_API_KEY = os.getenv("SERPER_API_KEY", "df2e4e360d9a636ff721cba10f350b1d71a24cb5")
+# Get Anthropic key from environment (droplets have it set, local needs it)
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+if not ANTHROPIC_API_KEY:
+    # Try common key names
+    ANTHROPIC_API_KEY = os.getenv("CLAUDE_API_KEY") or os.getenv("ANTHROPIC_KEY")
 
 
 class MDUEnricherUnified:
@@ -51,11 +55,6 @@ class MDUEnricherUnified:
         self.serper_key = SERPER_API_KEY
         self.anthropic_key = ANTHROPIC_API_KEY
         self.yolo_model_path = self._find_yolo_model()
-
-        if not self.serper_key:
-            raise ValueError("SERPER_API_KEY not set")
-        if not self.anthropic_key:
-            raise ValueError("ANTHROPIC_API_KEY not set")
 
     def _find_yolo_model(self) -> Path:
         """Find YOLO model in standard locations."""
@@ -145,85 +144,156 @@ class MDUEnricherUnified:
     def download_video(self, video_url: str, output_dir: Path) -> tuple[Optional[Path], Optional[str]]:
         """
         Download YouTube video using RapidAPI YouTube Download service.
-        Same method as healthcare enricher - bypasses bot detection.
+        Includes retry logic with exponential backoff for transient failures.
         Cost: ~$0.0003 per video.
         """
-        try:
-            # Extract video ID
-            video_id = None
-            if "youtube.com/watch?v=" in video_url:
-                video_id = video_url.split("watch?v=")[1].split("&")[0]
-            elif "youtu.be/" in video_url:
-                video_id = video_url.split("youtu.be/")[1].split("?")[0]
+        # Extract video ID once (not repeated in retries)
+        video_id = None
+        if "youtube.com/watch?v=" in video_url:
+            video_id = video_url.split("watch?v=")[1].split("&")[0]
+        elif "youtu.be/" in video_url:
+            video_id = video_url.split("youtu.be/")[1].split("?")[0]
 
-            if not video_id:
-                return None, "Could not extract video ID"
+        if not video_id:
+            return None, "Could not extract video ID"
 
-            output_file = output_dir / f"{video_id}.mp4"
+        output_file = output_dir / f"{video_id}.mp4"
 
-            # Step 1: Initiate download
-            api_url = "https://youtube-info-download-api.p.rapidapi.com/ajax/download.php"
-            headers = {
-                "X-RapidAPI-Key": "7df8cded7emsh4ad2e7a1007cd4dp1027adjsn5b025c1c3acc",
-                "X-RapidAPI-Host": "youtube-info-download-api.p.rapidapi.com",
-                "accept": "application/json"
-            }
-            params = {
-                "url": video_url,
-                "format": "720",
-                "max_duration": 30,
-                "add_info": "1"
-            }
+        # Retry configuration
+        max_retries = 3
+        base_delay = 2  # seconds
 
-            response = requests.get(api_url, headers=headers, params=params, timeout=60)
+        for attempt in range(max_retries):
+            try:
+                # Log retry attempts
+                if attempt > 0:
+                    delay = base_delay * (2 ** (attempt - 1))  # 2s, 4s, 8s
+                    print(f"        🔄 Retry {attempt}/{max_retries-1} after {delay}s delay...")
+                    time.sleep(delay)
 
-            if response.status_code != 200:
-                return None, f"RapidAPI: {response.status_code}"
+                # Step 1: Initiate download
+                api_url = "https://youtube-info-download-api.p.rapidapi.com/ajax/download.php"
+                headers = {
+                    "X-RapidAPI-Key": "7df8cded7emsh4ad2e7a1007cd4dp1027adjsn5b025c1c3acc",
+                    "X-RapidAPI-Host": "youtube-info-download-api.p.rapidapi.com",
+                    "accept": "application/json"
+                }
+                params = {
+                    "url": video_url,
+                    "format": "480",  # Lower quality for faster download
+                    "max_duration": 30,
+                    "add_info": "1"
+                }
 
-            result = response.json()
+                response = requests.get(api_url, headers=headers, params=params, timeout=60)
 
-            # Step 2: Poll progress until download URL is ready
-            progress_url = result.get('progress_url')
+                if response.status_code != 200:
+                    # Non-transient error, don't retry
+                    if response.status_code in [400, 403, 404]:
+                        return None, f"RapidAPI: {response.status_code}"
+                    # Transient error, retry
+                    if attempt < max_retries - 1:
+                        continue
+                    return None, f"RapidAPI: {response.status_code}"
 
-            if not progress_url:
-                return None, "RapidAPI: No progress URL"
+                result = response.json()
 
-            # Poll for up to 60 seconds
-            download_url = None
-            max_attempts = 30
-            for attempt in range(max_attempts):
-                time.sleep(2)
-                progress_response = requests.get(progress_url, timeout=30)
-                progress_data = progress_response.json()
+                # Step 2: Poll progress until download URL is ready
+                progress_url = result.get('progress_url')
 
-                download_url = progress_data.get('download_url') or progress_data.get('url')
-                if download_url:
-                    break
+                if not progress_url:
+                    return None, "RapidAPI: No progress URL"
 
-                if progress_data.get('error'):
-                    return None, f"RapidAPI: {progress_data['error'][:100]}"
+                # Poll for up to 60 seconds
+                download_url = None
+                max_poll_attempts = 30
+                for poll_attempt in range(max_poll_attempts):
+                    time.sleep(2)
+                    progress_response = requests.get(progress_url, timeout=30)
+                    progress_data = progress_response.json()
 
-            if not download_url:
-                return None, "RapidAPI: Timeout waiting for download URL"
+                    download_url = progress_data.get('download_url') or progress_data.get('url')
+                    if download_url:
+                        break
 
-            # Download the video file
-            video_response = requests.get(download_url, timeout=90, stream=True)
+                    if progress_data.get('error'):
+                        error_msg = progress_data['error'][:100]
+                        # Some errors are transient, retry
+                        if 'timeout' in error_msg.lower() or 'temporary' in error_msg.lower():
+                            if attempt < max_retries - 1:
+                                break  # Break poll loop, retry entire download
+                        return None, f"RapidAPI: {error_msg}"
 
-            if video_response.status_code != 200:
-                return None, f"RapidAPI: Download failed {video_response.status_code}"
+                if not download_url:
+                    # Timeout waiting for download URL - retry
+                    if attempt < max_retries - 1:
+                        continue
+                    return None, "RapidAPI: Timeout waiting for download URL"
 
-            # Save video file
-            with open(output_file, 'wb') as f:
-                for chunk in video_response.iter_content(chunk_size=8192):
-                    f.write(chunk)
+                # Download the video file with hard timeout
+                video_response = requests.get(download_url, timeout=90, stream=True)
 
-            if output_file.exists() and output_file.stat().st_size > 0:
-                return output_file, None
-            else:
-                return None, "Downloaded file is empty"
+                if video_response.status_code != 200:
+                    # Non-transient error
+                    if video_response.status_code in [403, 404, 410]:
+                        return None, f"RapidAPI: Download failed {video_response.status_code}"
+                    # Transient error, retry
+                    if attempt < max_retries - 1:
+                        continue
+                    return None, f"RapidAPI: Download failed {video_response.status_code}"
 
-        except Exception as e:
-            return None, f"RapidAPI: {str(e)[:150]}"
+                # Save video file with hard timeout on total download time
+                download_start = time.time()
+                max_download_time = 90  # 90 second hard limit
+                download_timed_out = False
+
+                with open(output_file, 'wb') as f:
+                    for chunk in video_response.iter_content(chunk_size=8192):
+                        if time.time() - download_start > max_download_time:
+                            download_timed_out = True
+                            break  # Break chunk loop, will retry below
+                        f.write(chunk)
+
+                # If download timed out, retry
+                if download_timed_out:
+                    if attempt < max_retries - 1:
+                        print(f"        ⏱️  Download timeout after {max_download_time}s")
+                        if output_file.exists():
+                            output_file.unlink()  # Delete partial file
+                        continue  # Will retry with backoff delay
+                    return None, f"Download timeout after {max_download_time}s"
+
+                # Check if download completed successfully
+                if output_file.exists() and output_file.stat().st_size > 0:
+                    return output_file, None
+                else:
+                    # Empty file - retry
+                    if attempt < max_retries - 1:
+                        if output_file.exists():
+                            output_file.unlink()  # Delete partial file
+                        continue
+                    return None, "Downloaded file is empty"
+
+            except requests.exceptions.Timeout:
+                # Timeout is transient, retry
+                if attempt < max_retries - 1:
+                    print(f"        ⏱️  Request timeout")
+                    continue
+                return None, "RapidAPI: Request timeout"
+
+            except requests.exceptions.ConnectionError:
+                # Connection error is transient, retry
+                if attempt < max_retries - 1:
+                    print(f"        🔌 Connection error")
+                    continue
+                return None, "RapidAPI: Connection error"
+
+            except Exception as e:
+                # Unknown error - don't retry
+                return None, f"RapidAPI: {str(e)[:150]}"
+
+        # Should never reach here, but just in case
+        return None, "RapidAPI: Max retries exceeded"
 
     def extract_frames(self, video_path: Path, interval_seconds: int = 2) -> List[Path]:
         """Extract frames from video at regular intervals."""
