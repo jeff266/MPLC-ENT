@@ -86,21 +86,43 @@ class HandoffVerifier:
         # Common patterns for operator names in text
         operators = set()
 
-        # Pattern 1: "Property name by [Operator]"
-        match = re.search(r'by ([A-Z][A-Za-z\s&]+?)(?:\s+(?:at|in|,|$))', text)
-        if match:
-            operators.add(self._normalize_operator_name(match.group(1)))
+        # Pattern 1: ALL CAPS abbreviations (IMT, MAA, AMLI, EQR, etc.)
+        # Look for 2-5 consecutive capital letters
+        matches = re.findall(r'\b([A-Z]{2,5})\b', text)
+        for match in matches:
+            # Filter common words that aren't company names
+            if match not in ['TV', 'NEW', 'THE', 'AND', 'FOR']:
+                operators.add(self._normalize_operator_name(match))
 
-        # Pattern 2: "[Operator] - Property name"
-        match = re.search(r'^([A-Z][A-Za-z\s&]+?)\s*[-–—]', text)
-        if match:
-            operators.add(self._normalize_operator_name(match.group(1)))
+        # Pattern 2: ALL CAPS multi-word names (IMT SONOMA HILLS)
+        # Match sequences of capitalized words connected by spaces
+        matches = re.findall(r'\b([A-Z]{2,}(?:\s+[A-Z]{2,})+)\b', text)
+        for match in matches:
+            if len(match) > 4:  # Filter very short matches
+                operators.add(self._normalize_operator_name(match))
 
-        # Pattern 3: Capitalized phrases (3+ words) likely to be company names
-        matches = re.findall(r'\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+){2,})\b', text)
+        # Pattern 3: Title Case company names (Greystar, Equity Residential)
+        # Match 1-3 consecutive Title Case words
+        matches = re.findall(r'\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})\b', text)
         for match in matches:
             if len(match) > 5:  # Filter very short matches
                 operators.add(self._normalize_operator_name(match))
+
+        # Pattern 4: Mixed case multi-word (IMT Sonoma Hills, MAA Jersey)
+        matches = re.findall(r'\b([A-Z]{2,}(?:\s+[A-Z][a-z]+)+)\b', text)
+        for match in matches:
+            operators.add(self._normalize_operator_name(match))
+
+        # Pattern 5: Company name patterns with separators (· | -)
+        # Split on separators and check each part
+        for separator in ['·', '|', '-', '–', '—']:
+            if separator in text:
+                parts = text.split(separator)
+                for part in parts:
+                    part = part.strip()
+                    # Check if it looks like a company name
+                    if re.match(r'^[A-Z]', part) and len(part) > 3:
+                        operators.add(self._normalize_operator_name(part))
 
         return operators
 
@@ -113,12 +135,8 @@ class HandoffVerifier:
         text_operators.update(self._extract_operator_from_text(video_title))
         text_operators.update(self._extract_operator_from_text(reasoning))
 
-        # Check if normalized operator appears in extracted names
-        has_match = False
-        for text_op in text_operators:
-            if text_op and (text_op in normalized_operator or normalized_operator in text_op):
-                has_match = True
-                break
+        # Remove empty strings
+        text_operators = {op for op in text_operators if op}
 
         # If no operators extracted, assume no mismatch (VLM didn't mention company)
         if not text_operators:
@@ -128,18 +146,65 @@ class HandoffVerifier:
                 'extracted_names': []
             }
 
-        # If we have extracted operators but no match, flag it
-        if not has_match and text_operators:
+        # Check if normalized operator matches any extracted name
+        # Use multiple matching strategies:
+        has_match = False
+        matched_name = None
+
+        for text_op in text_operators:
+            # Strategy 1: Exact match
+            if text_op == normalized_operator:
+                has_match = True
+                matched_name = text_op
+                break
+
+            # Strategy 2: Substring match (either direction)
+            if text_op in normalized_operator or normalized_operator in text_op:
+                has_match = True
+                matched_name = text_op
+                break
+
+            # Strategy 3: Word-level match (all words from operator appear in text_op or vice versa)
+            op_words = set(normalized_operator.split())
+            text_words = set(text_op.split())
+
+            # If operator has multiple words, check if all appear in text
+            if len(op_words) > 1 and op_words.issubset(text_words):
+                has_match = True
+                matched_name = text_op
+                break
+
+            # If text has multiple words, check if all appear in operator
+            if len(text_words) > 1 and text_words.issubset(op_words):
+                has_match = True
+                matched_name = text_op
+                break
+
+            # Strategy 4: Fuzzy match - shared significant words (>3 chars)
+            op_sig_words = {w for w in op_words if len(w) > 3}
+            text_sig_words = {w for w in text_words if len(w) > 3}
+
+            if op_sig_words and text_sig_words and op_sig_words & text_sig_words:
+                has_match = True
+                matched_name = text_op
+                break
+
+        # If no match found, it's a mismatch
+        if not has_match:
+            # Filter text_operators to only show likely company names (not property names)
+            likely_companies = [op for op in text_operators if len(op.split()) <= 4]
+
             return {
                 'has_mismatch': True,
-                'mismatch_reason': f"Operator '{operator}' not found in VLM text",
+                'mismatch_reason': f"Operator '{operator}' not found in VLM text. Found: {', '.join(likely_companies[:3])}",
                 'extracted_names': list(text_operators)
             }
 
         return {
             'has_mismatch': False,
             'mismatch_reason': None,
-            'extracted_names': list(text_operators)
+            'extracted_names': list(text_operators),
+            'matched_name': matched_name
         }
 
     def check_salesforce_match(self, operator: str) -> Dict:
@@ -288,22 +353,31 @@ class HandoffVerifier:
         }
 
     def _calculate_roe_breakdown(self, prospects: List[Dict]) -> Dict[str, int]:
-        """Calculate ROE tier breakdown."""
-        breakdown = defaultdict(int)
+        """
+        Calculate ROE tier breakdown.
 
+        NOTE: This is a simplified count. True ROE classification requires:
+        - MM = operator with 5-25 total properties
+        - ENT = operator with 26+ total properties
+
+        To implement properly, need property-count-per-operator lookup from
+        the original scraping results (mdu_track_a_b_properties_final_cleaned.csv).
+
+        For now, just counts verified PROSPECT properties.
+        """
+        # Count properties per operator in this verified handoff batch
+        operator_counts = defaultdict(int)
         for prospect in prospects:
             operator = prospect.get('operator', '')
+            operator_counts[operator] += 1
 
-            # Count properties per operator in this batch
-            # For now, simplified: assume each prospect is one property
-            # In reality, would need to count all properties per operator
+        # Classify based on PROSPECT count in handoff (not true ROE)
+        # This is a proxy - real classification needs total property counts
+        breakdown = {
+            'PROSPECT properties (not true ROE)': len(prospects)
+        }
 
-            # Placeholder ROE logic (would need actual property counts)
-            # MM = 5-25 properties, ENT = 26+
-            # For now, mark as "Unknown" - requires property count lookup
-            breakdown['Unknown'] += 1
-
-        return dict(breakdown)
+        return breakdown
 
     def write_handoff_files(self, verification_result: Dict, output_base: Path):
         """Write verified handoff files."""
