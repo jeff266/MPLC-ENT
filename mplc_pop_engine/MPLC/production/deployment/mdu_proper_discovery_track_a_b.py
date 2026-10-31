@@ -399,6 +399,17 @@ def process_state(state: str, region_name: str) -> List[Dict]:
 def main(states_filter=None, output_path=None):
     """Run Track A + B discovery for specified states/regions."""
 
+    # State code mapping
+    state_code_to_name = {
+        'VA': 'Virginia',
+        'MD': 'Maryland',
+        'DC': 'DC',
+        'WA': 'Washington',
+        'TX': 'Texas',
+        'CO': 'Colorado',
+        'AZ': 'Arizona'
+    }
+
     # All available states/regions
     all_states_regions = [
         ('Virginia', 'Northern Virginia / Arlington'),
@@ -410,11 +421,20 @@ def main(states_filter=None, output_path=None):
         ('Arizona', 'Phoenix')
     ]
 
-    # Filter by requested states
+    # Filter by requested states (handle both full names and abbreviations)
     if states_filter:
+        # Convert state codes to full names
+        filter_names = []
+        for s in states_filter:
+            s_upper = s.upper()
+            if s_upper in state_code_to_name:
+                filter_names.append(state_code_to_name[s_upper])
+            else:
+                filter_names.append(s)  # Already a full name
+
         states_regions = [
             (state, region) for state, region in all_states_regions
-            if state.upper() in [s.upper() for s in states_filter]
+            if state in filter_names
         ]
     else:
         states_regions = all_states_regions

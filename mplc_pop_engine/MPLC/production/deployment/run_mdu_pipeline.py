@@ -164,7 +164,7 @@ class MDUPipelineOrchestrator:
         self._log("=" * 80)
 
         # Check for Salesforce accounts file (SOURCE OF TRUTH, not prior run output)
-        sf_file = self.base_dir / "data/salesforce/unique_accounts_2026-10-22.csv"
+        sf_file = self.base_dir.parent / "data/salesforce/unique_accounts_2026-10-22.csv"
 
         if not sf_file.exists():
             self._log(f"❌ STOP: Salesforce accounts file not found: {sf_file}")
