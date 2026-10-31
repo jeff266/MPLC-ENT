@@ -236,7 +236,11 @@ def main(input_path=None, salesforce_path=None, output_netnew=None, output_exist
     output_dir = Path(__file__).parent
 
     # Net-new operators (for scraping)
-    net_new_file = output_dir / "mdu_track_a_b_netnew_operators_corrected.csv"
+    if output_netnew:
+        net_new_file = Path(output_netnew)
+    else:
+        net_new_file = output_dir / "mdu_track_a_b_netnew_operators_corrected.csv"
+
     fieldnames = list(operators[0].keys()) + ['is_existing_customer', 'match_type', 'salesforce_name', 'confidence', 'match_score']
 
     with open(net_new_file, 'w', newline='', encoding='utf-8') as f:
@@ -245,7 +249,10 @@ def main(input_path=None, salesforce_path=None, output_netnew=None, output_exist
         writer.writerows(net_new)
 
     # Existing customers (excluded)
-    existing_file = output_dir / "mdu_track_a_b_existing_customers_excluded_corrected.csv"
+    if output_existing:
+        existing_file = Path(output_existing)
+    else:
+        existing_file = output_dir / "mdu_track_a_b_existing_customers_excluded_corrected.csv"
 
     with open(existing_file, 'w', newline='', encoding='utf-8') as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -298,4 +305,31 @@ def main(input_path=None, salesforce_path=None, output_netnew=None, output_exist
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(
+        description="Cross-reference MDU operators against Salesforce existing customers"
+    )
+    parser.add_argument(
+        '--input',
+        help="Input CSV file with discovered operators"
+    )
+    parser.add_argument(
+        '--salesforce',
+        help="Salesforce accounts CSV file (default: data/salesforce/unique_accounts_2026-10-22.csv)"
+    )
+    parser.add_argument(
+        '--output-netnew',
+        help="Output CSV for net-new operators"
+    )
+    parser.add_argument(
+        '--output-existing',
+        help="Output CSV for existing customers"
+    )
+
+    args = parser.parse_args()
+
+    main(
+        input_path=args.input,
+        salesforce_path=args.salesforce,
+        output_netnew=args.output_netnew,
+        output_existing=args.output_existing
+    )
