@@ -17,10 +17,27 @@ import imghdr
 import sys
 import time
 import cv2
+import shutil
 from typing import Dict, Optional, List
 from pathlib import Path
 from anthropic import Anthropic
 from ultralytics import YOLO
+
+# Load environment variables from .env file (without python-dotenv dependency)
+def load_env_file(env_path):
+    """Load .env file and set environment variables."""
+    if not env_path.exists():
+        return
+    with open(env_path, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith('#') and '=' in line:
+                key, value = line.split('=', 1)
+                os.environ[key.strip()] = value.strip()
+
+# Try loading from multiple locations
+for env_path in [Path('/root/.env'), Path.home() / '.env']:
+    load_env_file(env_path)
 
 # API Keys
 SERPER_API_KEY = os.getenv("SERPER_API_KEY")
@@ -53,6 +70,19 @@ class MDUEnricherUnified:
                 return path
 
         raise FileNotFoundError("YOLO model yolo11n.pt not found")
+
+    def cleanup_temp_files(self, temp_dir: Path):
+        """
+        Delete temporary video files and frames after analysis.
+        Called in finally block to ensure cleanup even on errors.
+        """
+        try:
+            if temp_dir.exists():
+                shutil.rmtree(temp_dir)
+                print(f"  Cleaned up temp files: {temp_dir}")
+        except Exception as e:
+            # Log but don't fail enrichment if cleanup fails
+            print(f"  WARNING: Failed to cleanup {temp_dir}: {e}")
 
     def search_youtube_videos(
         self,
@@ -446,30 +476,35 @@ Answer ONLY with valid JSON:
         temp_dir = Path("/tmp/mdu_videos") / property_name.replace(" ", "_")
         temp_dir.mkdir(parents=True, exist_ok=True)
 
-        # Channel 1: Website images (TODO - integrate scraper)
-        # For now, skip directly to YouTube
+        try:
+            # Channel 1: Website images (TODO - integrate scraper)
+            # For now, skip directly to YouTube
 
-        # Channel 2: YouTube property tours
-        print(f"  Searching YouTube for property tours...")
-        videos = self.search_youtube_videos(property_name, city, state)
+            # Channel 2: YouTube property tours
+            print(f"  Searching YouTube for property tours...")
+            videos = self.search_youtube_videos(property_name, city, state)
 
-        if videos:
-            print(f"    Found {len(videos)} videos")
-            result = self.process_videos(videos, property_name, temp_dir)
+            if videos:
+                print(f"    Found {len(videos)} videos")
+                result = self.process_videos(videos, property_name, temp_dir)
 
-            if result:
-                result['cost'] += total_cost
-                return result
+                if result:
+                    result['cost'] += total_cost
+                    return result
 
-        # No TV evidence found
-        return {
-            'tier': 'REJECTED',
-            'channel': 'none',
-            'evidence_url': '',
-            'confidence': 'none',
-            'cost': total_cost,
-            'reason': 'No TV evidence found in available channels'
-        }
+            # No TV evidence found
+            return {
+                'tier': 'REJECTED',
+                'channel': 'none',
+                'evidence_url': '',
+                'confidence': 'none',
+                'cost': total_cost,
+                'reason': 'No TV evidence found in available channels'
+            }
+
+        finally:
+            # Always clean up temporary files, even if errors occur
+            self.cleanup_temp_files(temp_dir)
 
 
 def process_property(record: dict) -> dict:
