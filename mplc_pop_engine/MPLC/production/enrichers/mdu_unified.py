@@ -3,10 +3,11 @@
 MDU PoP Detection Enricher - Unified with Video Processing
 
 Waterfall (free → paid):
-1. Website images (Playwright scraper) → YOLO → VLM
-2. YouTube property tours → RapidAPI download → YOLO → VLM (NEW!)
+1. Website images (generic channel) → YOLO → VLM
+2. Amenity text-mining (FREE fallback)
+3. YouTube property tours → RapidAPI download → YOLO → VLM
 
-Uses same battle-tested video pipeline as healthcare.
+Uses generic WebsiteImageEvidenceChannel (reusable across verticals).
 """
 
 import os
@@ -22,6 +23,27 @@ from typing import Dict, Optional, List
 from pathlib import Path
 from anthropic import Anthropic
 from ultralytics import YOLO
+
+# Import generic website image channel
+channels_path = Path(__file__).parent.parent / 'channels'
+sys.path.insert(0, str(channels_path))
+try:
+    from website_image_channel import WebsiteImageEvidenceChannel
+    GENERIC_IMAGE_CHANNEL_AVAILABLE = True
+except ImportError as e:
+    GENERIC_IMAGE_CHANNEL_AVAILABLE = False
+    print(f"Warning: Generic image channel not available - {e}")
+
+# Import text-mining channel
+# Path: enrichers/mdu_unified.py -> production -> MPLC -> mplc_pop_engine -> verticals/mdu
+text_channel_path = Path(__file__).parent.parent.parent.parent / 'verticals/mdu'
+sys.path.insert(0, str(text_channel_path))
+try:
+    from amenity_text_channel import MDUAmenityTextChannel
+    TEXT_CHANNEL_AVAILABLE = True
+except ImportError as e:
+    TEXT_CHANNEL_AVAILABLE = False
+    print(f"Warning: Amenity text channel not available - {e}")
 
 # Load environment variables from .env file (without python-dotenv dependency)
 def load_env_file(env_path):
@@ -39,6 +61,11 @@ def load_env_file(env_path):
 for env_path in [Path('/root/.env'), Path.home() / '.env']:
     load_env_file(env_path)
 
+# Also try loading from production config (for local development)
+config_env = Path(__file__).parent.parent / 'config' / '.env'
+if config_env.exists():
+    load_env_file(config_env)
+
 # API Keys (with fallback defaults matching rest of pipeline)
 SERPER_API_KEY = os.getenv("SERPER_API_KEY", "df2e4e360d9a636ff721cba10f350b1d71a24cb5")
 # Get Anthropic key from environment (droplets have it set, local needs it)
@@ -55,6 +82,67 @@ class MDUEnricherUnified:
         self.serper_key = SERPER_API_KEY
         self.anthropic_key = ANTHROPIC_API_KEY
         self.yolo_model_path = self._find_yolo_model()
+
+        # Initialize generic website image channel
+        if GENERIC_IMAGE_CHANNEL_AVAILABLE:
+            self.image_channel = WebsiteImageEvidenceChannel(
+                target_object_classes=['tv', 'monitor'],
+                gallery_page_keywords=['gallery', 'amenities', 'photos'],
+                vlm_classification_prompt=self._mdu_vlm_prompt,
+                anthropic_api_key=self.anthropic_key,
+                yolo_model_path=self.yolo_model_path,
+                min_yolo_confidence=0.2,
+            )
+        else:
+            self.image_channel = None
+
+        # Initialize text-mining channel
+        if TEXT_CHANNEL_AVAILABLE:
+            self.text_channel = MDUAmenityTextChannel(anthropic_api_key=self.anthropic_key)
+        else:
+            self.text_channel = None
+
+    def _mdu_vlm_prompt(self, property_name: str, yolo_confidence: float) -> str:
+        """
+        MDU-specific VLM prompt for apartment property common areas.
+        Used by generic WebsiteImageEvidenceChannel.
+        """
+        return f"""Analyze this apartment property website image for TV/display evidence.
+
+Property: {property_name}
+
+Look for TVs/displays in COMMON AMENITY AREAS:
+- Clubhouse/community room
+- Fitness center/gym
+- Pool area/lounge
+- Lobby/leasing office public areas
+- Business center
+- Theater room (may have projector+screen instead of TV)
+
+CRITICAL - EXCLUDE:
+- Individual apartment units (living rooms, bedrooms, kitchens)
+- Model unit tours showing private spaces
+- Leasing office staff desks/computers (work monitors)
+- Hallways/corridors
+- Storage areas
+
+DEVICE TYPES:
+- TV/Monitor: Flat-screen display (wall-mounted or on stand)
+- Projector+Screen: Theater room setup with projector and projection screen
+- Computer Monitor: Desktop workstation screen (leasing office, business center)
+
+Answer ONLY with valid JSON:
+{{
+  "tv_detected": true|false,
+  "device_type": "tv|monitor|projector_screen|computer_monitor|none",
+  "tv_location": "clubhouse|fitness_center|pool_area|lobby|theater_room|business_center|none",
+  "confidence": "high|medium|low",
+  "is_entertainment_tv": true|false,
+  "is_common_area": true|false,
+  "is_target_object": true|false,
+  "tv_powered_on": true|false,
+  "reasoning": "Brief explanation"
+}}"""
 
     def _find_yolo_model(self) -> Path:
         """Find YOLO model in standard locations."""
@@ -451,22 +539,109 @@ Answer ONLY with valid JSON:
             return result
 
         except Exception as e:
-            print(f"  VLM error: {e}")
-            return None
+            # Print FULL exception details to expose auth failures
+            print(f"  ❌ VLM EXCEPTION: {type(e).__name__}: {str(e)}")
+            # Return error dict instead of None to distinguish from genuine rejection
+            return {'error': str(e), 'error_type': type(e).__name__}
+
+    def verify_video_entity(
+        self,
+        video_title: str,
+        property_name: str,
+        city: str,
+        state: str
+    ) -> tuple[bool, str]:
+        """
+        Verify video is for THIS property, not a different property with similar name.
+
+        Returns: (is_valid, rejection_reason)
+
+        Entity verification checks (ALL must pass):
+        1. Property name match: video title contains property name (fuzzy/substring)
+        2. Location match: video title contains city OR state
+
+        CRITICAL: Both property name AND location are required. City/state alone has
+        zero discriminating power for single-market operators (e.g., 34 Rainier properties
+        in Austin would all accept any "Austin" video).
+
+        Examples:
+        - "Trailhead Apartments in Austin" for "Prospect Point" → REJECT (wrong property)
+        - "Heritage Crossing at Reunion Resort" (Florida) for "Heritage Crossing" (Austin) → REJECT (wrong state)
+        """
+        video_title_lower = video_title.lower()
+        property_name_lower = property_name.lower()
+
+        # Check 1: Property name match (required)
+        # Extract meaningful words from property name (ignore common words)
+        stop_words = {'the', 'at', 'on', 'apartments', 'apartment', 'condos', 'condo', 'villas', 'villa'}
+        property_words = [w for w in property_name_lower.split() if w not in stop_words]
+
+        # Require at least one significant word from property name to appear in video title
+        # (handles "The Trails" vs "Trails", "Prospect Point Apartments" vs "Prospect Point")
+        property_name_match = False
+        matched_word = None
+        for word in property_words:
+            if len(word) >= 4 and word in video_title_lower:  # Min 4 chars to avoid false matches
+                property_name_match = True
+                matched_word = word
+                break
+
+        if not property_name_match:
+            return False, f"entity_mismatch_property (property '{property_name}' not found in video title)"
+
+        # Check 2: Location match (city OR state - required)
+        location_match = False
+        matched_location = None
+
+        if city:
+            city_lower = city.lower()
+            if city_lower in video_title_lower:
+                location_match = True
+                matched_location = city
+
+        if not location_match and state:
+            state_lower = state.lower()
+            # Check for full state name or abbreviation
+            if state_lower in video_title_lower or state.upper() in video_title:
+                location_match = True
+                matched_location = state
+
+        if not location_match:
+            return False, f"entity_mismatch_location (expected '{city or state}', not found in video title)"
+
+        # Both checks passed
+        return True, ""
 
     def process_videos(
         self,
         videos: List[Dict],
         property_name: str,
+        city: str,
+        state: str,
         temp_dir: Path
     ) -> Optional[Dict]:
-        """Process YouTube videos to find TV evidence."""
+        """Process YouTube videos to find TV evidence with entity verification."""
+
+        rejection_reasons = []  # Track why videos were rejected
 
         for i, video in enumerate(videos[:3], 1):  # Process up to 3 videos
             video_url = video['url']
             video_title = video['title']
 
             print(f"    Processing video: {video_title[:60]}...")
+
+            # Entity verification BEFORE downloading
+            is_valid, rejection_reason = self.verify_video_entity(
+                video_title,
+                property_name,
+                city,
+                state
+            )
+
+            if not is_valid:
+                print(f"      Rejected: {rejection_reason}")
+                rejection_reasons.append(rejection_reason)
+                continue
 
             # Download video
             video_path, error = self.download_video(video_url, temp_dir)
@@ -492,6 +667,7 @@ Answer ONLY with valid JSON:
             print(f"      YOLO detected TV in {len(tv_frames)} frames")
 
             if not tv_frames:
+                print(f"      ⏭️  No YOLO-positive frames to analyze")
                 continue
 
             # VLM analysis on best frame (highest YOLO confidence)
@@ -503,7 +679,28 @@ Answer ONLY with valid JSON:
                 video_title
             )
 
+            # Distinguish: VLM failed vs VLM ran but said no
+            if vlm_result and 'error' in vlm_result:
+                # VLM call failed (auth error, connection error, etc.)
+                print(f"      ❌ VLM call FAILED: {vlm_result.get('error_type', 'Unknown')} - {vlm_result.get('error', '')[:100]}")
+                continue
+
             if not vlm_result:
+                # VLM returned None (should not happen after error handling change, but defensive)
+                print(f"      ⚠️  VLM returned None (unexpected - check logs)")
+                continue
+
+            # VLM ran successfully, check results
+            if not vlm_result.get('tv_detected'):
+                print(f"      ⏭️  VLM ran: No TV detected")
+                continue
+
+            if not vlm_result.get('is_common_area'):
+                print(f"      ⏭️  VLM ran: Not common area (location: {vlm_result.get('tv_location', 'unknown')})")
+                continue
+
+            if not vlm_result.get('is_entertainment_tv'):
+                print(f"      ⏭️  VLM ran: Not entertainment TV")
                 continue
 
             # Check if it's a valid PROSPECT
@@ -512,8 +709,10 @@ Answer ONLY with valid JSON:
                 vlm_result.get('is_common_area') and
                 vlm_result.get('confidence') in ['high', 'medium']):
 
+                print(f"      ✅ VLM confirmed PROSPECT: {vlm_result.get('tv_location', '')} - {vlm_result.get('confidence', '')} confidence")
+
                 return {
-                    'tier': 'PROSPECT',
+                    'lead_status': 'qualified',
                     'channel': 'youtube_video_yolo',
                     'evidence_url': video_url,
                     'video_title': video_title,
@@ -525,6 +724,385 @@ Answer ONLY with valid JSON:
                     'cost': vlm_result.get('cost', 0.0)
                 }
 
+        # If we got here, all videos failed
+        if rejection_reasons:
+            # Return rejection reasons for explicit tracking
+            return {
+                'lead_status': 'no_evidence',
+                'channel': 'youtube_video_yolo',
+                'rejection_reasons': rejection_reasons,
+                'reason': f"All videos rejected: {', '.join(rejection_reasons[:2])}"  # First 2 reasons
+            }
+
+        return None
+
+    def scrape_website_images(self, website_url: str) -> List[str]:
+        """
+        Scrape property website for amenity/gallery image URLs.
+
+        Returns: List of image URLs
+        """
+        from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeout
+
+        image_urls = []
+
+        try:
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=True)
+                page = browser.new_page()
+
+                # Load main property page
+                page.goto(website_url, wait_until="networkidle", timeout=30000)
+                time.sleep(2)  # Let images load
+
+                # Extract all image URLs from the page
+                from urllib.parse import urlparse
+
+                # 1. Check <img> tags
+                images = page.locator('img').all()
+                for img in images:
+                    try:
+                        src = img.get_attribute('src')
+                        if not src:
+                            continue
+
+                        # Skip logos, icons, SVGs
+                        if any(skip in src.lower() for skip in ['logo', 'icon', '.svg']):
+                            continue
+
+                        # Convert relative URLs to absolute
+                        if src.startswith('//'):
+                            src = 'https:' + src
+                        elif src.startswith('/'):
+                            parsed = urlparse(website_url)
+                            src = f"{parsed.scheme}://{parsed.netloc}{src}"
+                        elif not src.startswith('http'):
+                            continue
+
+                        # Only accept image formats
+                        if any(ext in src.lower() for ext in ['.jpg', '.jpeg', '.png', '.webp']):
+                            if src not in image_urls:
+                                image_urls.append(src)
+
+                    except Exception as e:
+                        continue
+
+                # 2. Check background-image CSS styles
+                bg_elements = page.locator('[style*="background-image"]').all()
+                for elem in bg_elements:
+                    try:
+                        style = elem.get_attribute('style')
+                        if not style or 'url(' not in style:
+                            continue
+
+                        # Extract URL from background-image: url(...)
+                        start = style.find('url(') + 4
+                        end = style.find(')', start)
+                        if end == -1:
+                            continue
+
+                        src = style[start:end].strip('\'"')
+                        if not src:
+                            continue
+
+                        # Skip logos, icons
+                        if any(skip in src.lower() for skip in ['logo', 'icon', '.svg']):
+                            continue
+
+                        # Convert relative URLs to absolute
+                        if src.startswith('//'):
+                            src = 'https:' + src
+                        elif src.startswith('/'):
+                            parsed = urlparse(website_url)
+                            src = f"{parsed.scheme}://{parsed.netloc}{src}"
+                        elif not src.startswith('http'):
+                            continue
+
+                        # Only accept image formats
+                        if any(ext in src.lower() for ext in ['.jpg', '.jpeg', '.png', '.webp']):
+                            if src not in image_urls:
+                                image_urls.append(src)
+
+                    except Exception as e:
+                        continue
+
+                # 3. Check <a> tags pointing directly to image files
+                link_elements = page.locator('a').all()
+                for link in link_elements:
+                    try:
+                        href = link.get_attribute('href')
+                        if not href:
+                            continue
+
+                        # Skip logos, icons
+                        if any(skip in href.lower() for skip in ['logo', 'icon', '.svg']):
+                            continue
+
+                        # Convert relative URLs to absolute
+                        if href.startswith('//'):
+                            href = 'https:' + href
+                        elif href.startswith('/'):
+                            parsed = urlparse(website_url)
+                            href = f"{parsed.scheme}://{parsed.netloc}{href}"
+                        elif not href.startswith('http'):
+                            continue
+
+                        # Only accept image formats
+                        if any(ext in href.lower() for ext in ['.jpg', '.jpeg', '.png', '.webp']):
+                            if href not in image_urls:
+                                image_urls.append(href)
+
+                    except Exception as e:
+                        continue
+
+                browser.close()
+
+        except PlaywrightTimeout:
+            print(f"    Timeout loading website")
+        except Exception as e:
+            print(f"    Website scrape error: {type(e).__name__}")
+
+        # Deduplicate and limit
+        image_urls = list(dict.fromkeys(image_urls))  # Preserve order, remove dupes
+        return image_urls[:20]  # Max 20 images to avoid excessive processing
+
+    def download_image(self, image_url: str, output_dir: Path) -> Optional[Path]:
+        """
+        Download image from URL.
+
+        Returns: Path to downloaded image, or None if failed
+        """
+        try:
+            # Create filename from URL
+            from urllib.parse import urlparse
+            parsed = urlparse(image_url)
+            filename = Path(parsed.path).name
+            if not filename or '.' not in filename:
+                filename = f"image_{hash(image_url) % 10000}.jpg"
+
+            output_path = output_dir / filename
+
+            # Download with timeout
+            response = requests.get(image_url, timeout=10, stream=True)
+            if response.status_code != 200:
+                return None
+
+            # Save image
+            with open(output_path, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    f.write(chunk)
+
+            # Verify it's a valid image
+            if output_path.stat().st_size == 0:
+                output_path.unlink()
+                return None
+
+            # Check if it's too small (likely icon/thumbnail)
+            if output_path.stat().st_size < 5000:  # 5KB minimum
+                output_path.unlink()
+                return None
+
+            return output_path
+
+        except Exception as e:
+            return None
+
+    def analyze_image_vlm(
+        self,
+        image_path: Path,
+        property_name: str,
+        yolo_confidence: float
+    ) -> Optional[Dict]:
+        """
+        Analyze image with VLM for TV evidence in common areas.
+
+        Special handling for projector+screen (theater room) vs TV/monitor.
+        """
+        try:
+            with open(image_path, 'rb') as f:
+                img_content = f.read()
+
+            img_b64 = base64.b64encode(img_content).decode('utf-8')
+
+            img_format = imghdr.what(None, h=img_content)
+            if img_format == 'png':
+                media_type = "image/png"
+            elif img_format in ['jpeg', 'jpg']:
+                media_type = "image/jpeg"
+            else:
+                media_type = "image/jpeg"
+
+            client = Anthropic(api_key=self.anthropic_key)
+
+            prompt = f"""Analyze this apartment property website image for TV/display evidence.
+
+Property: {property_name}
+
+Look for TVs/displays in COMMON AMENITY AREAS:
+- Clubhouse/community room
+- Fitness center/gym
+- Pool area/lounge
+- Lobby/leasing office public areas
+- Business center
+- Theater room (may have projector+screen instead of TV)
+
+CRITICAL - EXCLUDE:
+- Individual apartment units (living rooms, bedrooms, kitchens)
+- Model unit tours showing private spaces
+- Leasing office staff desks/computers (work monitors)
+- Hallways/corridors
+- Storage areas
+
+DEVICE TYPES:
+- TV/Monitor: Flat-screen display (wall-mounted or on stand)
+- Projector+Screen: Theater room setup with projector and projection screen
+- Computer Monitor: Desktop workstation screen (leasing office, business center)
+
+Answer ONLY with valid JSON:
+{{
+  "tv_detected": true|false,
+  "device_type": "tv|monitor|projector_screen|computer_monitor|none",
+  "tv_location": "clubhouse|fitness_center|pool_area|lobby|theater_room|business_center|none",
+  "confidence": "high|medium|low",
+  "is_entertainment_tv": true|false,
+  "is_common_area": true|false,
+  "tv_powered_on": true|false,
+  "reasoning": "Brief explanation"
+}}"""
+
+            response = client.messages.create(
+                model="claude-sonnet-4-5-20250929",
+                max_tokens=300,
+                messages=[{
+                    "role": "user",
+                    "content": [
+                        {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": img_b64}},
+                        {"type": "text", "text": prompt}
+                    ]
+                }]
+            )
+
+            # Parse VLM response
+            text_content = next(
+                (block.text for block in response.content if hasattr(block, 'text')),
+                None
+            )
+
+            if not text_content:
+                return None
+
+            # Extract JSON from response
+            json_start = text_content.find('{')
+            json_end = text_content.rfind('}') + 1
+
+            if json_start == -1 or json_end == 0:
+                return None
+
+            result = json.loads(text_content[json_start:json_end])
+
+            # Calculate cost (Sonnet 4.5: $3/MTok input, $15/MTok output)
+            input_tokens = response.usage.input_tokens
+            output_tokens = response.usage.output_tokens
+            cost = (input_tokens / 1_000_000 * 3.0) + (output_tokens / 1_000_000 * 15.0)
+
+            result['cost'] = cost
+            result['yolo_confidence'] = yolo_confidence
+            return result
+
+        except Exception as e:
+            # Print FULL exception details to expose auth failures
+            print(f"  ❌ VLM EXCEPTION: {type(e).__name__}: {str(e)}")
+            # Return error dict instead of None to distinguish from genuine rejection
+            return {'error': str(e), 'error_type': type(e).__name__}
+
+    def process_website_images(
+        self,
+        image_urls: List[str],
+        property_name: str,
+        temp_dir: Path
+    ) -> Optional[Dict]:
+        """
+        Process website images to find TV evidence.
+
+        Returns PROSPECT if TV found in common area, None otherwise.
+        """
+        images_dir = temp_dir / "website_images"
+        images_dir.mkdir(exist_ok=True)
+
+        images_analyzed = 0
+        images_failed = 0
+
+        for i, image_url in enumerate(image_urls[:20], 1):  # Max 20 images
+            # Download image
+            image_path = self.download_image(image_url, images_dir)
+            if not image_path:
+                images_failed += 1
+                continue
+
+            # YOLO detection
+            detection = self.yolo_detect_tv(image_path)
+            if not detection:
+                continue  # No TV detected
+
+            images_analyzed += 1
+            print(f"      Image {i}: YOLO detected {detection['class']} (conf: {detection['confidence']:.2f})")
+
+            # VLM analysis
+            vlm_result = self.analyze_image_vlm(
+                image_path,
+                property_name,
+                detection['confidence']
+            )
+
+            # Check for VLM errors
+            if vlm_result and 'error' in vlm_result:
+                print(f"      ❌ VLM call FAILED: {vlm_result.get('error_type')} - {vlm_result.get('error', '')[:100]}")
+                continue
+
+            if not vlm_result:
+                print(f"      ⚠️  VLM returned None")
+                continue
+
+            # Check device type (tv, monitor, or projector_screen all count as PROSPECT)
+            device_type = vlm_result.get('device_type', 'none')
+
+            # Check if it's a valid PROSPECT (TV/monitor/projector in common area)
+            if (vlm_result.get('tv_detected') and
+                vlm_result.get('is_common_area') and
+                vlm_result.get('is_entertainment_tv') and
+                device_type in ['tv', 'monitor', 'projector_screen'] and
+                vlm_result.get('confidence') in ['high', 'medium']):
+
+                print(f"      ✅ VLM confirmed PROSPECT: {vlm_result.get('tv_location', '')} - {device_type} - {vlm_result.get('confidence', '')} confidence")
+
+                return {
+                    'lead_status': 'qualified',
+                    'channel': 'website_images',
+                    'evidence_url': image_url,
+                    'image_path': str(image_path),
+                    'tv_location': vlm_result.get('tv_location', ''),
+                    'confidence': vlm_result.get('confidence', 'low'),
+                    'device_type': device_type,
+                    'tv_powered_on': vlm_result.get('tv_powered_on', False),
+                    'yolo_confidence': detection['confidence'],
+                    'reasoning': vlm_result.get('reasoning', ''),
+                    'cost': vlm_result.get('cost', 0.0)
+                }
+
+            # VLM rejected
+            reason = "No TV detected"
+            if not vlm_result.get('tv_detected'):
+                reason = "No TV detected"
+            elif not vlm_result.get('is_common_area'):
+                reason = f"Not common area ({vlm_result.get('tv_location', 'unknown')})"
+            elif not vlm_result.get('is_entertainment_tv'):
+                reason = "Not entertainment TV (likely computer monitor)"
+            elif device_type == 'computer_monitor':
+                reason = "Computer monitor (not entertainment TV)"
+
+            print(f"      ⏭️  VLM ran: {reason}")
+
+        # No PROSPECT found
         return None
 
     def enrich_property(
@@ -537,34 +1115,93 @@ Answer ONLY with valid JSON:
         """
         Enrich MDU property with PoP detection.
 
-        Waterfall:
-        1. Website images (if available) - NOT IMPLEMENTED YET
-        2. YouTube property tours → RapidAPI download → YOLO → VLM
+        Waterfall (cheapest → most expensive, early exit on first PROSPECT):
+        1. Website images (generic channel) → YOLO → VLM (FREE scraping, cheap VLM)
+        2. Amenity text-mining (FREE fallback)
+        3. YouTube property tours → RapidAPI download → YOLO → VLM (paid downloads)
         """
 
+        # Confirm API key is loaded (print presence, not value)
+        if self.anthropic_key:
+            print(f"  ✓ ANTHROPIC_API_KEY loaded (length: {len(self.anthropic_key)} chars)")
+        else:
+            print(f"  ❌ WARNING: ANTHROPIC_API_KEY is empty or not loaded!")
+
         total_cost = 0.0
-        temp_dir = Path("/tmp/mdu_videos") / property_name.replace(" ", "_")
+        temp_dir = Path("/tmp/mdu_enrichment") / property_name.replace(" ", "_").replace("/", "_")
         temp_dir.mkdir(parents=True, exist_ok=True)
 
         try:
-            # Channel 1: Website images (TODO - integrate scraper)
-            # For now, skip directly to YouTube
+            # Channel 1: Website images (generic channel - cheapest, most reliable)
+            if self.image_channel and website_url:
+                print(f"  Channel 1: Website images (generic)...")
+                image_result = self.image_channel.search_evidence(
+                    property_name=property_name,
+                    website_url=website_url,
+                    temp_dir=temp_dir,
+                )
 
-            # Channel 2: YouTube property tours
-            print(f"  Searching YouTube for property tours...")
+                total_cost += image_result.get('cost', 0.0)
+
+                if image_result.get('lead_status') == 'qualified':
+                    evidence = image_result['evidence']
+                    return {
+                        'lead_status': 'qualified',
+                        'channel': 'website_images',
+                        'evidence_url': evidence.url,
+                        'tv_location': evidence.vlm_result.get('tv_location', 'unknown'),
+                        'device_type': evidence.vlm_result.get('device_type', 'unknown'),
+                        'confidence': evidence.vlm_result.get('confidence', 'medium'),
+                        'yolo_confidence': evidence.yolo_confidence,
+                        'reasoning': evidence.vlm_result.get('reasoning', ''),
+                        'tv_powered_on': evidence.vlm_result.get('tv_powered_on', False),
+                        'cost': total_cost,
+                        'source_method': evidence.source_method,
+                    }
+                else:
+                    print(f"    Image channel: {image_result.get('rejection_reason', 'No images found')} ({image_result.get('images_found', 0)} images, {image_result.get('images_analyzed', 0)} analyzed)")
+
+            # Channel 2: Amenity text-mining (FREE fallback)
+            if self.text_channel and website_url:
+                print(f"  Channel 2: Text-mining amenity descriptions...")
+                text_result = self.text_channel.search_amenities(property_name, website_url)
+
+                total_cost += text_result.get('cost', 0.0)
+
+                if text_result.get('found'):
+                    evidence = text_result['evidence']
+                    return {
+                        'lead_status': 'qualified',
+                        'channel': 'amenity_text_mining',
+                        'evidence_url': evidence.get('SourceURL', website_url),
+                        'video_title': '',
+                        'tv_location': evidence.get('EvidenceLocation', 'Communal Area'),
+                        'confidence': evidence.get('Confidence', 'medium'),
+                        'tv_powered_on': True,  # Assume true from text evidence
+                        'yolo_confidence': 0.0,  # N/A for text
+                        'reasoning': evidence.get('EvidenceQuote', ''),
+                        'cost': total_cost
+                    }
+
+            # Channel 3: YouTube property tours (paid downloads - last resort)
+            print(f"  Channel 3: Searching YouTube for property tours...")
             videos = self.search_youtube_videos(property_name, city, state)
 
             if videos:
                 print(f"    Found {len(videos)} videos")
-                result = self.process_videos(videos, property_name, temp_dir)
+                result = self.process_videos(videos, property_name, city, state, temp_dir)
 
-                if result:
+                if result and result.get('lead_status') == 'qualified':
                     result['cost'] += total_cost
                     return result
+                elif result and result.get('lead_status') == 'no_evidence':
+                    # Video channel found videos but all rejected (entity mismatch)
+                    total_cost += result.get('cost', 0.0)
+                    print(f"    Video channel: {result.get('reason', 'All videos rejected')}")
 
-            # No TV evidence found
+            # No TV evidence found in any channel
             return {
-                'tier': 'REJECTED',
+                'lead_status': 'no_evidence',
                 'channel': 'none',
                 'evidence_url': '',
                 'confidence': 'none',
@@ -594,7 +1231,7 @@ def process_property(record: dict) -> dict:
     except Exception as e:
         return {
             **record,
-            'tier': 'REJECTED',
+            'lead_status': 'no_evidence',
             'channel': 'none',
             'evidence_url': '',
             'confidence': 'none',
