@@ -24,22 +24,11 @@ VERTICAL_ROUTING = {
     'Dental_Offices': 'healthcare',
     'Dentists': 'healthcare',
 
-    # Corporate verticals (generic business/office spaces)
-    'Activity_Centers': 'corporate',
-    'Health_clubs': 'corporate',
-    'Fitness_&_Dance_Facilities': 'corporate',
-    'Campgrounds': 'corporate',
-    'Education': 'corporate',
-    'Government_and_Similar_Buildings_&_Services': 'corporate',
-    'Short-term_Lodging': 'corporate',
-    'Religious_Institutions': 'corporate',
-    'Transportation': 'corporate',
-    'Membership_Organizations': 'corporate',
+    # Corporate verticals (ONLY traditional office businesses)
+    # Removed public facilities (gyms, campgrounds, hotels) - corporate enricher
+    # searches for "HQ gym/cafeteria" which doesn't fit public-facing businesses
     'Real_Estate': 'corporate',
-    'Hospitality': 'corporate',
     'Commercial_Establishments_&_Waiting_Areas': 'corporate',
-    'Seniors': 'corporate',
-    'Amusement_Parks,_Arcades_&_Attractions': 'corporate',
     'Custom_Software_&_IT_Services': 'corporate',
     'Industrial_Machinery_&_Equipment': 'corporate',
     'Apparel_&_Accessories_Retail': 'corporate',
@@ -93,12 +82,37 @@ VERTICAL_ROUTING = {
 
 # Unmapped verticals (held back until enricher is ready)
 UNMAPPED_VERTICALS = {
-    # MDU - enricher exists but NOT fully synced (Droplet 1 stale)
-    'Communal_Living_Facilities': 'UNRESOLVED - MDU enricher not synced to Droplet 1',
+    # PUBLIC FACILITIES (632 accounts) - corporate enricher incompatible
+    # Corporate enricher searches for "headquarters gym/cafeteria" (employee amenities)
+    # These are businesses where the facility IS the product (customer-facing spaces)
+    # Need public-facility enricher searching for lobby/waiting-area/customer TVs
+    'Activity_Centers': 'UNRESOLVED - Public facility, need customer-space enricher (not HQ amenities)',
+    'Health_clubs': 'UNRESOLVED - Public facility, need customer-space enricher (not HQ amenities)',
+    'Campgrounds': 'UNRESOLVED - Public facility, need customer-space enricher (not HQ amenities)',
+    'Short-term_Lodging': 'UNRESOLVED - Public facility, need customer-space enricher (not HQ amenities)',
+    'Religious_Institutions': 'UNRESOLVED - Public facility, need customer-space enricher (not HQ amenities)',
+    'Transportation': 'UNRESOLVED - Public facility, need customer-space enricher (not HQ amenities)',
+    'Hospitality': 'UNRESOLVED - Public facility, need customer-space enricher (not HQ amenities)',
+    'Seniors': 'UNRESOLVED - Public facility, need customer-space enricher (not HQ amenities)',
+    'Fitness_&_Dance_Facilities': 'UNRESOLVED - Public facility, need customer-space enricher (not HQ amenities)',
+    'Amusement_Parks,_Arcades_&_Attractions': 'UNRESOLVED - Public facility, need customer-space enricher',
+    'Lodging_&_Resorts': 'UNRESOLVED - Public facility, need customer-space enricher (not HQ amenities)',
+    'Rail,_Bus_&_Taxi': 'UNRESOLVED - Public facility, need customer-space enricher (not HQ amenities)',
+    'Marine_Shipping_&_Transportation': 'UNRESOLVED - Public facility, need customer-space enricher',
+
+    # MAYBE FIT (94 accounts) - manual review needed
+    'Education': 'UNRESOLVED - Manual review needed (office spaces vs classrooms)',
+    'Government_and_Similar_Buildings_&_Services': 'UNRESOLVED - Manual review needed (office vs service center)',
+    'Membership_Organizations': 'UNRESOLVED - Manual review needed (case-by-case)',
+    'YMCA,_YWCA,_Boys_&_girl_clubs': 'UNRESOLVED - Manual review needed (community center)',
+    'Non-Profit_&_Charitable_Organizations': 'UNRESOLVED - Manual review needed (case-by-case)',
+
+    # MDU - enricher synced but not in VERIFIED_ENRICHERS list yet (needs production testing)
+    'Communal_Living_Facilities': 'UNRESOLVED - MDU enricher needs production validation before routing',
 
     # Restaurants/Bars - no verified enricher exists
-    'Restaurants,_Clubs,_Pubs': 'UNRESOLVED - No verified enricher (text mining claimed but not found)',
-    'Bars,_Restaurants': 'UNRESOLVED - No verified enricher (text mining claimed but not found)',
+    'Restaurants,_Clubs,_Pubs': 'UNRESOLVED - No verified enricher (text mining needs to be built)',
+    'Bars,_Restaurants': 'UNRESOLVED - No verified enricher (text mining needs to be built)',
 
     # Auto - no production enricher
     'Car_Dealerships': 'UNRESOLVED - No production enricher (exploratory only)',
