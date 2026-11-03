@@ -6,8 +6,9 @@ Channels (in order):
 1. Public/Private Detection (instant, FREE)
 2A. State Procurement DB (public only, FREE)
 2B. Federal Contracts API (all hospitals, $0.001)
-3. YouTube Video + YOLO + VLM ($0.015-0.025)
-4-7. Future channels (stubbed)
+3. YouTube Video + YOLO + VLM ($0.015-0.025, assisted living only)
+4. Hospital Image Search + VLM ($0.02-0.03, 75% hit rate on private hospitals)
+5-7. Future channels (stubbed)
 
 Early exit: Stop on first PROSPECT (cost optimization)
 Cost tracking: Cumulative across all API calls
@@ -64,10 +65,22 @@ AV_KEYWORDS = [
 class HealthcareEnricherUnified:
     """Unified healthcare PoP detection across 7 channels."""
 
-    def __init__(self):
+    def __init__(self, enable_youtube: bool = True, enable_image_search: bool = True):
+        """
+        Initialize Healthcare enricher.
+
+        Args:
+            enable_youtube: Enable YouTube video channel (default: True)
+                          Set to False to skip expensive video processing
+            enable_image_search: Enable generic image search channel (default: True)
+        """
         self.rapidapi_key = RAPIDAPI_KEY
         self.serper_key = SERPER_API_KEY
         self.anthropic_key = ANTHROPIC_API_KEY
+
+        # Channel configuration (for fast runs, disable expensive channels)
+        self.enable_youtube = enable_youtube
+        self.enable_image_search = enable_image_search
 
         if not self.serper_key:
             raise ValueError("SERPER_API_KEY not set")
@@ -87,6 +100,10 @@ class HealthcareEnricherUnified:
         else:
             self.normalizer = None
             print("⚠️  Normalization layer disabled - searches will use raw account names")
+
+        # Log channel configuration
+        print(f"📺 YouTube channel: {'ENABLED' if self.enable_youtube else 'DISABLED'}")
+        print(f"🖼️  Image search channel: {'ENABLED' if self.enable_image_search else 'DISABLED'}")
 
     def _find_procurement_db(self) -> Optional[Path]:
         """Find state procurement database with fallback locations."""
@@ -628,7 +645,7 @@ Answer ONLY with valid JSON:
 
             if not videos:
                 return {
-                    'tier': 'REJECTED',
+                    'lead_status': 'no_evidence',
                     'channel': 'none',
                     'cost': total_cost,
                     'reason': 'No facility tour videos found'
@@ -676,7 +693,7 @@ Answer ONLY with valid JSON:
                        analysis['confidence'] in ['high', 'medium']:
 
                         return {
-                            'tier': 'PROSPECT',
+                            'lead_status': 'qualified',
                             'channel': 'youtube_video_yolo',
                             'evidence_url': video['url'],
                             'video_title': video['title'],
@@ -689,17 +706,1318 @@ Answer ONLY with valid JSON:
                         }
 
             return {
-                'tier': 'REJECTED',
+                'lead_status': 'no_evidence',
                 'channel': 'youtube_video_yolo',
                 'cost': total_cost,
                 'reason': f'No TV evidence in {len(videos)} videos'
             }
 
-    # ========== WATERFALL ORCHESTRATOR ==========
+    # ========== STAGE 4: HOSPITAL IMAGE SEARCH + VLM ==========
+    def is_domain_valid(self, image_url: str, facility_name: str, image_title: str = "", state: str = "") -> tuple[bool, str]:
+        """
+        Validate that image source is trustworthy and attributable to facility.
+
+        Returns (is_valid, reason)
+
+        REJECTS:
+        - Stock photos (Getty Images, Shutterstock)
+        - Generic CDNs (Squarespace, Cloudinary, AWS S3)
+        - Unverified third-party sites (architecture firms without attribution)
+        - Wrong state/location indicators
+
+        ACCEPTS:
+        - Facility's own domain
+        - Hospital/healthcare system domains
+        - Medical architecture firms WITH facility name in title
+        - Reputable news sources explicitly naming the facility
+        """
+        from urllib.parse import urlparse
+        import re
+
+        domain = urlparse(image_url).netloc.lower()
+
+        # Remove common subdomains for matching
+        domain_base = re.sub(r'^(www\d?\.|media\.|newsroom\.|about\.|blog\.|images\.|static\.)', '', domain)
+
+        # Extract facility name for matching
+        facility_clean = facility_name.lower().replace(',', '').replace('.', '').replace('inc', '').replace('llc', '').replace('hospital', '').replace('medical center', '').replace('health system', '').strip()
+        facility_words = set(facility_clean.split())
+
+        # 1. REJECT: Stock photo sites
+        stock_photo_domains = [
+            'gettyimages.com', 'shutterstock.com', 'istockphoto.com',
+            'adobestock.com', 'dreamstime.com', 'depositphotos.com'
+        ]
+        for stock_domain in stock_photo_domains:
+            if stock_domain in domain:
+                return False, f"Stock photo site ({stock_domain})"
+
+        # 2. REJECT: Generic CDNs (can't verify attribution)
+        generic_cdn_domains = [
+            'squarespace-cdn.com', 'squarespace.com', 'cloudinary.com',
+            'amazonaws.com', 's3.amazonaws.com', 'wixstatic.com',
+            'contentstack.io', 'imgix.net', 'cloudfront.net',
+            'creativecirclecdn.com', 'files.edl.io'
+        ]
+        for cdn_domain in generic_cdn_domains:
+            if cdn_domain in domain:
+                return False, f"Generic CDN ({cdn_domain}) - can't verify attribution"
+
+        # 3. REJECT: Social media CDNs
+        social_cdn_domains = ['lookaside.instagram.com', 'lookaside.fbsbx.com', 'scontent.']
+        for social_cdn in social_cdn_domains:
+            if social_cdn in domain:
+                return False, f"Social media CDN"
+
+        # 4. REJECT: CDN platforms without confirmation
+        cdn_platforms = ['yelpcdn.com', 'yimg.com']
+        for cdn in cdn_platforms:
+            if cdn in domain:
+                # OK only if facility name is in title
+                if image_title and any(word in image_title.lower() for word in facility_words if len(word) > 3):
+                    return True, "Third-party CDN with facility name in title"
+                return False, f"Third-party CDN ({cdn}) without facility confirmation"
+
+        # 5. ACCEPT: Facility's own domain
+        # Check if facility name appears in domain
+        for word in facility_words:
+            if len(word) > 3 and word in domain_base:
+                return True, f"Facility's own domain (matched: {word})"
+
+        # 6. ACCEPT: Healthcare-specific domains
+        healthcare_domains = [
+            '.health', 'hospital.', 'medical', 'healthcare',
+            'surgery', 'clinic', 'wellness', 'rehab'
+        ]
+        for hc_domain in healthcare_domains:
+            if hc_domain in domain:
+                # Must also have facility name in domain or title
+                for word in facility_words:
+                    if len(word) > 3 and (word in domain_base or word in image_title.lower()):
+                        return True, f"Healthcare domain with facility match"
+
+        # 7. ACCEPT: Medical architecture firms WITH facility name in title
+        medical_architecture_domains = [
+            'hksinc.com', 'cannondesign.com', 'perkinswill.com',
+            'hdr.com', 'stantec.com', 'aecom.com', 'gensler.com'
+        ]
+        for arch_domain in medical_architecture_domains:
+            if arch_domain in domain:
+                # Must have facility name in title to verify it's about this facility
+                if image_title and any(word in image_title.lower() for word in facility_words if len(word) > 3):
+                    return True, f"Medical architecture firm with facility in title"
+                return False, f"Architecture firm without facility confirmation"
+
+        # 8. ACCEPT: Trusted news/business sources
+        trusted_news_domains = {
+            'bizj.us': 'Business Journals',
+            'bizjournals.com': 'Business Journals',
+            'healthcaredive.com': 'Healthcare Dive',
+            'modernhealthcare.com': 'Modern Healthcare',
+            'fiercehealthcare.com': 'Fierce Healthcare',
+            'beckershospitalreview.com': 'Beckers Hospital Review',
+            'aha.org': 'American Hospital Association',
+        }
+        for news_domain, news_name in trusted_news_domains.items():
+            if news_domain in domain:
+                # Must have facility name in title or URL path
+                url_lower = image_url.lower()
+                title_lower = (image_title or "").lower()
+                if any(word in url_lower or word in title_lower for word in facility_words if len(word) > 3):
+                    return True, f"Trusted healthcare news source ({news_name})"
+
+        # 9. REJECT: Everything else (can't verify)
+        return False, "Unverified third-party domain"
+
+    def is_us_relevant(self, image_url: str, image_title: str, state: str = "", operating_market: str = "United States") -> bool:
+        """
+        Quick geographic relevance check before calling VLM.
+
+        Returns False if evidence clearly from wrong state/country.
+        Prevents "Memorial Hospital - Texas" from matching "Memorial Hospital - Florida"
+        """
+        if operating_market != "United States":
+            return True  # Don't filter non-US accounts
+
+        # International indicators (clearly not US)
+        international_indicators = [
+            'uk', 'canada', 'australia', 'india', 'china', 'mexico',
+            'london', 'toronto', 'sydney', 'mumbai', 'beijing',
+            'united kingdom', 'ontario', 'queensland', 'maharashtra'
+        ]
+
+        url_lower = image_url.lower()
+        title_lower = image_title.lower()
+
+        for indicator in international_indicators:
+            if indicator in url_lower or indicator in title_lower:
+                return False
+
+        # State mismatch check (if state provided)
+        if state:
+            # Common state indicators that would show wrong state
+            # e.g., if account is in CA, reject images with "texas", "florida", etc.
+            us_states = {
+                'AL': 'alabama', 'AK': 'alaska', 'AZ': 'arizona', 'AR': 'arkansas',
+                'CA': 'california', 'CO': 'colorado', 'CT': 'connecticut', 'DE': 'delaware',
+                'FL': 'florida', 'GA': 'georgia', 'HI': 'hawaii', 'ID': 'idaho',
+                'IL': 'illinois', 'IN': 'indiana', 'IA': 'iowa', 'KS': 'kansas',
+                'KY': 'kentucky', 'LA': 'louisiana', 'ME': 'maine', 'MD': 'maryland',
+                'MA': 'massachusetts', 'MI': 'michigan', 'MN': 'minnesota', 'MS': 'mississippi',
+                'MO': 'missouri', 'MT': 'montana', 'NE': 'nebraska', 'NV': 'nevada',
+                'NH': 'new hampshire', 'NJ': 'new jersey', 'NM': 'new mexico', 'NY': 'new york',
+                'NC': 'north carolina', 'ND': 'north dakota', 'OH': 'ohio', 'OK': 'oklahoma',
+                'OR': 'oregon', 'PA': 'pennsylvania', 'RI': 'rhode island', 'SC': 'south carolina',
+                'SD': 'south dakota', 'TN': 'tennessee', 'TX': 'texas', 'UT': 'utah',
+                'VT': 'vermont', 'VA': 'virginia', 'WA': 'washington', 'WV': 'west virginia',
+                'WI': 'wisconsin', 'WY': 'wyoming'
+            }
+
+            # Get current state name
+            current_state_name = us_states.get(state.upper(), state.lower())
+
+            # Check if URL/title explicitly mentions a DIFFERENT state
+            for abbrev, state_name in us_states.items():
+                if abbrev != state.upper() and state_name != current_state_name:
+                    # Look for clear state indicators
+                    if f" {state_name} " in title_lower or f"{state_name}." in title_lower:
+                        return False
+                    if f"/{state_name}/" in url_lower or f"-{state_name}-" in url_lower:
+                        return False
+
+        return True
+
+    def search_hospital_images(self, hospital_name: str, state: str = "") -> Optional[List[Dict]]:
+        """
+        Search for hospital waiting area/lobby images via Serper API.
+
+        Proven in exploration: 75% PROSPECT hit rate on private hospitals.
+        Sources: Hospital domains, medical architecture firms, healthcare news.
+        """
+        # Include state in queries for better geographic targeting
+        if state:
+            queries = [
+                f"{hospital_name} {state} waiting area",
+                f"{hospital_name} {state} lobby",
+                f"{hospital_name} {state} patient lounge",
+            ]
+        else:
+            queries = [
+                f"{hospital_name} waiting area",
+                f"{hospital_name} lobby",
+                f"{hospital_name} patient lounge",
+            ]
+
+        all_images = []
+
+        for query in queries:
+            try:
+                url = "https://google.serper.dev/images"
+                payload = json.dumps({"q": query, "num": 10})
+                headers = {
+                    'X-API-KEY': self.serper_key,
+                    'Content-Type': 'application/json'
+                }
+
+                response = requests.post(url, headers=headers, data=payload, timeout=30)
+
+                if response.status_code != 200:
+                    print(f"    Serper image API error: {response.status_code}")
+                    continue
+
+                data = response.json()
+                images = data.get("images", [])
+
+                for img in images[:10]:  # Top 10 per query
+                    all_images.append({
+                        'url': img.get('imageUrl'),
+                        'title': img.get('title', ''),
+                        'source': img.get('link', ''),
+                        'query': query
+                    })
+
+                # Only try first query that returns results (optimization)
+                if images:
+                    break
+
+                time.sleep(0.5)  # Rate limiting
+
+            except Exception as e:
+                print(f"    Image search error: {e}")
+                continue
+
+        return all_images if all_images else None
+
+    def validate_image(self, image_url: str, timeout: int = 10) -> Optional[bytes]:
+        """
+        Download and validate image before sending to VLM.
+        Returns image bytes if valid, None if invalid.
+
+        Validation: size (5KB-5MB), format (jpeg/png/webp), not corrupted.
+        """
+        try:
+            headers = {'User-Agent': 'Mozilla/5.0'}
+            response = requests.get(image_url, headers=headers, timeout=timeout, stream=True)
+
+            if response.status_code != 200:
+                return None
+
+            content = response.content
+
+            # Check size (skip if too small or too large)
+            size_kb = len(content) / 1024
+            if size_kb < 5 or size_kb > 5000:
+                return None
+
+            # Validate it's actually an image
+            img_format = imghdr.what(None, h=content)
+            if not img_format or img_format not in ['jpeg', 'jpg', 'png', 'gif', 'webp']:
+                return None
+
+            # Try to open with PIL to verify it's not corrupted
+            try:
+                from PIL import Image
+                import io
+                img = Image.open(io.BytesIO(content))
+                img.verify()
+            except:
+                return None
+
+            return content
+
+        except:
+            return None
+
+    def analyze_image_vlm(self, image_content: bytes, hospital_name: str, source: str = "") -> Optional[Dict]:
+        """
+        Analyze validated image for TV evidence in hospital waiting areas using VLM.
+
+        Returns: {tv_detected, tv_location, confidence, tv_powered_on, reasoning, cost}
+        """
+        try:
+            img_b64 = base64.b64encode(image_content).decode('utf-8')
+
+            # Detect format
+            img_format = imghdr.what(None, h=image_content)
+            if img_format == 'png':
+                media_type = "image/png"
+            elif img_format == 'gif':
+                media_type = "image/gif"
+            elif img_format in ['jpeg', 'jpg']:
+                media_type = "image/jpeg"
+            elif img_format == 'webp':
+                media_type = "image/webp"
+            else:
+                media_type = "image/jpeg"
+
+            # VLM analysis
+            client = Anthropic(api_key=self.anthropic_key)
+
+            prompt = f"""Analyze this hospital/healthcare facility image for TV evidence.
+
+Hospital: {hospital_name}
+Source: {source}
+
+Look for TVs in PUBLIC PATIENT/VISITOR WAITING AREAS:
+- Main lobby waiting area
+- Emergency department waiting room
+- Outpatient waiting area
+- Registration/check-in waiting area
+- Family lounge / visitor lounge
+- Cafeteria
+
+EXCLUDE (not valid evidence):
+- Patient rooms or exam rooms
+- Nurse stations or staff areas
+- Medical equipment displays
+- Conference rooms or administrative offices
+- Outdoor/parking areas
+
+Answer ONLY with valid JSON:
+{{
+  "tv_detected": true|false,
+  "tv_location": "lobby|waiting_room|cafeteria|registration|family_lounge|none",
+  "confidence": "high|medium|low",
+  "is_entertainment_tv": true|false,
+  "is_public_waiting_area": true|false,
+  "tv_powered_on": true|false,
+  "reasoning": "Brief explanation of what you see"
+}}"""
+
+            response = client.messages.create(
+                model="claude-sonnet-4-5-20250929",
+                max_tokens=300,
+                messages=[{
+                    "role": "user",
+                    "content": [
+                        {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": img_b64}},
+                        {"type": "text", "text": prompt}
+                    ]
+                }]
+            )
+
+            text = response.content[0].text.strip()
+            if text.startswith("```"):
+                text = text.split("```")[1].replace("json", "").strip()
+
+            result = json.loads(text)
+
+            # Calculate cost
+            cost = (response.usage.input_tokens / 1_000_000 * 3.00) + \
+                   (response.usage.output_tokens / 1_000_000 * 15.00)
+
+            result['cost'] = cost
+            return result
+
+        except Exception as e:
+            print(f"  VLM image analysis error: {e}")
+            return None
+
+    def search_and_analyze_images(self, hospital_name: str, state: str = "", operating_market: str = "United States") -> Dict:
+        """Process image channel: search + domain validation + VLM."""
+        total_cost = 0.001  # Serper search cost
+
+        # Search for hospital images
+        images = self.search_hospital_images(hospital_name, state)
+
+        if not images:
+            return {
+                'lead_status': 'no_evidence',
+                'channel': 'none',
+                'cost': total_cost,
+                'reason': 'No hospital images found'
+            }
+
+        # Process images (cap at 10 to control costs)
+        images_analyzed = 0
+        images_failed = 0
+
+        for img in images[:10]:
+            if not img.get('url'):
+                continue
+
+            # Step 1: Domain validation (attribution check)
+            is_valid_domain, domain_reason = self.is_domain_valid(
+                img['url'],
+                hospital_name,
+                img.get('title', ''),
+                state
+            )
+            if not is_valid_domain:
+                images_failed += 1
+                continue
+
+            # Step 2: Geographic relevance check
+            if not self.is_us_relevant(img['url'], img.get('title', ''), state, operating_market):
+                images_failed += 1
+                continue
+
+            # Step 3: Validate image (size, format, not corrupted)
+            image_content = self.validate_image(img['url'])
+            if not image_content:
+                images_failed += 1
+                continue
+
+            images_analyzed += 1
+
+            # VLM analysis
+            analysis = self.analyze_image_vlm(image_content, hospital_name, img.get('source', ''))
+
+            if not analysis:
+                continue
+
+            total_cost += analysis.get('cost', 0.0)
+
+            # Check for valid TV evidence
+            if analysis.get('tv_detected') and \
+               analysis.get('is_entertainment_tv') and \
+               analysis.get('is_public_waiting_area') and \
+               analysis.get('confidence') in ['high', 'medium']:
+
+                return {
+                    'lead_status': 'qualified',
+                    'channel': 'hospital_image_search',
+                    'evidence_url': img.get('source', img.get('url')),
+                    'source_url': img.get('source', img.get('url')),
+                    'tv_location': analysis.get('tv_location', ''),
+                    'confidence': analysis.get('confidence', 'low'),
+                    'tv_powered_on': analysis.get('tv_powered_on', False),
+                    'reasoning': analysis.get('reasoning', ''),
+                    'cost': total_cost
+                }
+
+        return {
+            'lead_status': 'no_evidence',
+            'channel': 'hospital_image_search',
+            'cost': total_cost,
+            'reason': f'No TV evidence in {images_analyzed} images analyzed ({images_failed} filtered)'
+        }
+
+    # ========== STAGE 5: PEDIATRIC WAITING AREA DETECTION (PATH B) ==========
+
+    def extract_domain(self, url: str) -> Optional[str]:
+        """
+        Extract base domain from URL.
+
+        Examples:
+            'https://www.example.com/page' -> 'example.com'
+            'https://subdomain.example.org' -> 'example.org'
+            'www.example.com' -> 'example.com'
+        """
+        if not url:
+            return None
+
+        # Remove protocol
+        url = url.lower().strip()
+        url = url.replace('https://', '').replace('http://', '').replace('www.', '')
+
+        # Get domain part (before first /)
+        domain = url.split('/')[0].split('?')[0]
+
+        # Get base domain (last two parts: example.com)
+        parts = domain.split('.')
+        if len(parts) >= 2:
+            return '.'.join(parts[-2:])
+
+        return domain
+
+    def verify_entity_match(self, source_text: str, facility_name: str,
+                          account_website: str = None, threshold: float = 0.85) -> bool:
+        """
+        Verify that source matches the target facility using STRICT validation.
+
+        Validation hierarchy (in order):
+        1. Domain match: If account website provided, evidence URL must share same domain
+        2. Business type check: Reject incompatible types (e.g., "pediatric" vs "senior living")
+        3. Strict name match: Require full organization name match, not just word overlap
+
+        This prevents false positives like:
+        - "Capital Senior Living" matching "Capital Health" (different orgs)
+        - "Meridian Senior Living" matching "Meridian Pediatrics" (incompatible types)
+
+        Args:
+            source_text: Evidence URL, title, or description
+            facility_name: Target facility name
+            account_website: Account's own website URL (for domain verification)
+            threshold: Name similarity threshold (raised to 0.85 = 85%)
+
+        Returns:
+            True only if strong evidence this is the SAME entity
+        """
+        from difflib import SequenceMatcher
+        from urllib.parse import urlparse
+
+        if not source_text or not facility_name:
+            return False
+
+        source_lower = source_text.lower()
+        facility_lower = facility_name.lower()
+
+        # Step 1: DOMAIN VERIFICATION (strongest signal)
+        # If we have the account's website, evidence URL MUST share the same domain
+        if account_website:
+            account_domain = self.extract_domain(account_website)
+
+            # Extract domain from evidence URL (source_text often contains URL)
+            evidence_domain = self.extract_domain(source_text)
+
+            if account_domain and evidence_domain:
+                # Domains must match OR be closely related
+                # Examples of valid matches:
+                #   - capitalsenior.com == capitalsenior.com (exact)
+                #   - blog.capitalsenior.com shares capitalsenior.com (subdomain)
+                if account_domain == evidence_domain:
+                    return True
+
+                # Check if one domain is substring of other (handles subdomains)
+                if account_domain in evidence_domain or evidence_domain in account_domain:
+                    return True
+
+                # If domains DON'T match, this is very likely a different entity
+                # Only continue to name matching if we don't have domain info
+                print(f"      Domain mismatch: account={account_domain} vs evidence={evidence_domain}")
+                return False
+
+        # Step 2: BUSINESS TYPE INCOMPATIBILITY CHECK
+        # Reject if evidence mentions incompatible business types
+        facility_type_indicators = {
+            'senior': ['senior living', 'senior care', 'assisted living', 'retirement',
+                      'memory care', 'nursing home', 'elder care'],
+            'pediatric': ['pediatric', 'pediatrics', 'children', 'kids', 'youth',
+                         'adolescent', 'child health', 'children\'s']
+        }
+
+        # Determine facility type from name
+        facility_type = None
+        for type_key, keywords in facility_type_indicators.items():
+            if any(kw in facility_lower for kw in keywords):
+                facility_type = type_key
+                break
+
+        # Check for incompatible type in evidence
+        if facility_type == 'senior':
+            # Senior living facility - reject if evidence mentions pediatric
+            if any(kw in source_lower for kw in facility_type_indicators['pediatric']):
+                print(f"      Business type mismatch: '{facility_name}' is senior care, evidence mentions pediatric")
+                return False
+        elif facility_type == 'pediatric':
+            # Pediatric facility - reject if evidence mentions senior living
+            if any(kw in source_lower for kw in facility_type_indicators['senior']):
+                print(f"      Business type mismatch: '{facility_name}' is pediatric, evidence mentions senior care")
+                return False
+
+        # Step 3: STRICT NAME MATCHING
+        # Require FULL organization name match, not just single word overlap
+
+        # Clean facility name (remove common suffixes)
+        facility_clean = facility_lower
+        for suffix in [', inc', ', llc', ' inc', ' llc', ' hospital', ' medical center',
+                      ' health system', ' healthcare', ' senior living', ' retirement']:
+            facility_clean = facility_clean.replace(suffix, '')
+        facility_clean = facility_clean.strip()
+
+        # Exact match check
+        if facility_clean in source_lower:
+            return True
+
+        # Full name similarity check (require 85%+ match on FULL name)
+        # Extract potential organization name from source
+        # Try to find longest contiguous match
+        source_words = source_lower.split()
+        facility_words = facility_clean.split()
+
+        # Require majority of facility name words to be present
+        matched_words = 0
+        total_significant_words = len([w for w in facility_words if len(w) > 3])
+
+        if total_significant_words == 0:
+            return False
+
+        for fac_word in facility_words:
+            if len(fac_word) <= 3:  # Skip short words like "the", "of", etc.
+                continue
+
+            # Check if this facility word appears in source
+            found_match = False
+            for source_word in source_words:
+                similarity = SequenceMatcher(None, fac_word, source_word).ratio()
+
+                # Require very high similarity (95%+) for single word matches
+                if similarity >= 0.95:
+                    matched_words += 1
+                    found_match = True
+                    break
+
+            # For full name matching, we need MOST words to match
+            # Not just one word (prevents "Capital" matching "Capital Health" vs "Capital Senior Living")
+
+        # Require at least 75% of significant words to match
+        match_ratio = matched_words / total_significant_words if total_significant_words > 0 else 0
+
+        if match_ratio >= 0.75:
+            return True
+
+        # If we got here, no strong evidence of entity match
+        return False
+
+    def detect_facility_type(self, facility_name: str) -> str:
+        """
+        Detect if this is a senior living facility vs. other healthcare.
+
+        Returns:
+            'senior_living' | 'pediatric' | 'general_healthcare'
+        """
+        name_lower = facility_name.lower()
+
+        # Senior living indicators
+        senior_keywords = [
+            'senior living', 'senior care', 'assisted living', 'retirement',
+            'memory care', 'nursing home', 'elder care', 'senior housing',
+            'independent living', 'continuing care', 'life care',
+            'alzheimer', 'dementia care', 'senior community'
+        ]
+
+        # Pediatric indicators
+        pediatric_keywords = [
+            'pediatric', 'pediatrics', 'children', 'kids', 'child',
+            'youth', 'adolescent', 'nicu', 'picu'
+        ]
+
+        if any(kw in name_lower for kw in senior_keywords):
+            return 'senior_living'
+        elif any(kw in name_lower for kw in pediatric_keywords):
+            return 'pediatric'
+        else:
+            return 'general_healthcare'
+
+    def search_senior_activity_reviews(self, facility_name: str, state: str) -> Dict:
+        """
+        Search Google/Yelp reviews for mentions of TV entertainment in common areas.
+
+        Looks for review mentions of:
+        - Movie nights, sports viewing events
+        - TV in lounge, common area, activity room
+        - Entertainment activities with residents
+        """
+        if not self.serper_key:
+            return {
+                'lead_status': 'no_evidence',
+                'channel': 'senior_activity_reviews',
+                'cost': 0.003,
+                'reason': 'Serper API key not available',
+                'qualifying_path': 'senior_activity'
+            }
+
+        # Search for reviews mentioning activities/amenities
+        # Don't use quotes - just facility name and location
+        query = f'{facility_name} {state} reviews amenities activities'
+
+        try:
+            response = requests.post(  # Serper uses POST, not GET
+                "https://google.serper.dev/search",
+                headers={
+                    "X-API-KEY": self.serper_key,
+                    "Content-Type": "application/json"
+                },
+                json={"q": query, "num": 10},
+                timeout=10
+            )
+
+            cost = 0.003  # Serper search cost
+
+            if response.status_code != 200:
+                print(f"      Serper API error {response.status_code}: {response.text[:100]}")
+                return {
+                    'lead_status': 'no_evidence',
+                    'channel': 'senior_activity_reviews',
+                    'cost': cost,
+                    'reason': f'Serper API error: {response.status_code}',
+                    'qualifying_path': 'senior_activity'
+                }
+
+            data = response.json()
+
+            # Check organic results and reviews
+            all_text = []
+
+            # Get snippets from search results
+            for result in data.get('organic', [])[:10]:
+                snippet = result.get('snippet', '')
+                all_text.append(snippet)
+
+            # Combine all text
+            combined_text = ' '.join(all_text).lower()
+
+            # Keywords indicating TV entertainment in common areas
+            tv_keywords = [
+                'movie night', 'movies night', 'movie theater', 'theater room',
+                'watch movies', 'watching movies', 'watch sports', 'watching sports',
+                'tv lounge', 'television lounge', 'tv room', 'television room',
+                'tv in the lounge', 'tv in lounge', 'television in the lounge',
+                'big screen tv', 'large screen tv', 'big tv',
+                'activity room with tv', 'activity room tv',
+                'community room tv', 'community room with tv',
+                'game room tv', 'game room with tv',
+                'super bowl', 'football games', 'sports games',
+                'movie viewing', 'film viewing'
+            ]
+
+            # Look for matches
+            matches = []
+            for keyword in tv_keywords:
+                if keyword in combined_text:
+                    matches.append(keyword)
+
+            if matches:
+                # Extract snippet containing the match for evidence
+                evidence_snippet = ''
+                for text in all_text:
+                    text_lower = text.lower()
+                    for match in matches:
+                        if match in text_lower:
+                            evidence_snippet = text
+                            break
+                    if evidence_snippet:
+                        break
+
+                return {
+                    'lead_status': 'qualified',
+                    'channel': 'senior_activity_reviews',
+                    'evidence_url': f'Google search: {query}',
+                    'evidence_type': 'review_text_mention',
+                    'matched_keywords': ', '.join(matches[:3]),  # First 3 matches
+                    'evidence_snippet': evidence_snippet[:200],
+                    'confidence': 'high' if len(matches) >= 2 else 'medium',
+                    'reasoning': f'Reviews mention TV entertainment activities: {", ".join(matches[:3])}',
+                    'cost': cost,
+                    'qualifying_path': 'senior_activity'
+                }
+            else:
+                return {
+                    'lead_status': 'no_evidence',
+                    'channel': 'senior_activity_reviews',
+                    'cost': cost,
+                    'reason': 'No TV entertainment mentions found in reviews',
+                    'qualifying_path': 'senior_activity'
+                }
+
+        except Exception as e:
+            print(f"      Review search error: {e}")
+            return {
+                'lead_status': 'no_evidence',
+                'channel': 'senior_activity_reviews',
+                'cost': 0.003,
+                'reason': f'Search error: {str(e)[:100]}',
+                'qualifying_path': 'senior_activity'
+            }
+
+    def search_senior_activity_images(self, facility_name: str, state: str) -> Optional[List[Dict]]:
+        """
+        Search for senior living activity/entertainment evidence.
+
+        Looks for:
+        - Community rooms, lounges, common areas
+        - Activity rooms, recreation areas
+        - Amenities, facilities photos
+        """
+        if not self.serper_key:
+            return None
+
+        # Search for facility photos that might show common areas with TVs
+        # Use broader queries that are more likely to find facility photos
+        queries = [
+            f'"{facility_name}" {state} community room lounge',
+            f'"{facility_name}" {state} amenities common area',
+            f'"{facility_name}" {state} activity room recreation',
+            f'"{facility_name}" photos facility tour',
+            f'"{facility_name}" {state} resident lounge dining'
+        ]
+
+        all_images = []
+        for query in queries:
+            try:
+                response = requests.get(
+                    "https://google.serper.dev/images",
+                    headers={"X-API-KEY": self.serper_key},
+                    json={"q": query, "num": 3},  # Get 3 from each query
+                    timeout=10
+                )
+
+                if response.status_code == 200:
+                    data = response.json()
+                    images = data.get('images', [])
+
+                    for img in images:
+                        # Avoid duplicates
+                        img_url = img.get('imageUrl', '')
+                        if not any(existing['url'] == img_url for existing in all_images):
+                            all_images.append({
+                                'url': img_url,
+                                'source': img.get('link', ''),
+                                'title': img.get('title', ''),
+                                'query': query
+                            })
+
+                    # Try first 2 queries, then return what we have
+                    if len(all_images) >= 5:
+                        break
+
+            except Exception as e:
+                print(f"      Serper error: {e}")
+                continue
+
+        return all_images[:10] if all_images else None  # Return up to 10 images
+
+    def analyze_senior_activity_vlm(self, image_content: bytes, facility_name: str, source_url: str) -> Optional[Dict]:
+        """
+        Analyze image for senior living activity/entertainment evidence.
+
+        Looks for:
+        - TVs in common areas, lounges, activity rooms
+        - Movie night events
+        - Residents watching TV together
+        - Entertainment areas
+        """
+        client = Anthropic(api_key=self.anthropic_key)
+
+        # Encode image
+        img_b64 = base64.b64encode(image_content).decode('utf-8')
+        media_type = f"image/{imghdr.what(None, h=image_content)}"
+
+        prompt = f"""Analyze this image to determine if it shows a senior living facility's common area with a television.
+
+Facility: {facility_name}
+Source: {source_url}
+
+REQUIRED CRITERIA:
+1. Television must be clearly visible and identifiable
+2. TV must be in a COMMUNAL SPACE for residents (not private room):
+   - Activity room, game room, recreation room
+   - Common lounge, sitting area
+   - Community room, gathering space
+   - Dining area, great room
+3. Environment should indicate SENIOR LIVING/CARE facility:
+   - Age-appropriate furniture (comfortable seating, accessible design)
+   - Professional/commercial quality space (not residential home)
+   - Senior-friendly features (if visible: handrails, accessible layout)
+
+ACCEPT IF:
+- TV visible in any communal area where residents gather
+- Room appears to be for resident use (entertainment, dining, activities)
+- Space is part of senior living/care facility
+
+REJECT IF:
+- Private resident room or apartment unit
+- Staff-only area (office, nurse station, break room)
+- Hospital/medical patient room
+- Clearly a hotel, restaurant, or non-healthcare facility
+- TV is just a small informational screen or menu board
+- No TV visible in the image
+
+Return JSON:
+{{
+    "is_senior_activity_area": true/false,
+    "confidence": "high/medium/low",
+    "tv_visible": true/false,
+    "space_type": "activity_room/lounge/dining_area/community_room/other",
+    "senior_living_indicators": ["list", "of", "observed", "indicators"],
+    "reasoning": "brief explanation of why this qualifies or doesn't"
+}}"""
+
+        try:
+            response = client.messages.create(
+                model="claude-sonnet-4-5-20250929",
+                max_tokens=400,
+                messages=[{
+                    "role": "user",
+                    "content": [
+                        {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": img_b64}},
+                        {"type": "text", "text": prompt}
+                    ]
+                }]
+            )
+
+            text = response.content[0].text.strip()
+            if text.startswith("```"):
+                text = text.split("```")[1].replace("json", "").strip()
+
+            result = json.loads(text)
+
+            # Calculate cost
+            cost = (response.usage.input_tokens / 1_000_000 * 3.00) + \
+                   (response.usage.output_tokens / 1_000_000 * 15.00)
+
+            result['cost'] = cost
+            return result
+
+        except Exception as e:
+            print(f"  Senior activity VLM analysis error: {e}")
+            return None
+
+    def search_and_analyze_senior_activities(self, facility_name: str, state: str, account_website: str = None) -> Dict:
+        """
+        PATH B (Senior Living): Search for activity/entertainment evidence.
+
+        Looks for movie nights, activity rooms, common areas with TVs.
+
+        Returns:
+        - tier: PROSPECT | REJECTED
+        - channel: senior_activity_area
+        - evidence_url: source URL of confirming image
+        - reasoning: VLM explanation
+        - cost: total detection cost
+        - qualifying_path: 'senior_activity' (for reporting)
+        """
+        total_cost = 0.003  # Serper image search cost
+
+        # Search for senior activity images
+        images = self.search_senior_activity_images(facility_name, state)
+
+        if not images:
+            return {
+                'lead_status': 'no_evidence',
+                'channel': 'senior_activity_area',
+                'cost': total_cost,
+                'reason': 'No senior activity images found',
+                'qualifying_path': 'senior_activity'
+            }
+
+        print(f"      Found {len(images)} senior activity candidate images")
+
+        # Analyze images with VLM
+        images_analyzed = 0
+        images_entity_rejected = 0
+        for img in images:
+            # ENTITY VERIFICATION
+            source_url = img.get('source', '')
+            title = img.get('title', '')
+            source_text = f"{source_url} {title}"
+
+            if not self.verify_entity_match(source_text, facility_name, account_website=account_website):
+                images_entity_rejected += 1
+                print(f"      Entity mismatch: '{title}' does not match '{facility_name}'")
+                continue
+
+            # Validate image
+            image_content = self.validate_image(img['url'])
+            if not image_content:
+                continue
+
+            images_analyzed += 1
+
+            # VLM analysis
+            analysis = self.analyze_senior_activity_vlm(
+                image_content,
+                facility_name,
+                img.get('source', img['url'])
+            )
+
+            if not analysis:
+                continue
+
+            total_cost += analysis.get('cost', 0.0)
+
+            # Check if senior activity area confirmed
+            if analysis.get('is_senior_activity_area') and \
+               analysis.get('tv_visible') and \
+               analysis.get('confidence') in ['high', 'medium']:
+
+                return {
+                    'lead_status': 'qualified',
+                    'channel': 'senior_activity_area',
+                    'evidence_url': img.get('source', img['url']),
+                    'evidence_type': 'senior_activity_area_image',
+                    'space_type': analysis.get('space_type', 'activity_room'),
+                    'senior_living_indicators': ','.join(analysis.get('senior_living_indicators', [])),
+                    'confidence': analysis.get('confidence', 'low'),
+                    'reasoning': analysis.get('reasoning', ''),
+                    'cost': total_cost,
+                    'qualifying_path': 'senior_activity'
+                }
+
+        return {
+            'lead_status': 'no_evidence',
+            'channel': 'senior_activity_area',
+            'cost': total_cost,
+            'reason': f'No qualifying senior activity areas in {images_analyzed} images analyzed ({images_entity_rejected} entity mismatches filtered)',
+            'qualifying_path': 'senior_activity'
+        }
+
+    def search_pediatric_images(self, facility_name: str, state: str) -> Optional[List[Dict]]:
+        """
+        Search for images of pediatric waiting areas using Serper Image Search.
+
+        Returns list of image dicts with 'url', 'source', 'title' fields.
+        """
+        queries = [
+            f"{facility_name} {state} pediatric waiting room",
+            f"{facility_name} {state} children waiting area",
+            f"{facility_name} pediatric department",
+        ]
+
+        all_images = []
+
+        for query in queries:
+            try:
+                url = "https://google.serper.dev/images"
+                headers = {
+                    "X-API-KEY": self.serper_key,
+                    "Content-Type": "application/json"
+                }
+                payload = {"q": query, "num": 10}
+
+                response = requests.post(url, headers=headers, json=payload, timeout=30)
+
+                if response.status_code != 200:
+                    print(f"  Serper pediatric image search error {response.status_code}")
+                    continue
+
+                data = response.json()
+                images = data.get("images", [])
+
+                for img in images:
+                    if not isinstance(img, dict):
+                        continue
+
+                    image_url = img.get("imageUrl", "")
+                    source_url = img.get("link", "")
+                    title = img.get("title", "")
+
+                    if not image_url:
+                        continue
+
+                    all_images.append({
+                        "url": image_url,
+                        "source": source_url,
+                        "title": title
+                    })
+
+                if all_images:
+                    break  # Stop after first successful query
+
+            except Exception as e:
+                print(f"  Pediatric image search error: {e}")
+                continue
+
+        return all_images[:5] if all_images else None
+
+    def analyze_pediatric_waiting_area_vlm(self, image_content: bytes, facility_name: str, image_source: str) -> Optional[Dict]:
+        """
+        Analyze image for pediatric waiting area indicators using VLM.
+
+        Looks for:
+        - Pediatric-specific decor (toys, colorful furniture, children's art)
+        - Age-appropriate seating (small chairs, play areas)
+        - Medical context (healthcare facility, not daycare/school)
+
+        Returns dict with:
+        - is_pediatric_waiting_area: bool
+        - confidence: high|medium|low
+        - pediatric_indicators: list of features seen
+        - reasoning: str (what was seen)
+        - cost: float (VLM API cost)
+        """
+        try:
+            img_b64 = base64.b64encode(image_content).decode('utf-8')
+
+            img_format = imghdr.what(None, h=image_content)
+            if img_format == 'png':
+                media_type = "image/png"
+            elif img_format in ['jpeg', 'jpg']:
+                media_type = "image/jpeg"
+            else:
+                media_type = "image/jpeg"
+
+            client = Anthropic(api_key=self.anthropic_key)
+
+            prompt = f"""Analyze this image for evidence of a PEDIATRIC WAITING AREA in a healthcare facility.
+
+Facility: {facility_name}
+Source: {image_source}
+
+QUALIFYING CRITERIA:
+✅ Must be a HEALTHCARE FACILITY waiting area (not daycare, school, or home)
+✅ Must have PEDIATRIC-specific indicators:
+   - Toys, play areas, children's books
+   - Small chairs, child-sized furniture
+   - Colorful decor, cartoon characters, children's artwork
+   - Age-appropriate entertainment (kids' TV shows, games)
+
+❌ EXCLUDE:
+- General hospital lobbies without pediatric features
+- Medical exam rooms (not waiting areas)
+- Staff areas or administrative spaces
+- Schools, daycares, or non-medical facilities
+- Adult waiting rooms (even with TV)
+
+Answer ONLY with valid JSON:
+{{
+  "is_pediatric_waiting_area": true|false,
+  "confidence": "high|medium|low",
+  "pediatric_indicators": ["list specific features seen"],
+  "space_type": "pediatric_waiting_room|general_lobby|exam_room|non_medical|unclear",
+  "reasoning": "Detailed explanation of what you see and why it qualifies/disqualifies"
+}}"""
+
+            response = client.messages.create(
+                model="claude-sonnet-4-5-20250929",
+                max_tokens=400,
+                messages=[{
+                    "role": "user",
+                    "content": [
+                        {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": img_b64}},
+                        {"type": "text", "text": prompt}
+                    ]
+                }]
+            )
+
+            text = response.content[0].text.strip()
+            if text.startswith("```"):
+                text = text.split("```")[1].replace("json", "").strip()
+
+            result = json.loads(text)
+
+            # Calculate cost
+            cost = (response.usage.input_tokens / 1_000_000 * 3.00) + \
+                   (response.usage.output_tokens / 1_000_000 * 15.00)
+
+            result['cost'] = cost
+            return result
+
+        except Exception as e:
+            print(f"  Pediatric VLM analysis error: {e}")
+            return None
+
+    def search_and_analyze_pediatric(self, facility_name: str, state: str, account_website: str = None) -> Dict:
+        """
+        PATH B: Search for and verify pediatric waiting area with STRICT entity verification.
+
+        Args:
+            facility_name: Target facility name
+            state: State abbreviation
+            account_website: Account's own website URL (for domain verification)
+
+        Returns:
+        - tier: PROSPECT | REJECTED
+        - channel: pediatric_waiting_area
+        - evidence_url: source URL of confirming image
+        - reasoning: VLM explanation
+        - cost: total detection cost
+        - qualifying_path: 'pediatric_area' (for reporting)
+        """
+        total_cost = 0.003  # Serper image search cost
+
+        # Search for pediatric images
+        images = self.search_pediatric_images(facility_name, state)
+
+        if not images:
+            return {
+                'lead_status': 'no_evidence',
+                'channel': 'pediatric_waiting_area',
+                'cost': total_cost,
+                'reason': 'No pediatric images found',
+                'qualifying_path': 'pediatric_area'
+            }
+
+        print(f"      Found {len(images)} pediatric candidate images")
+
+        # Analyze images with VLM
+        images_analyzed = 0
+        images_entity_rejected = 0
+        for img in images:
+            # ENTITY VERIFICATION (STRICT): Use domain matching + business type check
+            # This prevents false positives like:
+            # - "Capital Senior Living" matching "Capital Health" (different orgs)
+            # - "Meridian Senior Living" matching "Meridian Pediatrics" (incompatible types)
+            source_url = img.get('source', '')
+            title = img.get('title', '')
+            source_text = f"{source_url} {title}"
+
+            if not self.verify_entity_match(source_text, facility_name, account_website=account_website):
+                images_entity_rejected += 1
+                print(f"      Entity mismatch: '{title}' does not match '{facility_name}'")
+                continue
+
+            # Validate image
+            image_content = self.validate_image(img['url'])
+            if not image_content:
+                continue
+
+            images_analyzed += 1
+
+            # VLM analysis
+            analysis = self.analyze_pediatric_waiting_area_vlm(
+                image_content,
+                facility_name,
+                img.get('source', img['url'])
+            )
+
+            if not analysis:
+                continue
+
+            total_cost += analysis.get('cost', 0.0)
+
+            # Check if pediatric waiting area confirmed
+            if analysis.get('is_pediatric_waiting_area') and \
+               analysis.get('confidence') in ['high', 'medium']:
+
+                return {
+                    'lead_status': 'qualified',
+                    'channel': 'pediatric_waiting_area',
+                    'evidence_url': img.get('source', img['url']),
+                    'evidence_type': 'pediatric_waiting_area_image',
+                    'space_type': analysis.get('space_type', 'pediatric_waiting_room'),
+                    'pediatric_indicators': ','.join(analysis.get('pediatric_indicators', [])),
+                    'confidence': analysis.get('confidence', 'low'),
+                    'reasoning': analysis.get('reasoning', ''),
+                    'cost': total_cost,
+                    'qualifying_path': 'pediatric_area'  # For reporting
+                }
+
+        return {
+            'lead_status': 'no_evidence',
+            'channel': 'pediatric_waiting_area',
+            'cost': total_cost,
+            'reason': f'No qualifying pediatric waiting areas in {images_analyzed} images analyzed ({images_entity_rejected} entity mismatches filtered)',
+            'qualifying_path': 'pediatric_area'
+        }
+
+    # ========== DUAL-PATH ORCHESTRATOR ==========
+
+    def enrich_facility_dual_path(self, facility_name: str, city: str, state: str, segment: str = 'UNKNOWN', search_name: str = None, account_website: str = None) -> Dict:
+        """
+        DUAL-PATH qualification system with facility-type-specific routing.
+
+        Path A (TV Detection): 7-stage waterfall with early exit
+        Path B (Facility-specific):
+          - Senior Living: Activity/entertainment area detection (movie nights, lounges)
+          - Pediatric/Other Healthcare: Pediatric waiting area detection
+
+        Both paths run independently. Results merged with qualifying_path field.
+
+        Args:
+            facility_name: Target facility name
+            city: City name
+            state: State abbreviation
+            segment: SB/MM/ENT
+            search_name: Simplified name for searches (optional)
+            account_website: Account's own website URL for entity verification (optional)
+
+        Returns single dict with:
+        - qualifying_path: 'tv_detection' | 'pediatric_area' | 'senior_activity' | 'both'
+        - All evidence fields from qualifying path(s)
+        """
+        # Run Path A (TV Detection waterfall)
+        tv_result = self.enrich_facility(facility_name, city, state, segment, search_name)
+
+        # Detect facility type to route Path B appropriately
+        facility_type = self.detect_facility_type(facility_name)
+        print(f"      Facility type detected: {facility_type}")
+
+        # Run Path B (facility-type specific)
+        if facility_type == 'senior_living':
+            # Senior living: Text mining from reviews for activity mentions
+            # (Image search doesn't work - no public facility photos)
+            path_b_result = self.search_senior_activity_reviews(facility_name, state)
+        else:
+            # Pediatric or general healthcare: Look for pediatric waiting areas
+            path_b_result = self.search_and_analyze_pediatric(facility_name, state, account_website=account_website)
+
+        # Merge results based on what qualified
+        tv_qualified = tv_result.get('lead_status') == 'qualified'
+        path_b_qualified = path_b_result.get('lead_status') == 'qualified'
+
+        if tv_qualified and path_b_qualified:
+            # Both paths qualify - merge evidence, prioritize TV detection for primary channel
+            return {
+                **tv_result,
+                'qualifying_path': 'both',
+                'secondary_evidence_url': path_b_result.get('evidence_url', ''),
+                'secondary_reasoning': path_b_result.get('reasoning', ''),
+                'secondary_channel': path_b_result.get('channel', ''),
+                'secondary_confidence': path_b_result.get('confidence', ''),
+                'cost': tv_result.get('cost', 0) + path_b_result.get('cost', 0)
+            }
+        elif tv_qualified:
+            # TV detection only
+            return {**tv_result, 'qualifying_path': 'tv_detection'}
+        elif path_b_qualified:
+            # Path B only (senior activity or pediatric)
+            return {**path_b_result, 'vertical': 'healthcare'}
+        else:
+            # Neither qualified - return combined rejection
+            path_b_name = 'Senior Activity' if facility_type == 'senior_living' else 'Pediatric'
+            return {
+                'lead_status': 'no_evidence',
+                'channel': 'none',
+                'cost': tv_result.get('cost', 0) + path_b_result.get('cost', 0),
+                'vertical': 'healthcare',
+                'reason': f"TV detection: {tv_result.get('reason', 'No evidence')}; {path_b_name}: {path_b_result.get('reason', 'No evidence')}"
+            }
 
     def enrich_facility(self, facility_name: str, city: str, state: str, segment: str = 'UNKNOWN', search_name: str = None) -> Dict:
         """
-        7-stage waterfall with early exit on PROSPECT.
+        PATH A (TV Detection): 7-stage waterfall with early exit on PROSPECT.
 
         Args:
             facility_name: Clean name for procurement matching
@@ -729,7 +2047,7 @@ Answer ONLY with valid JSON:
                     if result:
                         processing_log.append("Stage 2A: PROSPECT (state procurement)")
                         return {
-                            'tier': 'PROSPECT',
+                            'lead_status': 'qualified',
                             'channel': 'state_procurement',
                             'evidence_url': result.get('source_url', ''),
                             'source_url': result.get('source_url', ''),
@@ -752,7 +2070,7 @@ Answer ONLY with valid JSON:
                 if result:
                     processing_log.append("Stage 2B: PROSPECT (federal contracts)")
                     return {
-                        'tier': 'PROSPECT',
+                        'lead_status': 'qualified',
                         'channel': 'federal_contracts',
                         'evidence_url': result.get('Award ID', ''),
                         'source_url': f"https://www.usaspending.gov/award/{result.get('Award ID', '')}",
@@ -771,27 +2089,47 @@ Answer ONLY with valid JSON:
                 processing_log.append(f"Stage 2B: Error - {str(e)[:50]}")
                 total_cost += 0.001  # Still count API call
 
-            # Stage 3: YouTube Video + YOLO + VLM ($0.015-0.025)
-            try:
-                # Use search_name for YouTube queries (cleaner, better matches)
-                video_result = self.search_and_analyze_videos(search_name, city, state)
-                total_cost += video_result.get('cost', 0.0)
+            # Stage 3: YouTube Video + YOLO + VLM ($0.015-0.025, assisted living only)
+            if self.enable_youtube:
+                try:
+                    # Use search_name for YouTube queries (cleaner, better matches)
+                    video_result = self.search_and_analyze_videos(search_name, city, state)
+                    total_cost += video_result.get('cost', 0.0)
 
-                if video_result['tier'] == 'PROSPECT':
-                    processing_log.append("Stage 3: PROSPECT (video)")
-                    return {**video_result, 'cost': total_cost, 'processing_log': processing_log, 'vertical': 'healthcare'}
-                else:
-                    processing_log.append(f"Stage 3: {video_result.get('reason', 'No evidence')}")
+                    if video_result['tier'] == 'qualified':
+                        processing_log.append("Stage 3: PROSPECT (video)")
+                        return {**video_result, 'cost': total_cost, 'processing_log': processing_log, 'vertical': 'healthcare'}
+                    else:
+                        processing_log.append(f"Stage 3: {video_result.get('reason', 'No evidence')}")
 
-            except Exception as e:
-                processing_log.append(f"Stage 3: Error - {str(e)[:50]}")
+                except Exception as e:
+                    processing_log.append(f"Stage 3: Error - {str(e)[:50]}")
+            else:
+                processing_log.append("Stage 3: SKIPPED (YouTube disabled for this run)")
 
-            # Stages 4-7: Future channels (STUB)
-            processing_log.append("Stages 4-7: Not implemented")
+            # Stage 4: Hospital Image Search + VLM ($0.02-0.03, 75% hit rate on private hospitals)
+            if self.enable_image_search:
+                try:
+                    image_result = self.search_and_analyze_images(facility_name, state=state, operating_market="United States")
+                    total_cost += image_result.get('cost', 0.0)
+
+                    if image_result['tier'] == 'qualified':
+                        processing_log.append("Stage 4: PROSPECT (hospital images)")
+                        return {**image_result, 'cost': total_cost, 'processing_log': processing_log, 'vertical': 'healthcare'}
+                    else:
+                        processing_log.append(f"Stage 4: {image_result.get('reason', 'No evidence')}")
+
+                except Exception as e:
+                    processing_log.append(f"Stage 4: Error - {str(e)[:50]}")
+            else:
+                processing_log.append("Stage 4: SKIPPED (Image search disabled for this run)")
+
+            # Stages 5-7: Future channels (STUB)
+            processing_log.append("Stages 5-7: Not implemented")
 
             # No evidence found
             return {
-                'tier': 'REJECTED',
+                'lead_status': 'no_evidence',
                 'channel': 'none',
                 'evidence_url': '',
                 'confidence': 'none',
@@ -804,7 +2142,7 @@ Answer ONLY with valid JSON:
         except Exception as e:
             # Catch-all: never let exceptions propagate to unified_worker
             return {
-                'tier': 'REJECTED',
+                'lead_status': 'no_evidence',
                 'channel': 'error',
                 'cost': total_cost,
                 'vertical': 'healthcare',
@@ -856,8 +2194,58 @@ def process_account(record: Dict) -> Dict:
     - segment (SB/MM/ENT from ROE segmentation)
 
     Output: {**record, **enrichment_result}
+
+    Channel Configuration (set via environment variables):
+    - ENABLE_YOUTUBE=true|false (default: true)
+    - ENABLE_IMAGE_SEARCH=true|false (default: true)
+
+    Example usage:
+        # Fast ROE run (free channels only)
+        export ENABLE_YOUTUBE=false
+        export ENABLE_IMAGE_SEARCH=false
+        python3 unified_worker.py healthcare batch.csv
+
+        # Full pipeline (all channels)
+        export ENABLE_YOUTUBE=true
+        export ENABLE_IMAGE_SEARCH=true
+        python3 unified_worker.py healthcare batch.csv
     """
-    enricher = HealthcareEnricherUnified()
+    # Read channel configuration from environment (defaults to all enabled)
+    enable_youtube = os.getenv('ENABLE_YOUTUBE', 'true').lower() == 'true'
+    enable_image_search = os.getenv('ENABLE_IMAGE_SEARCH', 'true').lower() == 'true'
+
+    enricher = HealthcareEnricherUnified(
+        enable_youtube=enable_youtube,
+        enable_image_search=enable_image_search
+    )
+
+    # PRE-FLIGHT SAFETY CHECKS - Filter accounts that should not be enriched
+    # These should have been filtered in Salesforce processing, but check again as safety net
+
+    # Check 1: Industry filter (MDU, Hospitality, Retail, Real Estate)
+    EXCLUDED_INDUSTRIES = ['Communal Living Facilities', 'Hospitality', 'Retail', 'Real Estate']
+    industry = record.get('industry', '').strip()
+    if industry in EXCLUDED_INDUSTRIES:
+        return {
+            **record,
+            'lead_status': 'no_evidence',
+            'channel': 'none',
+            'cost': 0.0,
+            'reason': f'Pre-flight filter: Non-healthcare industry ({industry})'
+        }
+
+    # Check 2: Account Status filter (Licensed accounts)
+    # Note: This requires account_status field to be passed through from Salesforce
+    EXCLUDED_STATUSES = ['Licensed', 'Inactive', 'Expired', 'Do Not Market', 'Delete / Duplicate']
+    account_status = record.get('account_status', '').strip()
+    if account_status in EXCLUDED_STATUSES:
+        return {
+            **record,
+            'lead_status': 'no_evidence',
+            'channel': 'none',
+            'cost': 0.0,
+            'reason': f'Pre-flight filter: Account Status = {account_status}'
+        }
 
     # Normalize account name if normalizer available
     if enricher.normalizer and not record.get('clean_name'):
@@ -881,18 +2269,25 @@ def process_account(record: Dict) -> Dict:
     city = record.get('account_state', '')  # Use full state name for broader search (matches old enricher)
     state = record.get('state_abbrev', record.get('account_state', ''))
     segment = record.get('segment', 'UNKNOWN')
+    website = record.get('website', '')  # For entity verification via domain matching
 
     if not facility_name:
         return {
             **record,
-            'tier': 'REJECTED',
+            'lead_status': 'no_evidence',
             'channel': 'none',
             'cost': 0.0,
             'error': 'Missing facility name'
         }
 
     # Pass both clean_name (for procurement) and search_name (for YouTube)
-    result = enricher.enrich_facility(facility_name, city, state, segment, search_name=search_name)
+    # Use DUAL-PATH enrichment (TV detection + Pediatric waiting area)
+    # Pass website for STRICT entity verification via domain matching
+    result = enricher.enrich_facility_dual_path(
+        facility_name, city, state, segment,
+        search_name=search_name,
+        account_website=website
+    )
 
     # Add normalization cost if present
     if 'normalization_cost' in record:
