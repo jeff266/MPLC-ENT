@@ -1219,18 +1219,20 @@ def process_property(record: dict) -> dict:
     try:
         enricher = MDUEnricherUnified()
 
-        property_name = record.get('property_name', '')
+        property_name = record.get('account_name', record.get('property_name', ''))
         city = record.get('city', '')
         state = record.get('state', '')
         website = record.get('website', '')
 
         result = enricher.enrich_property(property_name, city, state, website)
 
-        return {**record, **result}
+        return {**record, **result, 'property_name': property_name}
 
     except Exception as e:
+        property_name = record.get('account_name', record.get('property_name', ''))
         return {
             **record,
+            'property_name': property_name,
             'lead_status': 'no_evidence',
             'channel': 'none',
             'evidence_url': '',
