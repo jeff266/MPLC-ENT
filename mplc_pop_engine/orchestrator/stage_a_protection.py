@@ -19,7 +19,7 @@ import pandas as pd
 _REPO_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(_REPO_ROOT / "MPLC" / "production" / "workers"))
 
-from account_protection import load_and_filter
+from protection_filter import run_protection_filter as run_new_protection_filter
 from protected_dataframe import ProtectedDataFrame
 
 
@@ -35,10 +35,14 @@ def run_protection_filter(
     """
     Run Stage A protection filtering.
 
+    UPDATED 2024-11-04: Now uses zero-based protection with full hierarchy walk.
+    No longer requires external protected_path CSV - computes protection live
+    from the account universe.
+
     Args:
-        recyclable_path: Path to recyclable accounts CSV
-        protected_path: Path to protected accounts CSV
-        sf_full_path: Path to full Salesforce export
+        recyclable_path: Path to recyclable accounts CSV (DEPRECATED - now uses sf_full_path as universe)
+        protected_path: Path to protected accounts CSV (DEPRECATED - no longer used)
+        sf_full_path: Path to full Salesforce export (account universe)
         output_dir: Directory for output files
         run_date: Date string for file naming (YYYY-MM-DD)
         open_deals_path: Optional path to open deals CSV
@@ -63,14 +67,16 @@ def run_protection_filter(
         print("=" * 80)
         print()
 
-    # Run protection filter using existing module
-    audit_df, safe_df = load_and_filter(
-        recyclable_path=recyclable_path,
-        protected_path=protected_path,
-        sf_full_path=sf_full_path,
-        open_deals_path=open_deals_path,
+    # Run new protection filter (zero-based, full hierarchy walk)
+    # NOTE: recyclable_path and protected_path are now ignored - we compute
+    # protection live from sf_full_path (the account universe)
+    safe_df, audit_df = run_new_protection_filter(
+        account_universe_path=sf_full_path,
+        output_safe_path=str(safe_path),
         output_audit_path=str(audit_path),
-        output_safe_path=str(safe_path)
+        run_date=run_date,
+        open_deals_path=open_deals_path,
+        verbose=verbose
     )
 
     # Wrap in ProtectedDataFrame to enforce downstream usage
