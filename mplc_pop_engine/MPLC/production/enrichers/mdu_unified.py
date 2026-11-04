@@ -25,25 +25,32 @@ from anthropic import Anthropic
 from ultralytics import YOLO
 
 # Import generic website image channel
-channels_path = Path(__file__).parent.parent / 'channels'
-sys.path.insert(0, str(channels_path))
-try:
-    from website_image_channel import WebsiteImageEvidenceChannel
-    GENERIC_IMAGE_CHANNEL_AVAILABLE = True
-except ImportError as e:
-    GENERIC_IMAGE_CHANNEL_AVAILABLE = False
-    print(f"Warning: Generic image channel not available - {e}")
+# Try same directory first (droplet deployment), then nested repo structure (local dev)
+GENERIC_IMAGE_CHANNEL_AVAILABLE = False
+for path in [Path(__file__).parent, Path(__file__).parent.parent / 'channels']:
+    sys.path.insert(0, str(path))
+    try:
+        from website_image_channel import WebsiteImageEvidenceChannel
+        GENERIC_IMAGE_CHANNEL_AVAILABLE = True
+        break
+    except ImportError:
+        continue
+if not GENERIC_IMAGE_CHANNEL_AVAILABLE:
+    print(f"Warning: Generic image channel not available (tried: {Path(__file__).parent}, {Path(__file__).parent.parent / 'channels'})")
 
 # Import text-mining channel
-# Path: enrichers/mdu_unified.py -> production -> MPLC -> mplc_pop_engine -> verticals/mdu
-text_channel_path = Path(__file__).parent.parent.parent.parent / 'verticals/mdu'
-sys.path.insert(0, str(text_channel_path))
-try:
-    from amenity_text_channel import MDUAmenityTextChannel
-    TEXT_CHANNEL_AVAILABLE = True
-except ImportError as e:
-    TEXT_CHANNEL_AVAILABLE = False
-    print(f"Warning: Amenity text channel not available - {e}")
+# Try same directory first (droplet deployment), then nested repo structure (local dev)
+TEXT_CHANNEL_AVAILABLE = False
+for path in [Path(__file__).parent, Path(__file__).parent.parent.parent.parent / 'verticals/mdu']:
+    sys.path.insert(0, str(path))
+    try:
+        from amenity_text_channel import MDUAmenityTextChannel
+        TEXT_CHANNEL_AVAILABLE = True
+        break
+    except ImportError:
+        continue
+if not TEXT_CHANNEL_AVAILABLE:
+    print(f"Warning: Amenity text channel not available (tried: {Path(__file__).parent}, {Path(__file__).parent.parent.parent.parent / 'verticals/mdu'})")
 
 # Load environment variables from .env file (without python-dotenv dependency)
 def load_env_file(env_path):
@@ -1222,7 +1229,7 @@ def process_property(record: dict) -> dict:
         property_name = record.get('account_name', record.get('property_name', ''))
         city = record.get('city', '')
         state = record.get('state', '')
-        website = record.get('website', '')
+        website = record.get('website_url', record.get('website', ''))  # Try website_url first, fallback to website
 
         result = enricher.enrich_property(property_name, city, state, website)
 

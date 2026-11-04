@@ -143,7 +143,7 @@ class SupabaseWriter:
         self,
         accounts: List[Dict[str, Any]],
         run_date: date,
-        is_prospect: bool = True
+        is_prospect: bool = False
     ) -> int:
         """
         Pre-populate pending rows for entire batch.
@@ -151,7 +151,7 @@ class SupabaseWriter:
         Args:
             accounts: List of account dicts with account_id, account_name, vertical, segment
             run_date: Run date for this batch
-            is_prospect: Whether these accounts are prospects (from _ready files)
+            is_prospect: Set by completion logic based on enrichment outcome (not at queue time)
 
         Returns:
             Number of rows inserted
