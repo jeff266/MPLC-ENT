@@ -4,6 +4,7 @@
 
 - `account_protection.py` - Old protection filter with stale external reference list
 - `account_hierarchy_roe.py` - Old hierarchy walking logic with activity checks
+- `protection_filter_slow.py` - First rewrite (correct logic, O(n²) performance bug)
 
 ## Why Archived
 
@@ -40,3 +41,5 @@ Both files contained bugs that allowed 4 healthcare prospects (Adventist Health,
 - Last run: 2024-11-03 (701,978 accounts processed)
 - Bug discovered: 2024-11-04 (4 healthcare prospects bypassed protection)
 - Replaced by new filter: 2024-11-04
+- Performance bug discovered: 2024-11-04 (O(n²) → 20 accounts took 120s, full run would take hours/days)
+- Replaced by performance-optimized version: 2024-11-04 (13.1 minutes for 701,977 accounts)

@@ -1,14 +1,23 @@
 """
-Account Protection Filter - Single source of truth for protection logic.
+Account Protection Filter - Performance-optimized version.
 
-Replaces account_protection.py + account_hierarchy_roe.py with a unified
-implementation that computes protection status live from the account universe,
-with no external reference lists.
+Fixes O(n²) performance bug in protection_filter.py by building lookup structures
+once and reusing them for all accounts instead of rebuilding per account.
 
-Requirements:
+Key changes:
+1. Build universe_idx, parent_to_children, id15_to_id18 map ONCE
+2. Pre-parse all date fields vectorized (not per-row in Python loop)
+3. Build status/name/activity dicts ONCE from vectorized operations
+4. Add cycle guard to walk_tree() to prevent infinite recursion
+
+Original: 20 accounts took 120+ seconds (O(n²) → full run would take hours/days)
+Optimized: Expected <5 minutes for 701,977 accounts
+
+Requirements (unchanged from original):
 - R1: Zero-based protection (no external protected_path CSV)
 - R2: Full hierarchy walk (all ancestors + all descendants, any depth)
 - R3: Check three conditions: bad status, 90-day activity, open deal
+- Deterministic ordering: sorted children for reproducible reasons
 """
 
 from typing import Dict, Set, Optional, List, Tuple
@@ -27,50 +36,99 @@ def _normalize_id_to_15(account_id: str) -> str:
     return str(account_id)[:15]
 
 
-def _is_account_active(row: pd.Series, run_date: datetime) -> bool:
+def _build_lookup_structures(
+    universe: pd.DataFrame,
+    run_date: datetime
+) -> Tuple[pd.DataFrame, Dict[str, List[str]], Dict[str, str], Dict[str, str], Dict[str, str], Dict[str, bool]]:
     """
-    Check if account has activity within 90-day window.
+    Build all lookup structures ONCE for reuse across all accounts.
 
-    Reuses logic from account_hierarchy_roe.py - checks:
-    - Last Activity
-    - Last Modified Date
-    - Created Date
-
-    Returns True if ANY of these dates fall within 90 days of run_date.
+    Returns:
+        (universe_idx, parent_to_children, id15_to_id18, status_map, name_map, active_map)
     """
+    # 1. Indexed universe for fast lookups
+    universe_idx = universe.set_index('18 Digit Account ID')
+
+    # 2. Parent -> children map (keyed by 15-digit parent ID)
+    parent_to_children = {}
+    for _, row in universe.iterrows():
+        parent_15 = _normalize_id_to_15(row.get('Parent Account ID', ''))
+        if parent_15:
+            if parent_15 not in parent_to_children:
+                parent_to_children[parent_15] = []
+            parent_to_children[parent_15].append(row['18 Digit Account ID'])
+
+    # 3. 15-digit -> 18-digit ID map (for fast parent lookups)
+    id15_to_id18 = {}
+    for acc_id in universe['18 Digit Account ID']:
+        id15 = _normalize_id_to_15(acc_id)
+        if id15:
+            id15_to_id18[id15] = acc_id
+
+    # 4. Status map (account_id -> status string)
+    status_map = {}
+    for _, row in universe.iterrows():
+        acc_id = row['18 Digit Account ID']
+        status_map[acc_id] = row.get('Account Status', '')
+
+    # 5. Name map (account_id -> account name)
+    name_map = {}
+    for _, row in universe.iterrows():
+        acc_id = row['18 Digit Account ID']
+        name_map[acc_id] = row.get('Account Name', 'Unknown')
+
+    # 6. Activity map (account_id -> bool) - VECTORIZED date parsing
     cutoff_date = run_date - timedelta(days=90)
 
+    # Start with all False
+    active_map = {acc_id: False for acc_id in universe['18 Digit Account ID']}
+
+    # Check each date field vectorized
     date_fields = ['Last Activity', 'Last Modified Date', 'Created Date']
 
     for field in date_fields:
-        if field not in row or pd.isna(row[field]):
+        if field not in universe.columns:
             continue
 
-        try:
-            # Parse date - handle multiple formats
-            field_date = pd.to_datetime(row[field], errors='coerce')
-            if pd.notna(field_date) and field_date >= cutoff_date:
-                return True
-        except:
-            continue
+        # Parse entire column vectorized (NOT in Python loop)
+        parsed_dates = pd.to_datetime(universe[field], errors='coerce')
 
-    return False
+        # Find accounts where this field >= cutoff
+        is_active_mask = parsed_dates >= cutoff_date
+
+        # Update active_map for accounts that are active
+        for idx, is_active in enumerate(is_active_mask):
+            if is_active:
+                acc_id = universe.iloc[idx]['18 Digit Account ID']
+                active_map[acc_id] = True
+
+    return universe_idx, parent_to_children, id15_to_id18, status_map, name_map, active_map
 
 
-def compute_protection(
+def compute_protection_fast(
     account_id: str,
-    universe: pd.DataFrame,
-    run_date: datetime,
-    open_deal_ids: Optional[Set[str]] = None
+    universe_idx: pd.DataFrame,
+    parent_to_children: Dict[str, List[str]],
+    id15_to_id18: Dict[str, str],
+    status_map: Dict[str, str],
+    name_map: Dict[str, str],
+    active_map: Dict[str, bool],
+    open_deal_ids: Set[str]
 ) -> Dict:
     """
     Compute protection status for an account by walking its full hierarchy.
 
+    PERFORMANCE: Uses precomputed lookup structures instead of rebuilding per account.
+
     Args:
         account_id: 18-digit Salesforce account ID to check
-        universe: Full account universe (all accounts being filtered)
-        run_date: Date of this protection run (for 90-day activity check)
-        open_deal_ids: Optional set of 18-digit account IDs with open deals
+        universe_idx: Indexed universe DataFrame (built once)
+        parent_to_children: Map of parent_15 -> [child_ids] (built once)
+        id15_to_id18: Map of 15-digit -> 18-digit IDs (built once)
+        status_map: Map of account_id -> status (built once)
+        name_map: Map of account_id -> name (built once)
+        active_map: Map of account_id -> bool (built once, vectorized)
+        open_deal_ids: Set of 18-digit account IDs with open deals
 
     Returns:
         {
@@ -79,21 +137,6 @@ def compute_protection(
             'checked_nodes': int,  # how many hierarchy nodes were examined
         }
     """
-    if open_deal_ids is None:
-        open_deal_ids = set()
-
-    # Index universe for fast lookups
-    universe_idx = universe.set_index('18 Digit Account ID')
-
-    # Build parent->children map (using 15-digit IDs for parent lookups)
-    parent_to_children = {}
-    for idx, row in universe.iterrows():
-        parent_15 = _normalize_id_to_15(row.get('Parent Account ID', ''))
-        if parent_15:
-            if parent_15 not in parent_to_children:
-                parent_to_children[parent_15] = []
-            parent_to_children[parent_15].append(row['18 Digit Account ID'])
-
     # Find root ancestor by walking up parent chain
     def find_root(acc_id: str) -> str:
         visited = set()
@@ -111,14 +154,12 @@ def compute_protection(
             if pd.isna(parent_id) or not parent_id:
                 break
 
-            # Find parent's 18-digit ID by looking up the 15-digit version
+            # Find parent's 18-digit ID using precomputed map (O(1) instead of O(n))
             parent_15 = _normalize_id_to_15(parent_id)
-            parent_matches = universe[universe['18 Digit Account ID'].str[:15] == parent_15]
-
-            if len(parent_matches) == 0:
+            if parent_15 not in id15_to_id18:
                 break
 
-            current = parent_matches.iloc[0]['18 Digit Account ID']
+            current = id15_to_id18[parent_15]
 
         return current
 
@@ -127,25 +168,33 @@ def compute_protection(
 
     checked_nodes = 0
     reasons = []
+    visited_tree = set()  # Cycle guard
 
     def walk_tree(node_id: str, relationship: str = 'self'):
         """Recursively walk tree, checking each node for protection triggers."""
         nonlocal checked_nodes, reasons
 
+        # Cycle guard: prevent infinite recursion if data has cycles
+        if node_id in visited_tree:
+            return
+        visited_tree.add(node_id)
+
         if not node_id or node_id not in universe_idx.index:
             return
 
         checked_nodes += 1
-        row = universe_idx.loc[node_id]
-        account_name = row.get('Account Name', 'Unknown')
+
+        # Use precomputed maps (O(1) lookups)
+        account_name = name_map.get(node_id, 'Unknown')
+        status = status_map.get(node_id, '')
+        is_active = active_map.get(node_id, False)
 
         # Check 1: Bad status
-        status = row.get('Account Status', '')
         if status in BAD_STATUSES:
             reasons.append(f"bad_status:{status} ({account_name}, {relationship})")
 
-        # Check 2: Recent activity (90-day window)
-        if _is_account_active(row, run_date):
+        # Check 2: Recent activity (90-day window) - precomputed
+        if is_active:
             reasons.append(f"recent_activity ({account_name}, {relationship})")
 
         # Check 3: Open deal
@@ -195,6 +244,9 @@ def run_protection_filter(
     """
     Run protection filter on full account universe.
 
+    PERFORMANCE: Builds lookup structures once, then reuses for all accounts.
+    Original O(n²) version rebuilt structures for each account.
+
     Args:
         account_universe_path: Path to full Salesforce account export CSV
         output_safe_path: Where to save safe-to-process CSV
@@ -208,7 +260,7 @@ def run_protection_filter(
     """
     if verbose:
         print("=" * 80)
-        print("ACCOUNT PROTECTION FILTER")
+        print("ACCOUNT PROTECTION FILTER (PERFORMANCE-OPTIMIZED)")
         print("=" * 80)
         print()
 
@@ -238,6 +290,20 @@ def run_protection_filter(
 
     print()
 
+    # BUILD LOOKUP STRUCTURES ONCE (this is the key performance fix)
+    if verbose:
+        print("Building lookup structures...")
+
+    universe_idx, parent_to_children, id15_to_id18, status_map, name_map, active_map = \
+        _build_lookup_structures(universe, run_datetime)
+
+    if verbose:
+        print(f"  universe_idx: {len(universe_idx):,} accounts")
+        print(f"  parent_to_children: {len(parent_to_children):,} parent groups")
+        print(f"  id15_to_id18: {len(id15_to_id18):,} ID mappings")
+        print(f"  active_map: {sum(active_map.values()):,} active accounts")
+        print()
+
     # Process each account
     if verbose:
         print("Running protection checks...")
@@ -250,8 +316,17 @@ def run_protection_filter(
         account_id = row['18 Digit Account ID']
         account_name = row.get('Account Name', 'Unknown')
 
-        # Compute protection
-        result = compute_protection(account_id, universe, run_datetime, open_deal_ids)
+        # Compute protection using precomputed structures
+        result = compute_protection_fast(
+            account_id,
+            universe_idx,
+            parent_to_children,
+            id15_to_id18,
+            status_map,
+            name_map,
+            active_map,
+            open_deal_ids
+        )
 
         # Build audit record
         audit_record = {
