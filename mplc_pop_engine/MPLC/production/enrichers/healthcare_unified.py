@@ -44,10 +44,24 @@ except ImportError:
     NORMALIZATION_AVAILABLE = False
     print("⚠️  WARNING: Normalization layer not available - using raw account names")
 
+# Import shared entity verification module
+sys.path.insert(0, str(Path(__file__).parent.parent / "workers"))
+try:
+    from entity_verification import verify_entity_match as shared_verify_entity_match
+    ENTITY_VERIFICATION_AVAILABLE = True
+except ImportError:
+    ENTITY_VERIFICATION_AVAILABLE = False
+    print("⚠️  WARNING: Shared entity verification not available - using fallback")
+
 # API Keys
 RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
-SERPER_API_KEY = os.getenv("SERPER_API_KEY")
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+try:
+    import config
+    SERPER_API_KEY = config.SERPER_API_KEY
+    ANTHROPIC_API_KEY = config.ANTHROPIC_API_KEY
+except ImportError:
+    SERPER_API_KEY = os.getenv("SERPER_API_KEY")
+    ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 
 # USASpending.gov API
 USASPENDING_API = "https://api.usaspending.gov/api/v2/search/spending_by_award/"
@@ -692,6 +706,16 @@ Answer ONLY with valid JSON:
                        analysis['is_common_area'] and \
                        analysis['confidence'] in ['high', 'medium']:
 
+                        # ENTITY VERIFICATION (CRITICAL): Verify this video is actually about this facility
+                        # This channel previously had NO entity verification - major source of false positives
+                        if not self.verify_entity_match(
+                            source_text=f"{video['url']} {video['title']}",
+                            facility_name=facility_name,
+                            account_website=None  # Not available in this context
+                        ):
+                            print(f"      Entity mismatch: video '{video['title'][:50]}' does not match '{facility_name}'")
+                            continue  # Try next frame/video
+
                         return {
                             'lead_status': 'qualified',
                             'channel': 'youtube_video_yolo',
@@ -1184,141 +1208,60 @@ Answer ONLY with valid JSON:
     def verify_entity_match(self, source_text: str, facility_name: str,
                           account_website: str = None, threshold: float = 0.85) -> bool:
         """
-        Verify that source matches the target facility using STRICT validation.
+        Verify that source matches the target facility using shared entity verification module.
 
-        Validation hierarchy (in order):
-        1. Domain match: If account website provided, evidence URL must share same domain
-        2. Business type check: Reject incompatible types (e.g., "pediatric" vs "senior living")
-        3. Strict name match: Require full organization name match, not just word overlap
+        UPDATED: Now uses shared entity_verification.py module instead of ad hoc implementation.
 
         This prevents false positives like:
         - "Capital Senior Living" matching "Capital Health" (different orgs)
         - "Meridian Senior Living" matching "Meridian Pediatrics" (incompatible types)
+        - "LMH Health" (Kansas) matching "Lehigh Valley Health Network" (Pennsylvania)
 
         Args:
-            source_text: Evidence URL, title, or description
+            source_text: Evidence URL, title, or description (combined string for compatibility)
             facility_name: Target facility name
             account_website: Account's own website URL (for domain verification)
-            threshold: Name similarity threshold (raised to 0.85 = 85%)
+            threshold: Name similarity threshold (default 0.85 = 85%, but module uses 0.75)
 
         Returns:
             True only if strong evidence this is the SAME entity
         """
-        from difflib import SequenceMatcher
-        from urllib.parse import urlparse
-
-        if not source_text or not facility_name:
-            return False
-
-        source_lower = source_text.lower()
-        facility_lower = facility_name.lower()
-
-        # Step 1: DOMAIN VERIFICATION (strongest signal)
-        # If we have the account's website, evidence URL MUST share the same domain
-        if account_website:
-            account_domain = self.extract_domain(account_website)
-
-            # Extract domain from evidence URL (source_text often contains URL)
-            evidence_domain = self.extract_domain(source_text)
-
-            if account_domain and evidence_domain:
-                # Domains must match OR be closely related
-                # Examples of valid matches:
-                #   - capitalsenior.com == capitalsenior.com (exact)
-                #   - blog.capitalsenior.com shares capitalsenior.com (subdomain)
-                if account_domain == evidence_domain:
-                    return True
-
-                # Check if one domain is substring of other (handles subdomains)
-                if account_domain in evidence_domain or evidence_domain in account_domain:
-                    return True
-
-                # If domains DON'T match, this is very likely a different entity
-                # Only continue to name matching if we don't have domain info
-                print(f"      Domain mismatch: account={account_domain} vs evidence={evidence_domain}")
+        if not ENTITY_VERIFICATION_AVAILABLE:
+            # Fallback: basic substring check (not recommended for production)
+            print("⚠️  WARNING: Using fallback entity verification (shared module not available)")
+            if not source_text or not facility_name:
                 return False
+            facility_clean = facility_name.lower().replace(', inc', '').replace(', llc', '').strip()
+            return facility_clean in source_text.lower()
 
-        # Step 2: BUSINESS TYPE INCOMPATIBILITY CHECK
-        # Reject if evidence mentions incompatible business types
-        facility_type_indicators = {
-            'senior': ['senior living', 'senior care', 'assisted living', 'retirement',
-                      'memory care', 'nursing home', 'elder care'],
-            'pediatric': ['pediatric', 'pediatrics', 'children', 'kids', 'youth',
-                         'adolescent', 'child health', 'children\'s']
-        }
+        # Parse source_text to extract URL and title (source_text is often "URL title" combined)
+        parts = source_text.split()
+        evidence_url = None
+        evidence_title = None
 
-        # Determine facility type from name
-        facility_type = None
-        for type_key, keywords in facility_type_indicators.items():
-            if any(kw in facility_lower for kw in keywords):
-                facility_type = type_key
-                break
+        # First part is usually the URL
+        if parts:
+            potential_url = parts[0]
+            if potential_url.startswith('http') or '.' in potential_url:
+                evidence_url = potential_url
+                # Rest is title
+                evidence_title = ' '.join(parts[1:]) if len(parts) > 1 else None
+            else:
+                # No URL, entire text is title
+                evidence_title = source_text
 
-        # Check for incompatible type in evidence
-        if facility_type == 'senior':
-            # Senior living facility - reject if evidence mentions pediatric
-            if any(kw in source_lower for kw in facility_type_indicators['pediatric']):
-                print(f"      Business type mismatch: '{facility_name}' is senior care, evidence mentions pediatric")
-                return False
-        elif facility_type == 'pediatric':
-            # Pediatric facility - reject if evidence mentions senior living
-            if any(kw in source_lower for kw in facility_type_indicators['senior']):
-                print(f"      Business type mismatch: '{facility_name}' is pediatric, evidence mentions senior care")
-                return False
+        # Call shared entity verification module
+        result = shared_verify_entity_match(
+            account_name=facility_name,
+            account_website=account_website,
+            evidence_url=evidence_url,
+            evidence_title=evidence_title,
+            evidence_snippet=source_text,  # Pass full text as snippet too
+            min_name_match_threshold=threshold if threshold < 0.85 else 0.75,  # Module default is 0.75
+            verbose=False
+        )
 
-        # Step 3: STRICT NAME MATCHING
-        # Require FULL organization name match, not just single word overlap
-
-        # Clean facility name (remove common suffixes)
-        facility_clean = facility_lower
-        for suffix in [', inc', ', llc', ' inc', ' llc', ' hospital', ' medical center',
-                      ' health system', ' healthcare', ' senior living', ' retirement']:
-            facility_clean = facility_clean.replace(suffix, '')
-        facility_clean = facility_clean.strip()
-
-        # Exact match check
-        if facility_clean in source_lower:
-            return True
-
-        # Full name similarity check (require 85%+ match on FULL name)
-        # Extract potential organization name from source
-        # Try to find longest contiguous match
-        source_words = source_lower.split()
-        facility_words = facility_clean.split()
-
-        # Require majority of facility name words to be present
-        matched_words = 0
-        total_significant_words = len([w for w in facility_words if len(w) > 3])
-
-        if total_significant_words == 0:
-            return False
-
-        for fac_word in facility_words:
-            if len(fac_word) <= 3:  # Skip short words like "the", "of", etc.
-                continue
-
-            # Check if this facility word appears in source
-            found_match = False
-            for source_word in source_words:
-                similarity = SequenceMatcher(None, fac_word, source_word).ratio()
-
-                # Require very high similarity (95%+) for single word matches
-                if similarity >= 0.95:
-                    matched_words += 1
-                    found_match = True
-                    break
-
-            # For full name matching, we need MOST words to match
-            # Not just one word (prevents "Capital" matching "Capital Health" vs "Capital Senior Living")
-
-        # Require at least 75% of significant words to match
-        match_ratio = matched_words / total_significant_words if total_significant_words > 0 else 0
-
-        if match_ratio >= 0.75:
-            return True
-
-        # If we got here, no strong evidence of entity match
-        return False
+        return result['match']
 
     def detect_facility_type(self, facility_name: str) -> str:
         """
@@ -2264,12 +2207,14 @@ def process_account(record: Dict) -> Dict:
             record['clean_name'] = record.get('account_name', '')
             record['search_name'] = record.get('account_name', '')
 
-    facility_name = record.get('clean_name') or record.get('account_name', '')
+    # Extract facility name - handle both 'account_name' and 'Account Name' casing
+    facility_name = record.get('clean_name') or record.get('account_name') or record.get('Account Name', '')
     search_name = record.get('search_name') or facility_name  # Use search_name for YouTube
     city = record.get('account_state', '')  # Use full state name for broader search (matches old enricher)
     state = record.get('state_abbrev', record.get('account_state', ''))
     segment = record.get('segment', 'UNKNOWN')
-    website = record.get('website', '')  # For entity verification via domain matching
+    # Handle both 'website' and 'Website' casing
+    website = record.get('website') or record.get('Website', '')  # For entity verification via domain matching
 
     if not facility_name:
         return {

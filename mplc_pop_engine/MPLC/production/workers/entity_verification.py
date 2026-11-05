@@ -430,6 +430,46 @@ def verify_entity_match(
                 'details': details
             }
 
+    # Layer 4B: Check URL path for name matches (when title not available)
+    # Many healthcare sites have facility names in URL paths even when metadata is missing
+    # Example: "https://hughesmarino.com/portfolio/family-health-centers-of-san-diego-diamond-project/"
+    if evidence_url and not evidence_title:
+        # Extract URL path and domain
+        try:
+            from urllib.parse import urlparse
+            parsed = urlparse(evidence_url)
+            url_path = parsed.path.lower()  # e.g., "/portfolio/family-health-centers-of-san-diego/"
+            url_domain = parsed.netloc.lower()
+
+            # Combine path + domain for name matching (domain might also contain org name)
+            url_text = f"{url_path} {url_domain}"
+
+            # Remove URL-specific characters for better matching
+            url_text_clean = url_text.replace('-', ' ').replace('_', ' ').replace('/', ' ')
+
+            name_score, name_reason = _calculate_name_similarity(
+                account_name,
+                url_text_clean,
+                strict_for_short_names=True
+            )
+
+            details['url_path_similarity_score'] = name_score
+            details['url_path_similarity_reason'] = name_reason
+
+            if name_score >= min_name_match_threshold:
+                if verbose:
+                    print(f"✅ Layer 4B (URL Path): Match - {name_score:.1%} ({name_reason})")
+
+                return {
+                    'match': True,
+                    'confidence': 'medium',  # Medium confidence since it's URL not explicit title
+                    'reason': f"URL path similarity: {name_score:.1%} - {name_reason}",
+                    'layer': 'url_path_similarity',
+                    'details': details
+                }
+        except:
+            pass  # If URL parsing fails, continue to next layer
+
     # Layer 5: LLM arbitration (optional, for ambiguous cases)
     if use_llm_arbitration:
         # TODO: Implement LLM arbitration (corporate's validate_with_sonnet pattern)
