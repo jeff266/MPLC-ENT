@@ -23,6 +23,7 @@ Requirements (unchanged from original):
 from typing import Dict, Set, Optional, List, Tuple
 import pandas as pd
 from datetime import datetime, timedelta
+import csv
 
 
 # Bad statuses that trigger protection (confirmed against ROE)
@@ -304,63 +305,81 @@ def run_protection_filter(
         print(f"  active_map: {sum(active_map.values()):,} active accounts")
         print()
 
-    # Process each account
+    # Process each account - INCREMENTAL WRITES (not accumulate-then-write)
+    # Fixes OOM crash at 61% on 701,977 accounts (6.1GB memory growth)
     if verbose:
         print("Running protection checks...")
         print()
 
-    audit_records = []
-    safe_records = []
+    # Open CSV writers once (write incrementally, not accumulate in memory)
+    audit_fieldnames = ['18 Digit Account ID', 'Account Name', 'Account Status',
+                        'Parent Account ID', 'Excluded', 'Exclusion Reasons', 'Nodes Checked']
 
-    for idx, row in universe.iterrows():
-        account_id = row['18 Digit Account ID']
-        account_name = row.get('Account Name', 'Unknown')
+    with open(output_audit_path, 'w', newline='', encoding='utf-8') as audit_file, \
+         open(output_safe_path, 'w', newline='', encoding='utf-8') as safe_file:
 
-        # Compute protection using precomputed structures
-        result = compute_protection_fast(
-            account_id,
-            universe_idx,
-            parent_to_children,
-            id15_to_id18,
-            status_map,
-            name_map,
-            active_map,
-            open_deal_ids
-        )
+        audit_writer = csv.DictWriter(audit_file, fieldnames=audit_fieldnames)
+        audit_writer.writeheader()
 
-        # Build audit record
-        audit_record = {
-            '18 Digit Account ID': account_id,
-            'Account Name': account_name,
-            'Account Status': row.get('Account Status', ''),
-            'Parent Account ID': row.get('Parent Account ID', ''),
-            'Excluded': result['protected'],
-            'Exclusion Reasons': '|'.join(result['reasons']) if result['reasons'] else '',
-            'Nodes Checked': result['checked_nodes']
-        }
-        audit_records.append(audit_record)
+        # Safe file: write all original columns
+        safe_columns = universe.columns.tolist()
+        safe_writer = csv.DictWriter(safe_file, fieldnames=safe_columns)
+        safe_writer.writeheader()
 
-        # Add to safe list if not protected
-        if not result['protected']:
-            safe_records.append(row.to_dict())
+        # Counters for summary (small memory footprint)
+        total_processed = 0
+        total_excluded = 0
+        total_safe = 0
 
-        # Progress
-        if verbose and (idx + 1) % 10000 == 0:
-            print(f"  Processed: {idx + 1:,} accounts...")
+        for idx, row in universe.iterrows():
+            account_id = row['18 Digit Account ID']
+            account_name = row.get('Account Name', 'Unknown')
 
-    # Create dataframes
-    audit_df = pd.DataFrame(audit_records)
-    safe_df = pd.DataFrame(safe_records)
+            # Compute protection using precomputed structures
+            result = compute_protection_fast(
+                account_id,
+                universe_idx,
+                parent_to_children,
+                id15_to_id18,
+                status_map,
+                name_map,
+                active_map,
+                open_deal_ids
+            )
 
-    # Save outputs
+            # Write audit record immediately (not accumulate)
+            audit_record = {
+                '18 Digit Account ID': account_id,
+                'Account Name': account_name,
+                'Account Status': row.get('Account Status', ''),
+                'Parent Account ID': row.get('Parent Account ID', ''),
+                'Excluded': result['protected'],
+                'Exclusion Reasons': '|'.join(result['reasons']) if result['reasons'] else '',
+                'Nodes Checked': result['checked_nodes']
+            }
+            audit_writer.writerow(audit_record)
+
+            # Write safe record immediately if not protected
+            if not result['protected']:
+                safe_writer.writerow(row.to_dict())
+                total_safe += 1
+            else:
+                total_excluded += 1
+
+            total_processed += 1
+
+            # Progress
+            if verbose and total_processed % 10000 == 0:
+                print(f"  Processed: {total_processed:,} accounts...")
+
+    # Re-read CSVs for return value (callers expect DataFrames)
+    # This is acceptable because we only do it once at the end, not during the loop
     if verbose:
         print()
-        print(f"Saving safe-to-process: {output_safe_path}")
-    safe_df.to_csv(output_safe_path, index=False)
+        print("Loading results into DataFrames...")
 
-    if verbose:
-        print(f"Saving audit log: {output_audit_path}")
-    audit_df.to_csv(output_audit_path, index=False)
+    audit_df = pd.read_csv(output_audit_path, encoding='utf-8', low_memory=False)
+    safe_df = pd.read_csv(output_safe_path, encoding='utf-8', low_memory=False)
 
     # Summary
     if verbose:
