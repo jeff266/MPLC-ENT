@@ -225,8 +225,9 @@ def compute_protection_behavioral(
         else:
             # This is a hierarchy member: check only Licensed/Customer
             if status in HIERARCHY_BAD_STATUSES:
+                reasons.append(f"bad_status:{status} ({account_name}, {relationship})")
 
-        # Check for name-based exclusion markers (case-insensitive)
+        # Check for name-based exclusion markers (case-insensitive) - applies to all nodes
         account_name_upper = account_name.upper()
         for marker in NAME_EXCLUSION_MARKERS:
             if marker.upper() in account_name_upper:
