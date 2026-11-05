@@ -226,12 +226,12 @@ def compute_protection_behavioral(
             # This is a hierarchy member: check only Licensed/Customer
             if status in HIERARCHY_BAD_STATUSES:
 
-        # Check for name-based exclusion markers (after status checks)
+        # Check for name-based exclusion markers (case-insensitive)
+        account_name_upper = account_name.upper()
         for marker in NAME_EXCLUSION_MARKERS:
-            if marker in account_name:
+            if marker.upper() in account_name_upper:
                 reasons.append(f"name_marker:{marker} ({account_name}, {relationship})")
                 break
-                reasons.append(f"bad_status:{status} ({account_name}, {relationship})")
 
         # Check 2: Recent activity (90-day window) - precomputed
         if is_active:

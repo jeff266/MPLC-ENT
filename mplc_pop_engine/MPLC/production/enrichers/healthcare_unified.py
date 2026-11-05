@@ -150,41 +150,41 @@ class HealthcareEnricherUnified:
 
     # ========== STAGE 1: PUBLIC/PRIVATE DETECTION ==========
 
-    def is_public_hospital(self, name: str) -> bool:
+    def is_confidently_private(self, name: str) -> bool:
         """
-        Determine if hospital is public (can use procurement contracts).
+        Determine if hospital is CONFIDENTLY private (skip procurement lookup).
 
-        Source: run_healthcare_pipeline.py lines 54-88
+        Since procurement lookup is free/local, we run it for everyone except
+        facilities that are clearly private chains/corporations. This is a hint,
+        not a gate - strict name matching in procurement results prevents false positives.
+
+        Returns True only if confident the facility is private (major chain, LLC, Inc, etc.)
+        Returns False for unclear cases (let procurement lookup try and fail gracefully)
         """
         name_lower = name.lower()
 
-        # Public ownership indicators
-        public_keywords = [
-            'county', 'state', 'municipal', 'district', 'regional', 'public',
-            'university', 'uc ', 'suny', 'ut ', 'cuny',
-            'va ', 'veterans', 'military', 'naval',
-            'nyc h+h', 'health and hospitals corporation',
-            'city of', 'town of'
-        ]
-
-        # Private ownership indicators (override public)
+        # CONFIDENTLY PRIVATE: Major private chains and corporate markers
+        # These are the only facilities we skip procurement for
         private_keywords = [
-            'hca', 'tenet', 'kaiser', 'cedars-sinai', 'mayo clinic',
-            'llc', ' inc', 'corporation', 'partners', 'adventist',
-            'baptist health', 'catholic health', 'community health systems'
+            'hca healthcare', 'hca ', 'tenet health', 'tenet ',
+            'kaiser permanente', 'kaiser ',
+            'cedars-sinai', 'mayo clinic',
+            'adventist health',
+            'catholic health initiatives', 'dignity health',
+            'community health systems', 'chs ',
+            'lifepoint health', 'universal health services',
+            'ascension health', 'trinity health',
+            ' llc', ' inc.', ' inc ', ' incorporated',
+            ' corporation', ' corp.', ' corp ',
+            ' partners healthcare', ' partners health'
         ]
 
-        # Check private first (more specific)
+        # Check if name contains any confidently-private markers
         for keyword in private_keywords:
-            if keyword in name_lower:
-                return False
-
-        # Then check public
-        for keyword in public_keywords:
             if keyword in name_lower:
                 return True
 
-        return False  # Default to private if unclear
+        return False  # Unknown = try procurement (it's free)
 
     # ========== STAGE 2A: STATE PROCUREMENT DB ==========
 
@@ -258,7 +258,24 @@ class HealthcareEnricherUnified:
             rows = cursor.fetchall()
 
             if rows:
+                # STRICT NAME MATCHING: Validate that contract facility name actually matches account
+                # Since we now run procurement for everyone (not just confidently public),
+                # we need strict matching to prevent false positives
                 contract = dict(rows[0])
+                contract_facility = contract.get('facility_name', '').lower()
+                contract_system = contract.get('facility_system', '').lower()
+
+                # Check if at least 60% of account name words appear in contract facility/system
+                account_words = set(w.lower() for w in account_name.split() if len(w) >= 3)
+                contract_words = set(contract_facility.split()) | set(contract_system.split())
+
+                if account_words and contract_words:
+                    match_score = len(account_words & contract_words) / len(account_words)
+                    if match_score < 0.6:
+                        # Not enough overlap - likely wrong facility
+                        conn.close()
+                        return None
+
                 conn.close()
                 return contract
 
@@ -1979,12 +1996,14 @@ Answer ONLY with valid JSON:
             search_name = facility_name
 
         try:
-            # Stage 1: Public/Private Detection (instant, FREE)
-            is_public = self.is_public_hospital(facility_name)
-            processing_log.append(f"Stage 1: Public={is_public}")
+            # Stage 1: Public/Private Hint (instant, FREE)
+            # This is a hint, not a gate - we query procurement for everyone except confidently private
+            is_confidently_private = self.is_confidently_private(facility_name)
+            processing_log.append(f"Stage 1: Confidently Private={is_confidently_private}")
 
-            # Stage 2A: State Procurement DB (public only, FREE)
-            if is_public and self.procurement_db_path:
+            # Stage 2A: State Procurement DB (FREE, run for all non-confidently-private)
+            # Strict name matching in results prevents false positives
+            if not is_confidently_private and self.procurement_db_path:
                 try:
                     result = self.search_state_procurement(facility_name, state)
                     if result:
@@ -2002,6 +2021,8 @@ Answer ONLY with valid JSON:
                             'vertical': 'healthcare',
                             'processing_log': processing_log
                         }
+                    else:
+                        processing_log.append("Stage 2A: No procurement match")
                 except Exception as e:
                     processing_log.append(f"Stage 2A: Error - {str(e)[:50]}")
 
