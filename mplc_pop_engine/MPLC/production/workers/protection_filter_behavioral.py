@@ -41,6 +41,17 @@ OWN_BAD_STATUSES = {
 HIERARCHY_BAD_STATUSES = {'Licensed', 'Customer'}
 
 
+# Name-based exclusion markers (Salesforce conventions)
+# CRITICAL: These indicate deprecated/do-not-use accounts regardless of status field
+NAME_EXCLUSION_MARKERS = {
+    '-NO USE',
+    '-DUPE',
+    '(DUPLICATE)',
+    '(duplicate)',
+    '-DUPLICATE',
+    'DO NOT USE'
+}
+
 def _normalize_id_to_15(account_id: str) -> str:
     """Convert 18-digit Salesforce ID to 15-digit for parent comparisons."""
     if pd.isna(account_id):
@@ -214,6 +225,12 @@ def compute_protection_behavioral(
         else:
             # This is a hierarchy member: check only Licensed/Customer
             if status in HIERARCHY_BAD_STATUSES:
+
+        # Check for name-based exclusion markers (after status checks)
+        for marker in NAME_EXCLUSION_MARKERS:
+            if marker in account_name:
+                reasons.append(f"name_marker:{marker} ({account_name}, {relationship})")
+                break
                 reasons.append(f"bad_status:{status} ({account_name}, {relationship})")
 
         # Check 2: Recent activity (90-day window) - precomputed

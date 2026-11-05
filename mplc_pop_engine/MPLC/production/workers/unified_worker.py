@@ -563,7 +563,7 @@ def process_batch(batch_file: str, vertical: str, worker_id: int, total_workers:
                 }
                 for record in records
             ]
-            inserted = sb_writer.pre_populate_batch(accounts, run_date_obj, is_prospect=is_prospect)
+            inserted = sb_writer.pre_populate_batch(accounts, run_date_obj, is_prospect=False)
             log.info(f"✓ Pre-populated {inserted} pending rows")
         except Exception as e:
             log.error(f"Failed to pre-populate Supabase: {e}")
