@@ -52,6 +52,15 @@ INCOMPATIBLE_PAIRS = [
     ('assisted living', 'pediatric'),
     ('retirement', 'pediatric'),
 
+    # Senior living ⟷ Hospital/Medical/Health (Capital Senior Living bug)
+    ('senior', 'hospital'),
+    ('senior', 'medical'),
+    ('senior', 'health'),
+    ('assisted living', 'hospital'),
+    ('assisted living', 'medical'),
+    ('retirement', 'hospital'),
+    ('retirement', 'medical'),
+
     # Residential/MDU ⟷ Hospital/Clinical
     ('residential', 'hospital'),
     ('residential', 'clinic'),
@@ -71,11 +80,13 @@ INCOMPATIBLE_PAIRS = [
 ]
 
 # Generic/stop words to exclude from name matching (vertical-specific)
+# CRITICAL: Do NOT include domain-specific disambiguating words like 'health',
+# 'senior', 'living' - these are often the ONLY signal between two organizations
+# (e.g. "Capital Senior Living" vs "Capital Health")
 GENERIC_STOPWORDS = {
-    'health', 'medical', 'center', 'hospital', 'clinic', 'healthcare',
-    'care', 'system', 'group', 'services', 'facilities', 'facility',
-    'apartments', 'community', 'communities', 'properties', 'living',
-    'senior', 'management', 'company', 'corporation', 'inc', 'llc',
+    'center', 'system', 'group', 'services', 'facilities', 'facility',
+    'apartments', 'community', 'communities', 'properties',
+    'management', 'company', 'corporation', 'inc', 'llc',
     'corp', 'ltd', 'co', 'the', 'and', 'of', 'at'
 }
 
