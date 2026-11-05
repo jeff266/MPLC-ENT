@@ -7,12 +7,14 @@
 
 ## Summary
 
-| Issue | Status | Root Cause | Fix Applied | Priority |
-|-------|--------|------------|-------------|----------|
-| 1. is_prospect=True at queue-time | ✅ FIXED | unified_worker.py line 566 passing is_prospect=True to pre_populate_batch | Commit b5a337e | DONE |
-| 2. Protection filter missing name markers | ✅ FIXED | NAME_EXCLUSION_MARKERS not checking account names | Commit b5a337e | DONE |
-| 3. Bad evidence from hospital_image_search | ⚠️ NOT INVESTIGATED | Unknown - policy brief URL instead of image | Not fixed | DEFERRED |
-| 4. Free channels not running | ✅ ROOT CAUSE FOUND | is_public_hospital() 100% false negatives | Fix ready | **IN PROGRESS** |
+| Issue | Status | Root Cause | Fix Applied | Deployment Status |
+|-------|--------|------------|-------------|-------------------|
+| 1. is_prospect=True at queue-time | ✅ FIXED | unified_worker.py line 566 passing is_prospect=True to pre_populate_batch | Commit b5a337e | ❌ NOT DEPLOYED |
+| 2. Protection filter missing name markers | ✅ FIXED | NAME_EXCLUSION_MARKERS not checking account names | Commit b5a337e | ❌ NOT DEPLOYED |
+| 3. Bad evidence from hospital_image_search | ✅ VALIDATED | Not a bug - 18 PROSPECTS spot-checked, all legitimate | N/A | N/A |
+| 4. Free channels not running | ✅ FIXED | is_public_hospital() 100% false negatives | Commit 687b971 | ❌ NOT DEPLOYED |
+
+**CRITICAL:** All fixes committed locally but **NONE are deployed to droplets yet**. Both droplets verified to still have old code.
 
 ---
 
@@ -52,7 +54,16 @@ inserted = sb_writer.pre_populate_batch(accounts, run_date_obj, is_prospect=Fals
 is_prospect = (lead_status == 'qualified' or tier == 'PROSPECT')
 ```
 
-**Status:** ✅ COMPLETE - deployed to production
+**Status:** ✅ FIXED (committed b5a337e) | ❌ NOT DEPLOYED
+
+**Verification (2026-11-05):**
+```bash
+ssh root@178.128.147.34 "grep 'pre_populate_batch.*is_prospect' /root/enrichment/unified_worker.py"
+# Result: is_prospect=is_prospect (OLD CODE - not deployed)
+
+ssh root@201.79.28.183 "grep 'pre_populate_batch.*is_prospect' /root/enrichment/unified_worker.py"
+# Result: is_prospect=is_prospect (OLD CODE - not deployed)
+```
 
 ---
 
@@ -103,7 +114,9 @@ for marker in NAME_EXCLUSION_MARKERS:
         break
 ```
 
-**Status:** ✅ COMPLETE - deployed to production
+**Status:** ✅ FIXED (committed b5a337e) | ❌ NOT DEPLOYED
+
+**NOTE:** This fix was superseded by commit 687b971 which made the check case-insensitive.
 
 ---
 
@@ -248,23 +261,55 @@ def is_public_hospital(self, name: str) -> bool:
 
 ## Deployment Plan
 
-### Immediate (Issues 1 & 2)
-- [x] Commit b5a337e applied
-- [ ] Deploy to Droplet 1 and Droplet 2
-- [ ] Restart healthcare workers
-- [ ] Verify with grep "is_prospect=True" in new results (should be 0 for pending rows)
+### All Fixes Ready for Deployment
 
-### Next (Issue 4)
-- [ ] Apply is_public_hospital() fix to healthcare_unified.py
-- [ ] Test locally on 5 sample facilities
-- [ ] Run 20-30 account validation batch
-- [ ] If successful: deploy to droplets
-- [ ] Monitor: state_procurement hit rate (expect 5-10% vs 0%)
+**Commits:**
+- b5a337e: Issue 1 (is_prospect=False) + Issue 2 (name markers)
+- 687b971: Issue 2 (case-insensitive) + Issue 4 (procurement ungating)
 
-### Later (Issue 3)
-- [ ] Investigate hospital_image_search channel code
-- [ ] Check fallback logic for non-image results
-- [ ] Fix to fail cleanly vs return irrelevant URLs
+**Deployment Steps:**
+
+1. **Deploy all fixes to both droplets:**
+   ```bash
+   # Deploy to Droplet 1 (178.128.147.34)
+   scp workers/unified_worker.py root@178.128.147.34:/root/enrichment/
+   scp workers/protection_filter_behavioral.py root@178.128.147.34:/root/enrichment/
+   scp enrichers/healthcare_unified.py root@178.128.147.34:/root/enrichment/enrichers/
+
+   # Deploy to Droplet 2 (201.79.28.183)
+   scp workers/unified_worker.py root@201.79.28.183:/root/enrichment/
+   scp workers/protection_filter_behavioral.py root@201.79.28.183:/root/enrichment/
+   scp enrichers/healthcare_unified.py root@201.79.28.183:/root/enrichment/enrichers/
+   ```
+
+2. **Clear Python cache and restart workers:**
+   ```bash
+   # Clear cache
+   ssh root@178.128.147.34 'cd /root/enrichment && find . -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true'
+   ssh root@201.79.28.183 'cd /root/enrichment && find . -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true'
+
+   # Restart workers (kill and restart)
+   ssh root@178.128.147.34 'pkill -f "unified_worker.*healthcare"'
+   ssh root@201.79.28.183 'pkill -f "unified_worker.*healthcare"'
+   ```
+
+3. **Verify deployment:**
+   ```bash
+   # Check Issue 1 fix deployed
+   ssh root@178.128.147.34 "grep 'is_prospect=False' /root/enrichment/unified_worker.py"
+   # Should return: is_prospect=False
+
+   # Check Issue 4 fix deployed
+   ssh root@178.128.147.34 "grep 'is_confidently_private' /root/enrichment/enrichers/healthcare_unified.py"
+   # Should return: def is_confidently_private(self, name: str) -> bool:
+   ```
+
+### Post-Deployment Monitoring
+
+- [ ] Monitor: state_procurement hit rate >0% (was 0%)
+- [ ] Verify: is_prospect correctly derived (no pending rows with is_prospect=True)
+- [ ] Check: name markers catching lowercase variants (-dupe, do not use)
+- [ ] Expected: 2-5% of facilities matched via free procurement channel
 
 ---
 
