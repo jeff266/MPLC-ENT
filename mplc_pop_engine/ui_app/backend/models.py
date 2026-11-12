@@ -142,7 +142,13 @@ class SegmentationRun(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     account_id: Mapped[str] = mapped_column(ForeignKey("accounts.account_id"), index=True)
     run_date: Mapped[str] = mapped_column(String(10), index=True)
-    vertical: Mapped[str] = mapped_column(String(200), index=True)
+    # Nullable: Stage B has a real blank-string vertical bucket (unmapped/
+    # junk industry codes, ~3,642 real accounts — see weekly_pipeline.py's
+    # own run output, logged as "  : 3,642 accounts"). That blank name
+    # round-trips through the ROE audit CSV as NaN, not an empty string —
+    # confirmed real, not a data error, so this column must allow NULL
+    # rather than coercing it back to "" silently.
+    vertical: Mapped[Optional[str]] = mapped_column(String(200), index=True)
     segment: Mapped[str] = mapped_column(String(20), index=True)  # SB|MM|ENT|UNRESOLVED|FORTUNE500|GOV
     confidence: Mapped[Optional[str]] = mapped_column(String(20))
     reason: Mapped[Optional[str]] = mapped_column(Text)
