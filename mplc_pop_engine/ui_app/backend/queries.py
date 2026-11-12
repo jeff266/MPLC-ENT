@@ -36,10 +36,13 @@ def list_accounts(
     if elig_date is None:
         return {"run_date": None, "total": 0, "page": page, "page_size": page_size, "rows": []}
 
+    # run_date for ClassificationRun/SegmentationRun is enforced in the
+    # outerjoin ON clause below, not here — putting it in WHERE would
+    # silently turn the outer join back into an inner join, since a
+    # NULL run_date (an excluded account with no classification/
+    # segmentation row) never equals elig_date.
     conditions = [
         models.EligibilityRun.run_date == elig_date,
-        models.ClassificationRun.run_date == elig_date,
-        models.SegmentationRun.run_date == elig_date,
     ]
     if vertical:
         conditions.append(models.ClassificationRun.vertical == vertical)
@@ -64,8 +67,21 @@ def list_accounts(
             models.SegmentationRun.edge_case,
         )
         .join(models.EligibilityRun, models.EligibilityRun.account_id == models.Account.account_id)
-        .join(models.ClassificationRun, models.ClassificationRun.account_id == models.Account.account_id)
-        .join(models.SegmentationRun, models.SegmentationRun.account_id == models.Account.account_id)
+        # LEFT OUTER, not inner: Stage B/C only ever run on the "safe"
+        # (non-excluded) subset, so an excluded account has no
+        # classification_runs/segmentation_runs row at all for this
+        # run_date. An inner join here silently drops every excluded
+        # account from the result regardless of the `excluded` filter —
+        # caught this via a real smoke test against the populated DB
+        # (excluded=true returned 0 rows when it should return 343,944).
+        .outerjoin(models.ClassificationRun, and_(
+            models.ClassificationRun.account_id == models.Account.account_id,
+            models.ClassificationRun.run_date == elig_date,
+        ))
+        .outerjoin(models.SegmentationRun, and_(
+            models.SegmentationRun.account_id == models.Account.account_id,
+            models.SegmentationRun.run_date == elig_date,
+        ))
         .where(and_(*conditions))
     )
 
