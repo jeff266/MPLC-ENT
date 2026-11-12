@@ -373,9 +373,11 @@ def compute_eligibility_vectorized(
     """
     Returns (audit_df, oversized_identity_groups).
 
-    audit_df is aligned to `universe` with columns:
-        18 Digit Account ID, Account Name, Account Status,
-        excluded (bool), exclusion_reasons (str or None)
+    audit_df is every original column from `universe`, unchanged, plus two
+    new columns: excluded (bool), exclusion_reasons (str or None). Every
+    original column (Industry, Account State/Province, Website, etc.) is
+    preserved — not just id/name/status — because downstream pipeline
+    stages depend on the rest of the account record.
 
     oversized_identity_groups lists every domain group and every name group
     that exceeded max_identity_cluster_size and was therefore excluded from
@@ -444,13 +446,17 @@ def compute_eligibility_vectorized(
     flags_arr = flags[REASON_LABELS].to_numpy()
     reasons = [';'.join(labels_arr[row]) if row.any() else None for row in flags_arr]
 
-    out = pd.DataFrame({
-        id_col: universe[id_col].values,
-        'Account Name': universe['Account Name'].values,
-        'Account Status': universe['Account Status'].values,
-        'excluded': excluded.values,
-        'exclusion_reasons': reasons,
-    })
+    # Carry every original column through (not just id/name/status) —
+    # downstream stages (e.g. Stage B vertical classification, which needs
+    # Industry and Account State/Province) depend on the rest of the
+    # account record, not just the eligibility verdict. Confirmed via
+    # stage_b_classification.py: it reads 'Industry' and
+    # 'Account State/Province' directly off the protected DataFrame, which
+    # would silently break (everything routed to "Unknown") if this
+    # module's output only carried the 3 columns it started with.
+    out = universe.copy()
+    out['excluded'] = excluded.values
+    out['exclusion_reasons'] = reasons
     return out, oversized_identity_groups
 
 

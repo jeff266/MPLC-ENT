@@ -8,11 +8,17 @@ classification (Stage B) and ROE segmentation (Stage C).
 Usage:
     python orchestrator/weekly_pipeline.py \\
         --salesforce-export path/to/All_Accounts.csv \\
-        --protected-accounts path/to/protected_accounts.csv \\
+        --open-deals path/to/All_Open_Deals.csv \\
+        --activity-90-days path/to/Last_90_Day_Activities.csv \\
+        --lost-deals-9-months path/to/Closed_Lost_L9M.csv \\
         --output-dir output/ \\
         --date 2026-11-03
 
-Stage A (Protection): Cannot be skipped - enforced by ProtectedDataFrame wrapper
+Stage A (Protection): Cannot be skipped - enforced by ProtectedDataFrame wrapper.
+REWIRED 2026-11-11 to call account_eligibility.py (see stage_a_protection.py's
+own docstring for the full history — this replaced an older status-based
+module, protection_filter.py, that had never been updated to the behavioral
+rewrite already in production use elsewhere, and was two generations stale).
 Stage B (Classification): Vertical classification via VerticalReclassifier
 Stage C (Segmentation): ROE rules (pluggable per vertical)
 Stage D (Enrichment): Stub for now - enrichment dispatch to be implemented
@@ -39,6 +45,9 @@ def run_weekly_pipeline(
     output_dir: str,
     run_date: str,
     open_deals_path: str = None,
+    activity_90_days_path: str = None,
+    lost_deals_9_months_path: str = None,
+    max_identity_cluster_size: int = 50,
     use_llm: bool = False,
     skip_enrichment: bool = True,
     verbose: bool = True
@@ -48,10 +57,22 @@ def run_weekly_pipeline(
 
     Args:
         salesforce_export_path: Path to full Salesforce export CSV
-        protected_accounts_path: Path to protected accounts CSV
+            ("ALL ACCOUNTS")
+        protected_accounts_path: DEPRECATED, unused — kept for call-site
+            compatibility (account_eligibility.py computes protection live
+            from salesforce_export_path, no separate protected-list file)
         output_dir: Directory for all outputs
         run_date: Date string (YYYY-MM-DD) for file naming
-        open_deals_path: Optional path to open deals CSV
+        open_deals_path: Path to the "ALL OPEN DEALS" weekly CSV
+        activity_90_days_path: Optional path to the "ACTIVITY LAST 90 DAYS"
+            weekly CSV. Falls back to date columns in salesforce_export_path
+            if omitted.
+        lost_deals_9_months_path: Optional path to the "OPPORTUNITIES LOST
+            LAST 9 MONTHS" weekly CSV. New exclusion as of 2026-11-11; if
+            omitted, that exclusion is skipped with a warning.
+        max_identity_cluster_size: domain/name groups larger than this are
+            treated as generic noise, not real duplicate entities — see
+            account_eligibility.py for real examples. Default 50.
         use_llm: Enable Tier-2 LLM for vertical classification
         skip_enrichment: Skip Stage D enrichment dispatch
         verbose: Print progress messages
@@ -68,6 +89,9 @@ def run_weekly_pipeline(
         protected_path=protected_accounts_path,
         sf_full_path=salesforce_export_path,
         open_deals_path=open_deals_path,
+        activity_90_days_path=activity_90_days_path,
+        lost_deals_9_months_path=lost_deals_9_months_path,
+        max_identity_cluster_size=max_identity_cluster_size,
         output_dir=output_dir,
         run_date=run_date,
         verbose=verbose
@@ -170,13 +194,38 @@ def main():
 
     parser.add_argument(
         '--protected-accounts',
-        required=True,
-        help='Path to protected accounts CSV'
+        required=False,
+        default=None,
+        help='DEPRECATED, unused — account_eligibility.py computes protection live '
+             'from --salesforce-export. Kept so existing call sites do not break.'
     )
 
     parser.add_argument(
         '--open-deals',
-        help='Path to open deals CSV (accounts with open deals are protected)'
+        required=True,
+        help='Path to the ALL OPEN DEALS weekly CSV'
+    )
+
+    parser.add_argument(
+        '--activity-90-days',
+        default=None,
+        help='Path to the ACTIVITY LAST 90 DAYS weekly CSV (optional; falls back to '
+             'date columns in --salesforce-export if omitted)'
+    )
+
+    parser.add_argument(
+        '--lost-deals-9-months',
+        default=None,
+        help='Path to the OPPORTUNITIES LOST LAST 9 MONTHS weekly CSV (optional but '
+             'recommended — new exclusion as of 2026-11-11)'
+    )
+
+    parser.add_argument(
+        '--max-identity-cluster-size',
+        type=int,
+        default=50,
+        help='Domain/name groups larger than this are treated as generic noise, not '
+             'real duplicate entities (default 50) — see account_eligibility.py'
     )
 
     parser.add_argument(
@@ -218,6 +267,9 @@ def main():
         output_dir=args.output_dir,
         run_date=args.date,
         open_deals_path=args.open_deals,
+        activity_90_days_path=args.activity_90_days,
+        lost_deals_9_months_path=args.lost_deals_9_months,
+        max_identity_cluster_size=args.max_identity_cluster_size,
         use_llm=args.use_llm,
         skip_enrichment=not args.run_enrichment,
         verbose=not args.quiet
