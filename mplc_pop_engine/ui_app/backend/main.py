@@ -6,11 +6,14 @@ Run locally with:
 (from mplc_pop_engine/ui_app/)
 """
 
+import csv
+import io
 from datetime import date
 from typing import Optional
 
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from sqlalchemy import select
@@ -177,26 +180,61 @@ def get_clay_ambiguous_queue(
 
 
 # ---------------------------------------------------------------------------
-# Dispatch — the actual "select rows -> act on them" triage action.
-# Records an Action row (audit trail); does not yet call the vertical
-# enrichers themselves (verticals/ are a separate, not-yet-wired stage).
+# Find Enrichable Accounts — the one real row-selection action today (Jeff,
+# 2026-11-12): mark the selected accounts as candidates (an Action row, for
+# audit trail / "what did I already flag") and hand back a CSV to source
+# Clay/ZoomInfo data for, or route to the vertical pipelines later.
+#
+# Deliberately NOT cross-checked against Supabase's account_enrichment_results
+# (32,613 real rows of prior vertical-pipeline history) yet — Jeff: "Local
+# for now. I'd have to rethink our vertical pipelines again. Meaning
+# supabase itself may ultimately change too" (2026-11-12). So this can mark
+# an account as enrichable even if it was already run through a vertical
+# enricher before; that credit-burn protection is a deliberately deferred
+# follow-on, not an oversight.
 # ---------------------------------------------------------------------------
 
-class DispatchRequest(BaseModel):
+class FindEnrichableRequest(BaseModel):
     account_ids: list[str]
-    action_type: str  # e.g. "dispatch_to_enrichment" | "export_clay" | "mark_reviewed"
     created_by: Optional[str] = None
 
 
-@app.post("/accounts/dispatch")
-def dispatch_accounts(req: DispatchRequest, db: Session = Depends(get_db)):
+@app.post("/accounts/find-enrichable")
+def find_enrichable_accounts(req: FindEnrichableRequest, db: Session = Depends(get_db)):
     if not req.account_ids:
         raise HTTPException(status_code=400, detail="account_ids must be non-empty")
+
+    rows = queries.accounts_by_ids(db, req.account_ids)
+    found_ids = {r["account_id"] for r in rows}
+    missing = [aid for aid in req.account_ids if aid not in found_ids]
+
+    # Only mark accounts that actually exist — an account_id not found in
+    # this run has nothing to flag. Caught via smoke test: this used to
+    # write an Action row for every requested id including a fake one.
     actions = [
-        models.Action(account_id=aid, action_type=req.action_type,
+        models.Action(account_id=aid, action_type="find_enrichable_accounts",
                       status="pending", created_by=req.created_by)
-        for aid in req.account_ids
+        for aid in found_ids
     ]
     db.add_all(actions)
     db.commit()
-    return {"dispatched": len(actions), "action_type": req.action_type}
+
+    buf = io.StringIO()
+    writer = csv.DictWriter(
+        buf,
+        fieldnames=["account_id", "account_name", "website", "state", "industry",
+                    "excluded", "vertical", "segment"],
+    )
+    writer.writeheader()
+    for row in rows:
+        writer.writerow(row)
+    buf.seek(0)
+
+    headers = {
+        "Content-Disposition": f'attachment; filename="enrichable_accounts_{date.today().isoformat()}.csv"',
+        "X-Marked-Count": str(len(actions)),
+        "X-Missing-Count": str(len(missing)),
+    }
+    if missing:
+        headers["X-Missing-Account-Ids"] = ",".join(missing[:50])  # cap header size
+    return StreamingResponse(buf, media_type="text/csv", headers=headers)

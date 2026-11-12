@@ -104,6 +104,45 @@ def list_accounts(
     }
 
 
+def accounts_by_ids(session: Session, account_ids: list[str], run_date: Optional[str] = None):
+    """Full triage-row detail for a specific, already-selected set of
+    account_ids — used by the "Find Enrichable Accounts" export, not the
+    main paginated table. Same outer-join shape as list_accounts (an
+    excluded account has no classification/segmentation row, so this must
+    not inner-join those away either)."""
+    elig_date = _latest_run_date(session, models.EligibilityRun, run_date)
+    if elig_date is None or not account_ids:
+        return []
+
+    base_query = (
+        select(
+            models.Account.account_id,
+            models.Account.account_name,
+            models.Account.website,
+            models.Account.state,
+            models.Account.industry,
+            models.EligibilityRun.excluded,
+            models.ClassificationRun.vertical,
+            models.SegmentationRun.segment,
+        )
+        .join(models.EligibilityRun, and_(
+            models.EligibilityRun.account_id == models.Account.account_id,
+            models.EligibilityRun.run_date == elig_date,
+        ))
+        .outerjoin(models.ClassificationRun, and_(
+            models.ClassificationRun.account_id == models.Account.account_id,
+            models.ClassificationRun.run_date == elig_date,
+        ))
+        .outerjoin(models.SegmentationRun, and_(
+            models.SegmentationRun.account_id == models.Account.account_id,
+            models.SegmentationRun.run_date == elig_date,
+        ))
+        .where(models.Account.account_id.in_(account_ids))
+    )
+    rows = session.execute(base_query).all()
+    return [dict(r._mapping) for r in rows]
+
+
 def unresolved_queue(session: Session, run_date: Optional[str] = None,
                       vertical: Optional[str] = None, page: int = 1, page_size: int = 100):
     """Stage C's UNRESOLVED pile — currently 100% of Corporate/Healthcare/
