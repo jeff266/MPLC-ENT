@@ -25,12 +25,22 @@ from weekly_pipeline import run_weekly_pipeline  # noqa: E402
 
 from . import models
 
-_CHUNK = 5000
+# SQLite caps total bound variables per statement (SQLITE_MAX_VARIABLE_NUMBER,
+# 32766 on this system's SQLite 3.53.1, but older builds default to 999) — a
+# flat row-count chunk size broke on the real 703K-account run with "too
+# many SQL variables" once a wide table (12 cols x 5000 rows = 60,000) hit
+# it. Chunk by variable budget instead of row count, so it stays correct no
+# matter how many columns a given table has.
+_SAFE_VARIABLE_BUDGET = 900  # row_count * num_cols must stay under this
 
 
 def _chunks(lst, n):
     for i in range(0, len(lst), n):
         yield lst[i:i + n]
+
+
+def _rows_per_chunk(num_cols: int) -> int:
+    return max(1, _SAFE_VARIABLE_BUDGET // max(1, num_cols))
 
 
 def _upsert_accounts(session: Session, audit_df: pd.DataFrame):
@@ -55,8 +65,11 @@ def _upsert_accounts(session: Session, audit_df: pd.DataFrame):
     sub = sub.where(pd.notna(sub), None)
     records = sub.to_dict('records')
 
+    if not records:
+        return
     table = models.Account.__table__
-    for chunk in _chunks(records, _CHUNK):
+    chunk_size = _rows_per_chunk(len(records[0]))
+    for chunk in _chunks(records, chunk_size):
         stmt = sqlite_insert(table).values(chunk)
         update_cols = {c: stmt.excluded[c] for c in present.values() if c != 'account_id'}
         stmt = stmt.on_conflict_do_update(index_elements=['account_id'], set_=update_cols)
@@ -71,8 +84,11 @@ def _insert_eligibility_runs(session: Session, audit_df: pd.DataFrame, run_date:
     sub = sub.where(pd.notna(sub), None)
     records = sub.to_dict('records')
 
+    if not records:
+        return
     table = models.EligibilityRun.__table__
-    for chunk in _chunks(records, _CHUNK):
+    chunk_size = _rows_per_chunk(len(records[0]))
+    for chunk in _chunks(records, chunk_size):
         stmt = sqlite_insert(table).values(chunk)
         stmt = stmt.on_conflict_do_update(
             index_elements=['account_id', 'run_date'],
@@ -93,7 +109,10 @@ def _insert_classification_runs(session: Session, vertical_dataframes: dict, run
             {'account_id': aid, 'run_date': run_date, 'vertical': vertical}
             for aid in df[id_col].tolist()
         ]
-        for chunk in _chunks(records, _CHUNK):
+        if not records:
+            continue
+        chunk_size = _rows_per_chunk(len(records[0]))
+        for chunk in _chunks(records, chunk_size):
             stmt = sqlite_insert(table).values(chunk)
             stmt = stmt.on_conflict_do_update(
                 index_elements=['account_id', 'run_date'],
@@ -126,8 +145,11 @@ def _insert_segmentation_runs_from_audit_log(session: Session, roe_audit_log_pat
     audit = audit.where(pd.notna(audit), None)
     records = audit.to_dict('records')
 
+    if not records:
+        return
     table = models.SegmentationRun.__table__
-    for chunk in _chunks(records, _CHUNK):
+    chunk_size = _rows_per_chunk(len(records[0]))
+    for chunk in _chunks(records, chunk_size):
         stmt = sqlite_insert(table).values(chunk)
         update_cols = {c: stmt.excluded[c] for c in keep if c not in ('account_id', 'run_date')}
         stmt = stmt.on_conflict_do_update(
