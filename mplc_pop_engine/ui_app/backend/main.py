@@ -194,19 +194,43 @@ def get_clay_ambiguous_queue(
 # follow-on, not an oversight.
 # ---------------------------------------------------------------------------
 
+class AccountFilter(BaseModel):
+    run_date: Optional[str] = None
+    vertical: Optional[str] = None
+    segment: Optional[str] = None
+    excluded: Optional[bool] = None
+
+
 class FindEnrichableRequest(BaseModel):
-    account_ids: list[str]
+    # Exactly one of these two selection modes:
+    account_ids: Optional[list[str]] = None          # explicit checkbox selection
+    filter: Optional[AccountFilter] = None           # "select all N filtered rows"
+    exclude_account_ids: Optional[list[str]] = None  # with filter: manually-deselected rows
     created_by: Optional[str] = None
 
 
 @app.post("/accounts/find-enrichable")
 def find_enrichable_accounts(req: FindEnrichableRequest, db: Session = Depends(get_db)):
-    if not req.account_ids:
-        raise HTTPException(status_code=400, detail="account_ids must be non-empty")
+    if bool(req.account_ids) == bool(req.filter):
+        raise HTTPException(
+            status_code=400,
+            detail="Provide exactly one of account_ids (explicit selection) or filter (select-all-filtered).",
+        )
 
-    rows = queries.accounts_by_ids(db, req.account_ids)
+    if req.filter:
+        account_ids = queries.resolve_filtered_account_ids(
+            db, run_date=req.filter.run_date, vertical=req.filter.vertical,
+            segment=req.filter.segment, excluded=req.filter.excluded,
+            exclude_account_ids=req.exclude_account_ids,
+        )
+        if not account_ids:
+            raise HTTPException(status_code=400, detail="No accounts matched that filter.")
+    else:
+        account_ids = req.account_ids
+
+    rows = queries.accounts_by_ids(db, account_ids)
     found_ids = {r["account_id"] for r in rows}
-    missing = [aid for aid in req.account_ids if aid not in found_ids]
+    missing = [aid for aid in account_ids if aid not in found_ids]
 
     # Only mark accounts that actually exist — an account_id not found in
     # this run has nothing to flag. Caught via smoke test: this used to

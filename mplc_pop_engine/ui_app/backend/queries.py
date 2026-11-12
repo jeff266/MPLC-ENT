@@ -20,30 +20,18 @@ def _latest_run_date(session: Session, model, run_date: Optional[str]) -> Option
     return session.execute(select(func.max(model.run_date))).scalar_one_or_none()
 
 
-def list_accounts(
-    session: Session,
-    run_date: Optional[str] = None,
+def _filtered_accounts_query(
+    elig_date: str,
     vertical: Optional[str] = None,
     segment: Optional[str] = None,
     excluded: Optional[bool] = None,
-    page: int = 1,
-    page_size: int = 100,
+    columns: Optional[list] = None,
 ):
-    """Paginated, server-side-filtered account list — joins the latest
-    eligibility/classification/segmentation run for run_date onto accounts.
-    This is the backing query for the core triage table."""
-    elig_date = _latest_run_date(session, models.EligibilityRun, run_date)
-    if elig_date is None:
-        return {"run_date": None, "total": 0, "page": page, "page_size": page_size, "rows": []}
-
-    # run_date for ClassificationRun/SegmentationRun is enforced in the
-    # outerjoin ON clause below, not here — putting it in WHERE would
-    # silently turn the outer join back into an inner join, since a
-    # NULL run_date (an excluded account with no classification/
-    # segmentation row) never equals elig_date.
-    conditions = [
-        models.EligibilityRun.run_date == elig_date,
-    ]
+    """Shared join + filter logic behind both the paginated triage table
+    (list_accounts) and the select-all-filtered id resolver
+    (resolve_filtered_account_ids) — kept in one place so the two can never
+    drift into filtering accounts differently."""
+    conditions = [models.EligibilityRun.run_date == elig_date]
     if vertical:
         conditions.append(models.ClassificationRun.vertical == vertical)
     if segment:
@@ -51,21 +39,23 @@ def list_accounts(
     if excluded is not None:
         conditions.append(models.EligibilityRun.excluded == excluded)
 
-    base_query = (
-        select(
-            models.Account.account_id,
-            models.Account.account_name,
-            models.Account.website,
-            models.Account.state,
-            models.Account.industry,
-            models.EligibilityRun.excluded,
-            models.EligibilityRun.exclusion_reasons,
-            models.ClassificationRun.vertical,
-            models.SegmentationRun.segment,
-            models.SegmentationRun.confidence,
-            models.SegmentationRun.reason,
-            models.SegmentationRun.edge_case,
-        )
+    cols = columns or [
+        models.Account.account_id,
+        models.Account.account_name,
+        models.Account.website,
+        models.Account.state,
+        models.Account.industry,
+        models.EligibilityRun.excluded,
+        models.EligibilityRun.exclusion_reasons,
+        models.ClassificationRun.vertical,
+        models.SegmentationRun.segment,
+        models.SegmentationRun.confidence,
+        models.SegmentationRun.reason,
+        models.SegmentationRun.edge_case,
+    ]
+
+    return (
+        select(*cols)
         .join(models.EligibilityRun, models.EligibilityRun.account_id == models.Account.account_id)
         # LEFT OUTER, not inner: Stage B/C only ever run on the "safe"
         # (non-excluded) subset, so an excluded account has no
@@ -85,6 +75,25 @@ def list_accounts(
         .where(and_(*conditions))
     )
 
+
+def list_accounts(
+    session: Session,
+    run_date: Optional[str] = None,
+    vertical: Optional[str] = None,
+    segment: Optional[str] = None,
+    excluded: Optional[bool] = None,
+    page: int = 1,
+    page_size: int = 100,
+):
+    """Paginated, server-side-filtered account list — joins the latest
+    eligibility/classification/segmentation run for run_date onto accounts.
+    This is the backing query for the core triage table."""
+    elig_date = _latest_run_date(session, models.EligibilityRun, run_date)
+    if elig_date is None:
+        return {"run_date": None, "total": 0, "page": page, "page_size": page_size, "rows": []}
+
+    base_query = _filtered_accounts_query(elig_date, vertical, segment, excluded)
+
     total = session.execute(
         select(func.count()).select_from(base_query.subquery())
     ).scalar_one()
@@ -102,6 +111,32 @@ def list_accounts(
         "page_size": page_size,
         "rows": [dict(r._mapping) for r in rows],
     }
+
+
+def resolve_filtered_account_ids(
+    session: Session,
+    run_date: Optional[str] = None,
+    vertical: Optional[str] = None,
+    segment: Optional[str] = None,
+    excluded: Optional[bool] = None,
+    exclude_account_ids: Optional[list[str]] = None,
+) -> list[str]:
+    """"Select all N filtered rows" resolved server-side — the frontend
+    never has to pull thousands of ids into the browser just to submit a
+    batch action. exclude_account_ids covers "select all, then manually
+    uncheck a couple" without needing a separate code path."""
+    elig_date = _latest_run_date(session, models.EligibilityRun, run_date)
+    if elig_date is None:
+        return []
+
+    query = _filtered_accounts_query(
+        elig_date, vertical, segment, excluded, columns=[models.Account.account_id]
+    )
+    ids = [row[0] for row in session.execute(query).all()]
+    if exclude_account_ids:
+        exclude_set = set(exclude_account_ids)
+        ids = [i for i in ids if i not in exclude_set]
+    return ids
 
 
 def accounts_by_ids(session: Session, account_ids: list[str], run_date: Optional[str] = None):
