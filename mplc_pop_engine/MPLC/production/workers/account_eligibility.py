@@ -255,7 +255,11 @@ def build_hierarchy_component_map(universe: pd.DataFrame) -> pd.Series:
     return components
 
 
-def build_identity_component_map(universe: pd.DataFrame) -> pd.Series:
+def build_identity_component_map(
+    universe: pd.DataFrame,
+    max_cluster_size: int = 50,
+    verbose: bool = True,
+) -> Tuple[pd.Series, List[Dict]]:
     """
     Connected-components pass over shared normalized website domain OR
     shared normalized exact account name. Domain and name edges DO chain
@@ -277,27 +281,70 @@ def build_identity_component_map(universe: pd.DataFrame) -> pd.Series:
     compute_eligibility_vectorized, reproduces the original (correct)
     semantics: "check this account's real family tree, AND separately check
     this account's own domain/name twins" — never a chain through both.
+
+    GENERIC-COLLISION GUARD (max_cluster_size): confirmed against the real
+    817,742-row account universe (2026-11-11) that a raw domain/name match
+    is NOT a reliable same-entity signal at scale. Real examples found:
+    the domain "freseniuskidneycare.com" was shared by 3,885 accounts that
+    are plainly unrelated businesses (a fitness chain, several county
+    names, random addresses) — almost certainly a placeholder/default
+    value written into the Website field, not evidence of common
+    ownership. "facebook.com" was shared by 1,787 accounts for the same
+    reason. On the name side, "First Baptist Church" (n=1,649) spans at
+    least ten different states — a common organization name, not one
+    entity. Left unguarded, this would propagate one church's Licensed
+    status across all 1,649 unrelated congregations nationwide. A genuine
+    duplicate-entity or real-franchise cluster should be small (tens, not
+    thousands); any domain or name group whose size exceeds
+    max_cluster_size is treated as coincidental/generic noise and EXCLUDED
+    from identity-cluster edges entirely — those accounts still get their
+    real Salesforce hierarchy checked via build_hierarchy_component_map,
+    just not this noisy identity layer. Oversized groups are returned
+    alongside the component map so a human can review the actual cutoff
+    chosen (default 50, unconfirmed against real review as of this
+    writing — Jeff did not have a strong prior on the right number when
+    asked, so this default is a reasoned starting point, not a settled
+    business rule).
+
+    Returns (component_series, oversized_groups) where oversized_groups is
+    a list of {'kind': 'domain'|'name', 'value': str, 'size': int} for
+    every group that got excluded by the cap, so it can be surfaced in the
+    run log / audit output rather than silently dropped.
     """
     id_col = '18 Digit Account ID'
     uf = _UnionFind()
+    oversized_groups: List[Dict] = []
 
     domain_norm = universe['Website'].apply(norm_domain) if 'Website' in universe.columns else pd.Series([None] * len(universe))
     tmp = pd.DataFrame({id_col: universe[id_col], 'domain_norm': domain_norm})
-    for _, ids in tmp.loc[tmp['domain_norm'].notna()].groupby('domain_norm')[id_col]:
+    for key, ids in tmp.loc[tmp['domain_norm'].notna()].groupby('domain_norm')[id_col]:
         ids_list = list(ids)
+        if len(ids_list) > max_cluster_size:
+            oversized_groups.append({'kind': 'domain', 'value': key, 'size': len(ids_list)})
+            continue
         for other in ids_list[1:]:
             uf.union(ids_list[0], other)
 
     name_norm = universe['Account Name'].apply(norm_name) if 'Account Name' in universe.columns else pd.Series([''] * len(universe))
     tmp2 = pd.DataFrame({id_col: universe[id_col], 'name_norm': name_norm})
-    for _, ids in tmp2.loc[tmp2['name_norm'] != ''].groupby('name_norm')[id_col]:
+    for key, ids in tmp2.loc[tmp2['name_norm'] != ''].groupby('name_norm')[id_col]:
         ids_list = list(ids)
+        if len(ids_list) > max_cluster_size:
+            oversized_groups.append({'kind': 'name', 'value': key, 'size': len(ids_list)})
+            continue
         for other in ids_list[1:]:
             uf.union(ids_list[0], other)
 
+    if verbose and oversized_groups:
+        print(f"  Identity clustering: {len(oversized_groups)} domain/name groups exceeded "
+              f"max_cluster_size={max_cluster_size} and were treated as generic noise "
+              f"(not used for exclusion propagation). Largest 5:")
+        for g in sorted(oversized_groups, key=lambda g: -g['size'])[:5]:
+            print(f"    {g['kind']}: {g['value']!r} ({g['size']:,} accounts)")
+
     components = universe[id_col].apply(uf.find)
     components.index = universe.index
-    return components
+    return components, oversized_groups
 
 
 # ---------------------------------------------------------------------------
@@ -318,11 +365,21 @@ def compute_eligibility_vectorized(
     open_deal_ids: Set[str],
     lost_deal_ids: Set[str],
     active_map: Dict[str, bool],
-) -> pd.DataFrame:
+    max_identity_cluster_size: int = 50,
+    verbose: bool = True,
+) -> Tuple[pd.DataFrame, List[Dict]]:
     """
-    Returns a DataFrame aligned to `universe` with columns:
+    Returns (audit_df, oversized_identity_groups).
+
+    audit_df is aligned to `universe` with columns:
         18 Digit Account ID, Account Name, Account Status,
         excluded (bool), exclusion_reasons (str or None)
+
+    oversized_identity_groups lists every domain/name group that exceeded
+    max_identity_cluster_size and was therefore excluded from identity
+    clustering (treated as generic/coincidental, not evidence of common
+    ownership) — see build_identity_component_map for why this guard
+    exists and real examples of what it caught.
     """
     id_col = '18 Digit Account ID'
     status = universe['Account Status'].fillna('')
@@ -338,7 +395,9 @@ def compute_eligibility_vectorized(
     # Two SEPARATE component maps — see build_identity_component_map
     # docstring for why these must not be merged into one graph.
     hierarchy_component = build_hierarchy_component_map(universe)
-    identity_component = build_identity_component_map(universe)
+    identity_component, oversized_identity_groups = build_identity_component_map(
+        universe, max_cluster_size=max_identity_cluster_size, verbose=verbose
+    )
 
     def _propagate(flag: pd.Series) -> pd.Series:
         via_hierarchy = flag.groupby(hierarchy_component).transform('any')
@@ -375,7 +434,7 @@ def compute_eligibility_vectorized(
         'excluded': excluded.values,
         'exclusion_reasons': reasons,
     })
-    return out
+    return out, oversized_identity_groups
 
 
 # ---------------------------------------------------------------------------
@@ -388,6 +447,7 @@ def run_eligibility_check(
     activity_last_90_days_path: Optional[str] = None,
     opportunities_lost_last_9_months_path: Optional[str] = None,
     output_dir: Optional[str] = None,
+    max_identity_cluster_size: int = 50,
     verbose: bool = True,
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """
@@ -400,6 +460,18 @@ def run_eligibility_check(
     If opportunities_lost_last_9_months_path is None, that exclusion is
     simply skipped (with a warning) rather than failing the run — this file
     is new and may not always be available.
+
+    max_identity_cluster_size: domain/name groups larger than this are
+    treated as generic/coincidental, not real duplicate entities, and
+    excluded from identity-cluster propagation. See
+    build_identity_component_map's docstring for real confirmed examples
+    (a 3,885-account "shared domain" that was really a data-quality
+    placeholder; a 1,649-account "First Baptist Church" name collision
+    spanning ten states). Default of 50 is a reasoned starting point, not
+    yet confirmed by a business-side review of real oversized groups —
+    check the "oversized identity groups" CSV this writes to output_dir
+    and adjust if it's cutting off something that should propagate, or
+    letting through something that shouldn't.
     """
     def log(msg):
         if verbose:
@@ -444,7 +516,10 @@ def run_eligibility_check(
         log(f"  {int(active_mask.sum()):,} accounts active in last 90 days (from date columns)")
 
     log("Computing eligibility (single vectorized pass: components + propagation)...")
-    audit_df = compute_eligibility_vectorized(universe, open_deal_ids, lost_deal_ids, active_map)
+    audit_df, oversized_identity_groups = compute_eligibility_vectorized(
+        universe, open_deal_ids, lost_deal_ids, active_map,
+        max_identity_cluster_size=max_identity_cluster_size, verbose=verbose,
+    )
     safe_df = audit_df[~audit_df['excluded']].drop(columns=['excluded', 'exclusion_reasons'])
 
     elapsed = (datetime.now() - t_start).total_seconds()
@@ -452,6 +527,8 @@ def run_eligibility_check(
     log(f"  Total accounts:        {len(audit_df):,}")
     log(f"  Excluded:              {int(audit_df['excluded'].sum()):,}")
     log(f"  Safe to distribute:    {len(safe_df):,}")
+    log(f"  Oversized domain/name groups excluded from clustering: {len(oversized_identity_groups):,} "
+        f"(cap={max_identity_cluster_size})")
     log(f"  Total runtime:         {elapsed:.1f}s")
 
     if output_dir:
@@ -459,10 +536,13 @@ def run_eligibility_check(
         run_tag = run_date.strftime('%Y%m%d')
         audit_path = os.path.join(output_dir, f'eligibility_audit_{run_tag}.csv')
         safe_path = os.path.join(output_dir, f'safe_to_distribute_{run_tag}.csv')
+        oversized_path = os.path.join(output_dir, f'oversized_identity_groups_{run_tag}.csv')
         audit_df.to_csv(audit_path, index=False)
         safe_df.to_csv(safe_path, index=False)
+        pd.DataFrame(oversized_identity_groups).to_csv(oversized_path, index=False)
         log(f"\nSaved audit:            {audit_path}")
         log(f"Saved safe-to-distribute: {safe_path}")
+        log(f"Saved oversized groups (for cap review): {oversized_path}")
 
     return safe_df, audit_df
 
@@ -476,6 +556,9 @@ def main():
     parser.add_argument('--lost-deals-9-months', default=None, help='Path to OPPORTUNITIES LOST LAST 9 MONTHS export CSV (optional but recommended — new exclusion)')
     parser.add_argument('--output-dir', default='./output', help='Where to write audit + safe-to-distribute CSVs')
     parser.add_argument('--run-date', default=None, help='Run date YYYY-MM-DD (default: today)')
+    parser.add_argument('--max-identity-cluster-size', type=int, default=50,
+                         help='Domain/name groups larger than this are treated as generic noise, not real '
+                              'duplicate entities, and excluded from exclusion propagation (default 50)')
     args = parser.parse_args()
 
     run_date = datetime.strptime(args.run_date, '%Y-%m-%d') if args.run_date else datetime.now()
@@ -487,6 +570,7 @@ def main():
         activity_last_90_days_path=args.activity_90_days,
         opportunities_lost_last_9_months_path=args.lost_deals_9_months,
         output_dir=args.output_dir,
+        max_identity_cluster_size=args.max_identity_cluster_size,
         verbose=True,
     )
 
