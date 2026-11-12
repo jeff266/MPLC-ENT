@@ -19,6 +19,7 @@ from .db import init_db, get_db
 from . import models
 from . import queries
 from .pipeline_runner import run_and_persist
+from .file_discovery import discover_weekly_files, archive_files, DiscoveryError, OUTPUT_DIR
 
 app = FastAPI(title="PoP Detection Engine")
 
@@ -69,6 +70,44 @@ def trigger_pipeline_run(req: PipelineRunRequest, db: Session = Depends(get_db))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     return {"run_date": run_date, "summary": summary}
+
+
+@app.post("/pipeline/run/auto")
+def trigger_pipeline_run_auto(db: Session = Depends(get_db)):
+    """Discovery-based run for the weekly scheduler / a one-click UI button
+    — no file paths needed. Finds the weekly exports in
+    ~/mplc_pop_engine_data/incoming/ by filename pattern (see
+    file_discovery.py), runs the pipeline, and archives the inputs on
+    success so next week's discovery can't re-pick a stale file."""
+    run_date = date.today().isoformat()
+    try:
+        files = discover_weekly_files()
+    except DiscoveryError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    run_output_dir = OUTPUT_DIR / run_date
+    run_output_dir.mkdir(parents=True, exist_ok=True)
+
+    try:
+        summary = run_and_persist(
+            session=db,
+            salesforce_export_path=str(files["salesforce_export"]),
+            output_dir=str(run_output_dir),
+            run_date=run_date,
+            open_deals_path=str(files["open_deals"]),
+            activity_90_days_path=str(files["activity_90_days"]) if "activity_90_days" in files else None,
+            lost_deals_9_months_path=str(files["lost_deals_9_months"]) if "lost_deals_9_months" in files else None,
+            verbose=True,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    archive_files(files, run_date)
+    return {
+        "run_date": run_date,
+        "summary": summary,
+        "archived_files": {k: str(v) for k, v in files.items()},
+    }
 
 
 @app.get("/runs")
