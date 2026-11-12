@@ -145,6 +145,11 @@ def get_accounts(
     vertical: Optional[str] = None,
     segment: Optional[str] = None,
     excluded: Optional[bool] = None,
+    country: Optional[str] = None,
+    operating_market: Optional[str] = None,
+    capacity_type: Optional[str] = None,
+    capacity_min: Optional[int] = None,
+    capacity_max: Optional[int] = None,
     page: int = 1,
     page_size: int = 100,
     db: Session = Depends(get_db),
@@ -153,7 +158,9 @@ def get_accounts(
         raise HTTPException(status_code=400, detail="page_size capped at 1000")
     return queries.list_accounts(
         db, run_date=run_date, vertical=vertical, segment=segment,
-        excluded=excluded, page=page, page_size=page_size,
+        excluded=excluded, country=country, operating_market=operating_market,
+        capacity_type=capacity_type, capacity_min=capacity_min, capacity_max=capacity_max,
+        page=page, page_size=page_size,
     )
 
 
@@ -199,6 +206,11 @@ class AccountFilter(BaseModel):
     vertical: Optional[str] = None
     segment: Optional[str] = None
     excluded: Optional[bool] = None
+    country: Optional[str] = None
+    operating_market: Optional[str] = None
+    capacity_type: Optional[str] = None
+    capacity_min: Optional[int] = None
+    capacity_max: Optional[int] = None
 
 
 class FindEnrichableRequest(BaseModel):
@@ -221,6 +233,9 @@ def find_enrichable_accounts(req: FindEnrichableRequest, db: Session = Depends(g
         account_ids = queries.resolve_filtered_account_ids(
             db, run_date=req.filter.run_date, vertical=req.filter.vertical,
             segment=req.filter.segment, excluded=req.filter.excluded,
+            country=req.filter.country, operating_market=req.filter.operating_market,
+            capacity_type=req.filter.capacity_type, capacity_min=req.filter.capacity_min,
+            capacity_max=req.filter.capacity_max,
             exclude_account_ids=req.exclude_account_ids,
         )
         if not account_ids:
@@ -246,7 +261,8 @@ def find_enrichable_accounts(req: FindEnrichableRequest, db: Session = Depends(g
     buf = io.StringIO()
     writer = csv.DictWriter(
         buf,
-        fieldnames=["account_id", "account_name", "website", "state", "industry",
+        fieldnames=["account_id", "account_name", "website", "state", "country",
+                    "operating_market", "capacity", "capacity_type", "industry",
                     "excluded", "vertical", "segment"],
     )
     writer.writeheader()

@@ -47,6 +47,35 @@
   font-size: 0.85rem;
 }
 
+/* ---- Tabs ---- */
+.tab-bar {
+  display: flex;
+  gap: 0.3rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+@media (prefers-color-scheme: dark) {
+  .tab-bar {
+    border-color: var(--border-dark);
+  }
+}
+
+.tab-bar button {
+  background: none;
+  border: none;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.9rem;
+  border-bottom: 2px solid transparent;
+  opacity: 0.7;
+}
+
+.tab-bar button.tab-active {
+  opacity: 1;
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+
 /* ---- Filter bar ---- */
 .filter-bar {
   display: flex;

@@ -25,6 +25,11 @@ def _filtered_accounts_query(
     vertical: Optional[str] = None,
     segment: Optional[str] = None,
     excluded: Optional[bool] = None,
+    country: Optional[str] = None,
+    operating_market: Optional[str] = None,
+    capacity_type: Optional[str] = None,
+    capacity_min: Optional[int] = None,
+    capacity_max: Optional[int] = None,
     columns: Optional[list] = None,
 ):
     """Shared join + filter logic behind both the paginated triage table
@@ -38,12 +43,26 @@ def _filtered_accounts_query(
         conditions.append(models.SegmentationRun.segment == segment)
     if excluded is not None:
         conditions.append(models.EligibilityRun.excluded == excluded)
+    if country:
+        conditions.append(models.Account.country == country)
+    if operating_market:
+        conditions.append(models.Account.operating_market == operating_market)
+    if capacity_type:
+        conditions.append(models.Account.capacity_type == capacity_type)
+    if capacity_min is not None:
+        conditions.append(models.Account.capacity >= capacity_min)
+    if capacity_max is not None:
+        conditions.append(models.Account.capacity <= capacity_max)
 
     cols = columns or [
         models.Account.account_id,
         models.Account.account_name,
         models.Account.website,
         models.Account.state,
+        models.Account.country,
+        models.Account.operating_market,
+        models.Account.capacity,
+        models.Account.capacity_type,
         models.Account.industry,
         models.EligibilityRun.excluded,
         models.EligibilityRun.exclusion_reasons,
@@ -82,6 +101,11 @@ def list_accounts(
     vertical: Optional[str] = None,
     segment: Optional[str] = None,
     excluded: Optional[bool] = None,
+    country: Optional[str] = None,
+    operating_market: Optional[str] = None,
+    capacity_type: Optional[str] = None,
+    capacity_min: Optional[int] = None,
+    capacity_max: Optional[int] = None,
     page: int = 1,
     page_size: int = 100,
 ):
@@ -92,7 +116,11 @@ def list_accounts(
     if elig_date is None:
         return {"run_date": None, "total": 0, "page": page, "page_size": page_size, "rows": []}
 
-    base_query = _filtered_accounts_query(elig_date, vertical, segment, excluded)
+    base_query = _filtered_accounts_query(
+        elig_date, vertical, segment, excluded,
+        country=country, operating_market=operating_market,
+        capacity_type=capacity_type, capacity_min=capacity_min, capacity_max=capacity_max,
+    )
 
     total = session.execute(
         select(func.count()).select_from(base_query.subquery())
@@ -119,6 +147,11 @@ def resolve_filtered_account_ids(
     vertical: Optional[str] = None,
     segment: Optional[str] = None,
     excluded: Optional[bool] = None,
+    country: Optional[str] = None,
+    operating_market: Optional[str] = None,
+    capacity_type: Optional[str] = None,
+    capacity_min: Optional[int] = None,
+    capacity_max: Optional[int] = None,
     exclude_account_ids: Optional[list[str]] = None,
 ) -> list[str]:
     """"Select all N filtered rows" resolved server-side — the frontend
@@ -130,7 +163,10 @@ def resolve_filtered_account_ids(
         return []
 
     query = _filtered_accounts_query(
-        elig_date, vertical, segment, excluded, columns=[models.Account.account_id]
+        elig_date, vertical, segment, excluded,
+        country=country, operating_market=operating_market,
+        capacity_type=capacity_type, capacity_min=capacity_min, capacity_max=capacity_max,
+        columns=[models.Account.account_id],
     )
     ids = [row[0] for row in session.execute(query).all()]
     if exclude_account_ids:
@@ -155,6 +191,10 @@ def accounts_by_ids(session: Session, account_ids: list[str], run_date: Optional
             models.Account.account_name,
             models.Account.website,
             models.Account.state,
+            models.Account.country,
+            models.Account.operating_market,
+            models.Account.capacity,
+            models.Account.capacity_type,
             models.Account.industry,
             models.EligibilityRun.excluded,
             models.ClassificationRun.vertical,

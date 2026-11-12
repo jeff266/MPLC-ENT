@@ -16,6 +16,10 @@ export interface AccountRow {
   account_name: string | null;
   website: string | null;
   state: string | null;
+  country: string | null;
+  operating_market: string | null;
+  capacity: number | null;
+  capacity_type: string | null;
   industry: string | null;
   excluded: boolean;
   exclusion_reasons: string | null;
@@ -39,6 +43,11 @@ export interface AccountFilters {
   vertical?: string;
   segment?: string;
   excluded?: boolean;
+  country?: string;
+  operating_market?: string;
+  capacity_type?: string;
+  capacity_min?: number;
+  capacity_max?: number;
 }
 
 export async function fetchAccounts(
@@ -78,6 +87,33 @@ export async function fetchUnresolvedQueue(
 ): Promise<UnresolvedPage> {
   const { data } = await client.get<UnresolvedPage>("/review-queues/unresolved", {
     params: { vertical, page, page_size: pageSize },
+  });
+  return data;
+}
+
+export interface ClayMatchRow {
+  id: number;
+  clay_company_name: string | null;
+  clay_website: string | null;
+  classification: string;
+  match_method: string | null;
+  num_candidates: number;
+}
+
+export interface ClayAmbiguousPage {
+  total: number;
+  page: number;
+  page_size: number;
+  rows: ClayMatchRow[];
+}
+
+export async function fetchClayAmbiguousQueue(
+  batchId: string | undefined,
+  page: number,
+  pageSize: number,
+): Promise<ClayAmbiguousPage> {
+  const { data } = await client.get<ClayAmbiguousPage>("/review-queues/clay-ambiguous", {
+    params: { batch_id: batchId, page, page_size: pageSize },
   });
   return data;
 }

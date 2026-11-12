@@ -59,9 +59,20 @@ def _upsert_accounts(session: Session, audit_df: pd.DataFrame):
         'Created Date': 'created_date',
         'Last Modified Date': 'last_modified_date',
         'Last Activity': 'last_activity',
+        # Added 2026-11-12 — see models.py Account docstring for why each
+        # one is its own column rather than reusing an existing field.
+        'Account Country (text only)': 'country',
+        'Operating Market': 'operating_market',
+        'Capacity': 'capacity',
+        'Capacity Type': 'capacity_type',
     }
     present = {k: v for k, v in col_map.items() if k in audit_df.columns}
     sub = audit_df[list(present.keys())].rename(columns=present)
+    if 'capacity' in sub.columns:
+        # Real values are plain integer strings in every row checked this
+        # session, but coerce rather than trust that holds for all 703K —
+        # a stray non-numeric value becomes NULL, not a crashed pipeline run.
+        sub['capacity'] = pd.to_numeric(sub['capacity'], errors='coerce').astype('Int64')
     sub = sub.where(pd.notna(sub), None)
     records = sub.to_dict('records')
 

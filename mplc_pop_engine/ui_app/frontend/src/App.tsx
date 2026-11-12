@@ -6,6 +6,8 @@ import { MetricsPanel } from "./components/MetricsPanel";
 import { AccountsTable } from "./components/AccountsTable";
 import { Pagination } from "./components/Pagination";
 import { ActionBar } from "./components/ActionBar";
+import { UnresolvedQueue } from "./components/UnresolvedQueue";
+import { ClayAmbiguousQueue } from "./components/ClayAmbiguousQueue";
 import { useSelection } from "./hooks/useSelection";
 import "./App.css";
 
@@ -32,7 +34,10 @@ const KNOWN_VERTICALS = [
 
 const PAGE_SIZE = 50;
 
+type Tab = "triage" | "unresolved" | "clay";
+
 function App() {
+  const [tab, setTab] = useState<Tab>("triage");
   const [filters, setFilters] = useState<AccountFilters>({});
   const [page, setPage] = useState(1);
   const selection = useSelection();
@@ -62,24 +67,47 @@ function App() {
 
       <MetricsPanel />
 
-      <FilterBar filters={filters} onChange={handleFiltersChange} verticals={KNOWN_VERTICALS} />
+      <nav className="tab-bar">
+        <button type="button" className={tab === "triage" ? "tab-active" : ""} onClick={() => setTab("triage")}>
+          Triage Table
+        </button>
+        <button
+          type="button"
+          className={tab === "unresolved" ? "tab-active" : ""}
+          onClick={() => setTab("unresolved")}
+        >
+          Unresolved Queue
+        </button>
+        <button type="button" className={tab === "clay" ? "tab-active" : ""} onClick={() => setTab("clay")}>
+          Clay Ambiguous
+        </button>
+      </nav>
 
-      <ActionBar
-        selection={selection}
-        currentFilters={filters}
-        total={data?.total ?? 0}
-        onPipelineRunComplete={handlePipelineRunComplete}
-      />
-
-      {isLoading && <p>Loading…</p>}
-      {isError && <p className="action-error">Failed to load accounts: {String(error)}</p>}
-
-      {data && (
+      {tab === "triage" && (
         <>
-          <AccountsTable rows={data.rows} selection={selection} />
-          <Pagination page={page} pageSize={PAGE_SIZE} total={data.total} onPageChange={setPage} />
+          <FilterBar filters={filters} onChange={handleFiltersChange} verticals={KNOWN_VERTICALS} />
+
+          <ActionBar
+            selection={selection}
+            currentFilters={filters}
+            total={data?.total ?? 0}
+            onPipelineRunComplete={handlePipelineRunComplete}
+          />
+
+          {isLoading && <p>Loading…</p>}
+          {isError && <p className="action-error">Failed to load accounts: {String(error)}</p>}
+
+          {data && (
+            <>
+              <AccountsTable rows={data.rows} selection={selection} />
+              <Pagination page={page} pageSize={PAGE_SIZE} total={data.total} onPageChange={setPage} />
+            </>
+          )}
         </>
       )}
+
+      {tab === "unresolved" && <UnresolvedQueue />}
+      {tab === "clay" && <ClayAmbiguousQueue />}
     </div>
   );
 }

@@ -47,6 +47,13 @@ export function AccountsTable({ rows, selection }: Props) {
         header: "Excluded",
         cell: (info) => (info.getValue() ? "Yes" : "No"),
       }),
+      columnHelper.accessor("country", { header: "Country" }),
+      columnHelper.accessor("operating_market", { header: "Operating Market" }),
+      columnHelper.accessor("capacity", {
+        header: "Capacity",
+        cell: (info) => info.getValue() ?? "—",
+      }),
+      columnHelper.accessor("capacity_type", { header: "Capacity Type" }),
       columnHelper.accessor("state", { header: "State" }),
       columnHelper.accessor("website", { header: "Website" }),
     ],

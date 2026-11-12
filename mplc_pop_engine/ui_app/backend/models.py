@@ -55,6 +55,24 @@ class Account(Base):
     account_sub_industry: Mapped[Optional[str]] = mapped_column(String(200))
     state: Mapped[Optional[str]] = mapped_column(String(100))
     phone: Mapped[Optional[str]] = mapped_column(String(50))
+    # Added 2026-11-12 (Jeff: need to filter by Country / Operating Market /
+    # Capacity / Capacity Type — he's primarily focused on US MM+ENT today).
+    # All 4 are real Salesforce export columns, confirmed present and
+    # carried through unchanged by account_eligibility.py's
+    # compute_eligibility_vectorized (its own docstring: "every original
+    # column... preserved"). country uses "Account Country (text only)"
+    # (167 distinct values) rather than the picklist "Account Country" —
+    # same convention as `state` using the "(text only)" variant.
+    # operating_market is NOT redundant with country: it has only 18
+    # distinct values and splits out brand/division variants (e.g.
+    # "CVLI United States" vs "United States") that country collapses.
+    # capacity is genuinely sparse (15,321 of 703,260 real rows) and
+    # numeric — kept as Integer, not String, so it can be range-filtered
+    # (capacity_min/capacity_max), not just exact-matched.
+    country: Mapped[Optional[str]] = mapped_column(String(100))
+    operating_market: Mapped[Optional[str]] = mapped_column(String(100))
+    capacity: Mapped[Optional[int]] = mapped_column(Integer)
+    capacity_type: Mapped[Optional[str]] = mapped_column(String(50))
     created_date: Mapped[Optional[str]] = mapped_column(String(50))
     last_modified_date: Mapped[Optional[str]] = mapped_column(String(50))
     last_activity: Mapped[Optional[str]] = mapped_column(String(50))
