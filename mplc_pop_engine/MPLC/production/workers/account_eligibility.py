@@ -228,23 +228,19 @@ class _UnionFind:
             self.parent[ra] = rb
 
 
-def build_component_map(universe: pd.DataFrame) -> pd.Series:
+def build_hierarchy_component_map(universe: pd.DataFrame) -> pd.Series:
     """
-    Single connected-components pass over THREE edge types:
-      (1) real Parent Account ID hierarchy (vectorized id-normalize + map,
-          then one O(matches) loop of union() calls — not a recursive walk)
-      (2) shared normalized website domain
-      (3) shared normalized exact account name
+    Connected-components pass over the REAL Parent Account ID hierarchy
+    ONLY. Vectorized id-normalize + dict map, then one O(matches) loop of
+    union() calls — not a recursive walk.
 
-    Returns a pd.Series aligned to universe.index giving each account's
-    component root id. Any two accounts with the same root are, for
-    exclusion-propagation purposes, "the same entity or its kin."
+    Kept strictly separate from identity (domain/name) clustering: see
+    build_identity_component_map docstring for why these must NOT be merged
+    into one graph.
     """
     id_col = '18 Digit Account ID'
     uf = _UnionFind()
 
-    # (1) Hierarchy edges — vectorized normalize + dict map, then a plain
-    # loop of O(1) union() calls (NOT a per-account recursive tree walk).
     id15_to_id18 = {
         _normalize_id_to_15(aid): aid for aid in universe[id_col] if pd.notna(aid)
     }
@@ -254,7 +250,37 @@ def build_component_map(universe: pd.DataFrame) -> pd.Series:
     for child_id, parent_id in zip(universe.loc[has_parent, id_col], parent_18[has_parent]):
         uf.union(child_id, parent_id)
 
-    # (2) Domain edges — vectorized groupby, then union within each group.
+    components = universe[id_col].apply(uf.find)
+    components.index = universe.index
+    return components
+
+
+def build_identity_component_map(universe: pd.DataFrame) -> pd.Series:
+    """
+    Connected-components pass over shared normalized website domain OR
+    shared normalized exact account name. Domain and name edges DO chain
+    together here (two records linked by domain, and one of those linked to
+    a third by name, are treated as one identity cluster) — that mirrors
+    how mdu_dedup.py already matched the same real operator across several
+    garbled name strings via a shared domain.
+
+    CRITICAL: this must stay a SEPARATE Union-Find from the hierarchy one.
+    A first version of this module merged hierarchy edges and identity
+    edges into one graph, which let exclusion propagate transitively across
+    edge types — e.g. A is a real SF sibling of B, and B happens to share a
+    generically-normalized name with some unrelated C, so A would wrongly
+    inherit C's bad status despite having no real or domain/name connection
+    to C at all. Confirmed as a real bug via a 3,500-account sample
+    comparison against the original recursive logic (63 false-positive
+    exclusions, all from this exact mixing). Keeping hierarchy and identity
+    as two separate component maps, OR'd per-flag in
+    compute_eligibility_vectorized, reproduces the original (correct)
+    semantics: "check this account's real family tree, AND separately check
+    this account's own domain/name twins" — never a chain through both.
+    """
+    id_col = '18 Digit Account ID'
+    uf = _UnionFind()
+
     domain_norm = universe['Website'].apply(norm_domain) if 'Website' in universe.columns else pd.Series([None] * len(universe))
     tmp = pd.DataFrame({id_col: universe[id_col], 'domain_norm': domain_norm})
     for _, ids in tmp.loc[tmp['domain_norm'].notna()].groupby('domain_norm')[id_col]:
@@ -262,7 +288,6 @@ def build_component_map(universe: pd.DataFrame) -> pd.Series:
         for other in ids_list[1:]:
             uf.union(ids_list[0], other)
 
-    # (3) Normalized-name edges — same pattern.
     name_norm = universe['Account Name'].apply(norm_name) if 'Account Name' in universe.columns else pd.Series([''] * len(universe))
     tmp2 = pd.DataFrame({id_col: universe[id_col], 'name_norm': name_norm})
     for _, ids in tmp2.loc[tmp2['name_norm'] != ''].groupby('name_norm')[id_col]:
@@ -310,13 +335,21 @@ def compute_eligibility_vectorized(
     open_deal_bool = universe[id_col].isin(open_deal_ids)
     lost_deal_bool = universe[id_col].isin(lost_deal_ids) if lost_deal_ids else pd.Series(False, index=universe.index)
 
-    component = build_component_map(universe)
+    # Two SEPARATE component maps — see build_identity_component_map
+    # docstring for why these must not be merged into one graph.
+    hierarchy_component = build_hierarchy_component_map(universe)
+    identity_component = build_identity_component_map(universe)
 
-    cluster_bad_status = hierarchy_bad.groupby(component).transform('any')
-    cluster_name_marker = name_marker_bool.groupby(component).transform('any')
-    cluster_active = active_bool.groupby(component).transform('any')
-    cluster_open_deal = open_deal_bool.groupby(component).transform('any')
-    cluster_lost_deal = lost_deal_bool.groupby(component).transform('any')
+    def _propagate(flag: pd.Series) -> pd.Series:
+        via_hierarchy = flag.groupby(hierarchy_component).transform('any')
+        via_identity = flag.groupby(identity_component).transform('any')
+        return via_hierarchy | via_identity
+
+    cluster_bad_status = _propagate(hierarchy_bad)
+    cluster_name_marker = _propagate(name_marker_bool)
+    cluster_active = _propagate(active_bool)
+    cluster_open_deal = _propagate(open_deal_bool)
+    cluster_lost_deal = _propagate(lost_deal_bool)
 
     flags = pd.DataFrame({
         'own_bad_status': own_bad,
