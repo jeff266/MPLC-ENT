@@ -1,0 +1,38 @@
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color-scheme: light dark;
+  --border: #d0d0d8;
+  --border-dark: #3a3a44;
+  --bg: #ffffff;
+  --bg-dark: #1b1b22;
+  --text: #1a1a1f;
+  --text-dark: #e8e8ec;
+  --accent: #2563eb;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background: var(--bg-dark);
+    color: var(--text-dark);
+  }
+}
+
+button {
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
