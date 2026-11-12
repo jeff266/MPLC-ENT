@@ -33,32 +33,46 @@ Inputs (file paths, all plain CSV from Salesforce weekly export):
                               be scoped to 9 months).
 
 This module extends, rather than replaces, protection_filter_behavioral.py.
-Everything in OWN_BAD_STATUSES / HIERARCHY_BAD_STATUSES / NAME_EXCLUSION_MARKERS
-and the parent/child hierarchy walk is reused as-is from that file (import,
-not reimplementation) so the two stay in sync. This module adds exactly three
-things that do not exist anywhere else in the codebase (confirmed via grep,
-2026-11-11):
+OWN_BAD_STATUSES / HIERARCHY_BAD_STATUSES / NAME_EXCLUSION_MARKERS are
+imported (not reimplemented) from that file so the two can't drift apart.
+This module adds exactly three things confirmed absent from the rest of the
+codebase via grep (2026-11-11):
 
     (A) Lost-deal-in-last-9-months exclusion, keyed off the new 4th file.
     (B) A stronger identity-cluster layer: two Salesforce records are treated
         as the same real-world entity — and a disqualifying fact on one
         propagates to the other — if they share a normalized website domain
         OR a normalized exact account name, even with NO real Parent Account
-        ID link between them. This is in addition to (not a replacement for)
-        the existing true-hierarchy walk. This is the direct fix for what
-        Jeff flagged: "exact account names or matching websites ... these
-        should be excluded just like siblings."
+        ID link between them. This is in addition to the real hierarchy
+        (Parent Account ID) link, not a replacement for it — both kinds of
+        edges feed the same connected-component graph. This is the direct
+        fix for what Jeff flagged: "exact account names or matching websites
+        ... these should be excluded just like siblings."
     (C) Name-marker detection generalized to substring match on the literal
-        words DUPE and NO USE (Jeff's stated wording) in addition to the
-        existing marker set, so a stray "XYZ Corp DUPE 2" with no hyphen
-        still gets caught.
+        words DUPE and NO USE (Jeff's stated wording) and DO NOT CONTACT,
+        in addition to the existing marker set.
+
+PERFORMANCE NOTE (2026-11-11): the first version of this module reused
+protection_filter_behavioral.py's per-account recursive tree-walk pattern
+and called it once per account across the full 701,977-row universe. That
+is the wrong shape for this problem — that walk-based approach is designed
+to be queried for a handful of candidate accounts (as mdu_dedup.py does,
+against ~1,758 candidates), not run 700k times. A real timed run confirmed
+it: ~354s for the first 50,000 accounts, extrapolating to 80+ minutes for
+the full universe. This version replaces the per-account walk with a single
+connected-components pass (hierarchy edges + domain edges + name edges all
+feeding one Union-Find) followed by vectorized pandas groupby-transform
+aggregation — no per-row recursion, no per-row DataFrame.loc access. See
+Known Failure Patterns in this project's own Learnings doc: this is the
+same iterrows-style trap that showed up in this session's MDU dedupe script
+before being fixed the same way.
 
 NOT YET VALIDATED AGAINST REAL DATA: the Activity Last 90 Days and
 Opportunities Lost Last 9 Months file shapes. The accounts + open-deals path
 (and the domain/name clustering) have been run against the real 701,977-row
-Salesforce universe this session. Columns for the other two are guessed from
-standard SF export conventions and documented below — confirm against a real
-sample before trusting this in production.
+Salesforce universe. Columns for the other two are guessed from standard SF
+export conventions and documented below — confirm against a real sample
+before trusting this in production.
 """
 
 import sys
@@ -67,6 +81,7 @@ import re
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Set, Tuple
 
+import numpy as np
 import pandas as pd
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -74,7 +89,6 @@ from protection_filter_behavioral import (  # noqa: E402
     OWN_BAD_STATUSES,
     HIERARCHY_BAD_STATUSES,
     NAME_EXCLUSION_MARKERS,
-    _build_lookup_structures,
     _normalize_id_to_15,
 )
 
@@ -84,20 +98,14 @@ from protection_filter_behavioral import (  # noqa: E402
 # the hyphen/parens formatting the existing NAME_EXCLUSION_MARKERS assumes).
 # ---------------------------------------------------------------------------
 EXTRA_NAME_SUBSTRINGS = {'DUPE', 'NO USE', 'DO NOT CONTACT'}
+ALL_NAME_MARKERS = {m.upper() for m in NAME_EXCLUSION_MARKERS} | EXTRA_NAME_SUBSTRINGS
 
 
-def has_name_marker(name: Optional[str]) -> Optional[str]:
-    """Return the matched marker string if name carries any exclusion marker, else None."""
+def has_name_marker(name: Optional[str]) -> bool:
     if not name or (isinstance(name, float) and pd.isna(name)):
-        return None
+        return False
     name_upper = str(name).upper()
-    for marker in NAME_EXCLUSION_MARKERS:
-        if marker.upper() in name_upper:
-            return marker
-    for marker in EXTRA_NAME_SUBSTRINGS:
-        if marker in name_upper:
-            return marker
-    return None
+    return any(marker in name_upper for marker in ALL_NAME_MARKERS)
 
 
 # ---------------------------------------------------------------------------
@@ -134,10 +142,7 @@ def norm_name(n) -> str:
 
 # ---------------------------------------------------------------------------
 # Flexible column lookup for the two files whose exact export shape hasn't
-# been confirmed against a real sample yet (activity_last_90_days,
-# opportunities_lost_last_9_months). We try the common SF export header
-# spellings rather than hard-coding one, and raise clearly if none match —
-# per project discipline, we don't guess silently.
+# been confirmed against a real sample yet.
 # ---------------------------------------------------------------------------
 ACCOUNT_ID_COL_CANDIDATES = [
     '18 Digit Account ID', 'Account ID', 'AccountId', 'Account Id (18)',
@@ -198,9 +203,9 @@ def _load_lost_deal_ids(path: str, run_date: datetime, window_days: int = 274) -
 
 
 # ---------------------------------------------------------------------------
-# (B) Identity clustering: union-find over domain_norm / name_norm, layered
-# on top of (not replacing) the real Parent Account ID hierarchy that
-# protection_filter_behavioral.py already walks.
+# Union-Find: O(1) amortized union/find with path compression. Used once to
+# build ALL connected components (hierarchy + domain + name edges) in a
+# single pass — no per-account recursion.
 # ---------------------------------------------------------------------------
 class _UnionFind:
     def __init__(self):
@@ -211,7 +216,6 @@ class _UnionFind:
         root = x
         while self.parent[root] != root:
             root = self.parent[root]
-        # path compression
         while self.parent[x] != root:
             nxt = self.parent[x]
             self.parent[x] = root
@@ -224,144 +228,121 @@ class _UnionFind:
             self.parent[ra] = rb
 
 
-def build_identity_clusters(universe: pd.DataFrame) -> Dict[str, List[str]]:
+def build_component_map(universe: pd.DataFrame) -> pd.Series:
     """
-    Build clusters of account IDs that share a normalized domain or a
-    normalized exact name. Returns {account_id: [all account ids in its
-    cluster, including itself]}.
+    Single connected-components pass over THREE edge types:
+      (1) real Parent Account ID hierarchy (vectorized id-normalize + map,
+          then one O(matches) loop of union() calls — not a recursive walk)
+      (2) shared normalized website domain
+      (3) shared normalized exact account name
 
-    This does NOT use Parent Account ID — that hierarchy is handled
-    separately (and already correctly) inside compute_protection_behavioral.
-    This layer catches the case Jeff described: two unrelated-by-hierarchy
-    SF records that are actually the same company (same domain, or same
-    name typed twice with no parent link).
+    Returns a pd.Series aligned to universe.index giving each account's
+    component root id. Any two accounts with the same root are, for
+    exclusion-propagation purposes, "the same entity or its kin."
     """
+    id_col = '18 Digit Account ID'
     uf = _UnionFind()
 
-    id_col = '18 Digit Account ID'
+    # (1) Hierarchy edges — vectorized normalize + dict map, then a plain
+    # loop of O(1) union() calls (NOT a per-account recursive tree walk).
+    id15_to_id18 = {
+        _normalize_id_to_15(aid): aid for aid in universe[id_col] if pd.notna(aid)
+    }
+    parent_15 = universe['Parent Account ID'].apply(_normalize_id_to_15) if 'Parent Account ID' in universe.columns else pd.Series([''] * len(universe))
+    parent_18 = parent_15.map(id15_to_id18)
+    has_parent = parent_18.notna()
+    for child_id, parent_id in zip(universe.loc[has_parent, id_col], parent_18[has_parent]):
+        uf.union(child_id, parent_id)
+
+    # (2) Domain edges — vectorized groupby, then union within each group.
     domain_norm = universe['Website'].apply(norm_domain) if 'Website' in universe.columns else pd.Series([None] * len(universe))
+    tmp = pd.DataFrame({id_col: universe[id_col], 'domain_norm': domain_norm})
+    for _, ids in tmp.loc[tmp['domain_norm'].notna()].groupby('domain_norm')[id_col]:
+        ids_list = list(ids)
+        for other in ids_list[1:]:
+            uf.union(ids_list[0], other)
+
+    # (3) Normalized-name edges — same pattern.
     name_norm = universe['Account Name'].apply(norm_name) if 'Account Name' in universe.columns else pd.Series([''] * len(universe))
-
-    tmp = pd.DataFrame({
-        id_col: universe[id_col],
-        'domain_norm': domain_norm,
-        'name_norm': name_norm,
-    })
-
-    for _, ids in tmp.loc[tmp['domain_norm'].notna(), [id_col, 'domain_norm']].groupby('domain_norm')[id_col]:
+    tmp2 = pd.DataFrame({id_col: universe[id_col], 'name_norm': name_norm})
+    for _, ids in tmp2.loc[tmp2['name_norm'] != ''].groupby('name_norm')[id_col]:
         ids_list = list(ids)
         for other in ids_list[1:]:
             uf.union(ids_list[0], other)
 
-    for _, ids in tmp.loc[tmp['name_norm'] != '', [id_col, 'name_norm']].groupby('name_norm')[id_col]:
-        ids_list = list(ids)
-        for other in ids_list[1:]:
-            uf.union(ids_list[0], other)
-
-    clusters: Dict[str, List[str]] = {}
-    for aid in tmp[id_col]:
-        root = uf.find(aid)
-        clusters.setdefault(root, []).append(aid)
-
-    account_to_cluster: Dict[str, List[str]] = {}
-    for members in clusters.values():
-        for aid in members:
-            account_to_cluster[aid] = members
-
-    return account_to_cluster
+    components = universe[id_col].apply(uf.find)
+    components.index = universe.index
+    return components
 
 
 # ---------------------------------------------------------------------------
-# Main eligibility computation for one account
+# Main eligibility computation — fully vectorized, single pass.
 # ---------------------------------------------------------------------------
-def compute_eligibility(
-    account_id: str,
-    universe_idx: pd.DataFrame,
-    parent_to_children: Dict[str, List[str]],
-    id15_to_id18: Dict[str, str],
-    status_map: Dict[str, str],
-    name_map: Dict[str, str],
-    active_map: Dict[str, bool],
+REASON_LABELS = [
+    'own_bad_status',       # self only — full OWN_BAD_STATUSES list
+    'cluster_bad_status',   # propagated — HIERARCHY_BAD_STATUSES (Licensed/Customer) only
+    'name_marker',          # self or cluster
+    'recent_activity',      # self or cluster, 90-day window
+    'open_deal',            # self or cluster
+    'lost_deal_last_9_months',  # self or cluster, NEW
+]
+
+
+def compute_eligibility_vectorized(
+    universe: pd.DataFrame,
     open_deal_ids: Set[str],
     lost_deal_ids: Set[str],
-    account_to_cluster: Dict[str, List[str]],
-) -> Dict:
+    active_map: Dict[str, bool],
+) -> pd.DataFrame:
     """
-    Combines:
-      - the real hierarchy walk (parent/sibling/ancestor/descendant) —
-        reusing the exact OWN_BAD_STATUSES / HIERARCHY_BAD_STATUSES logic
-      - behavioral checks: open deal, 90-day activity, lost deal (NEW)
-      - the identity-cluster layer: domain/name matches with no real
-        hierarchy link (NEW)
-
-    Returns {'excluded': bool, 'reasons': [str, ...]}
+    Returns a DataFrame aligned to `universe` with columns:
+        18 Digit Account ID, Account Name, Account Status,
+        excluded (bool), exclusion_reasons (str or None)
     """
-    reasons: List[str] = []
+    id_col = '18 Digit Account ID'
+    status = universe['Account Status'].fillna('')
+    name = universe['Account Name'].fillna('')
 
-    def check_node(node_id: str, relationship: str):
-        if node_id not in universe_idx.index:
-            return
-        name = name_map.get(node_id, 'Unknown')
-        status = status_map.get(node_id, '')
+    own_bad = status.isin(OWN_BAD_STATUSES)
+    hierarchy_bad = status.isin(HIERARCHY_BAD_STATUSES)
+    name_marker_bool = name.apply(has_name_marker)
+    active_bool = universe[id_col].map(active_map).fillna(False).astype(bool)
+    open_deal_bool = universe[id_col].isin(open_deal_ids)
+    lost_deal_bool = universe[id_col].isin(lost_deal_ids) if lost_deal_ids else pd.Series(False, index=universe.index)
 
-        bad_set = OWN_BAD_STATUSES if node_id == account_id else HIERARCHY_BAD_STATUSES
-        if status in bad_set:
-            reasons.append(f"bad_status:{status} ({name}, {relationship})")
+    component = build_component_map(universe)
 
-        marker = has_name_marker(name)
-        if marker:
-            reasons.append(f"name_marker:{marker} ({name}, {relationship})")
+    cluster_bad_status = hierarchy_bad.groupby(component).transform('any')
+    cluster_name_marker = name_marker_bool.groupby(component).transform('any')
+    cluster_active = active_bool.groupby(component).transform('any')
+    cluster_open_deal = open_deal_bool.groupby(component).transform('any')
+    cluster_lost_deal = lost_deal_bool.groupby(component).transform('any')
 
-        if active_map.get(node_id, False):
-            reasons.append(f"recent_activity ({name}, {relationship})")
+    flags = pd.DataFrame({
+        'own_bad_status': own_bad,
+        'cluster_bad_status': cluster_bad_status,
+        'name_marker': name_marker_bool | cluster_name_marker,
+        'recent_activity': active_bool | cluster_active,
+        'open_deal': open_deal_bool | cluster_open_deal,
+        'lost_deal_last_9_months': lost_deal_bool | cluster_lost_deal,
+    })
 
-        if node_id in open_deal_ids:
-            reasons.append(f"open_deal ({name}, {relationship})")
+    excluded = flags.any(axis=1)
 
-        if node_id in lost_deal_ids:
-            reasons.append(f"lost_deal_last_9_months ({name}, {relationship})")
+    # Vectorized-ish reason-string build: plain numpy boolean indexing per
+    # row (no DataFrame.loc, no recursion) — fast even at 700k rows.
+    labels_arr = np.array(REASON_LABELS)
+    flags_arr = flags[REASON_LABELS].to_numpy()
+    reasons = [';'.join(labels_arr[row]) if row.any() else None for row in flags_arr]
 
-    # --- (1) Real hierarchy walk: find root, walk full tree ---
-    def find_root(acc_id: str) -> str:
-        visited = set()
-        current = acc_id
-        while current and current not in visited:
-            visited.add(current)
-            if current not in universe_idx.index:
-                break
-            parent_id = universe_idx.loc[current].get('Parent Account ID', '')
-            if pd.isna(parent_id) or not parent_id:
-                break
-            parent_15 = _normalize_id_to_15(parent_id)
-            if parent_15 not in id15_to_id18:
-                break
-            current = id15_to_id18[parent_15]
-        return current
-
-    root_id = find_root(account_id)
-    visited_tree: Set[str] = set()
-
-    def walk_tree(node_id: str, relationship: str):
-        if node_id in visited_tree or node_id not in universe_idx.index:
-            return
-        visited_tree.add(node_id)
-        check_node(node_id, relationship)
-        node_15 = _normalize_id_to_15(node_id)
-        if node_15 in parent_to_children:
-            for child_id in sorted(parent_to_children[node_15]):
-                child_rel = 'descendant' if node_id == account_id else relationship
-                walk_tree(child_id, child_rel)
-
-    walk_tree(root_id, 'self' if root_id == account_id else 'ancestor')
-
-    # --- (2) Identity-cluster layer: domain/name matches with no hierarchy link ---
-    cluster = account_to_cluster.get(account_id, [account_id])
-    for member_id in cluster:
-        if member_id == account_id or member_id in visited_tree:
-            continue
-        check_node(member_id, 'identity_cluster_match')
-
-    return {'excluded': len(reasons) > 0, 'reasons': reasons}
+    out = pd.DataFrame({
+        id_col: universe[id_col].values,
+        'Account Name': universe['Account Name'].values,
+        'Account Status': universe['Account Status'].values,
+        'excluded': excluded.values,
+        'exclusion_reasons': reasons,
+    })
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -389,7 +370,9 @@ def run_eligibility_check(
     """
     def log(msg):
         if verbose:
-            print(msg)
+            print(msg, flush=True)
+
+    t_start = datetime.now()
 
     log("Loading account universe...")
     universe = pd.read_csv(all_accounts_path, encoding='latin-1', low_memory=False)
@@ -410,50 +393,33 @@ def run_eligibility_check(
     else:
         log("  WARNING: no opportunities_lost_last_9_months file supplied — that exclusion is SKIPPED this run.")
 
-    log("Building lookup structures...")
-    universe_idx, parent_to_children, id15_to_id18, status_map, name_map, active_map_from_dates = \
-        _build_lookup_structures(universe, run_date)
-
+    # 90-day activity: explicit file wins; else fall back to date columns.
     if activity_last_90_days_path:
         log("Loading explicit Activity Last 90 Days file (overrides date-column fallback)...")
         active_ids = _load_account_id_set(activity_last_90_days_path, "activity_last_90_days")
-        active_map = {aid: (aid in active_ids) for aid in universe['18 Digit Account ID']}
+        active_map = {aid: True for aid in active_ids}
         log(f"  {len(active_ids):,} accounts active in last 90 days (from explicit file)")
     else:
-        active_map = active_map_from_dates
-        log(f"  Using date-column fallback for 90-day activity ({sum(active_map.values()):,} active)")
+        log("Using date-column fallback for 90-day activity (Last Activity / Last Modified Date / Created Date)...")
+        cutoff_date = run_date - timedelta(days=90)
+        active_mask = pd.Series(False, index=universe.index)
+        for field in ['Last Activity', 'Last Modified Date', 'Created Date']:
+            if field in universe.columns:
+                parsed = pd.to_datetime(universe[field], errors='coerce')
+                active_mask = active_mask | (parsed >= cutoff_date)
+        active_map = dict(zip(universe['18 Digit Account ID'], active_mask))
+        log(f"  {int(active_mask.sum()):,} accounts active in last 90 days (from date columns)")
 
-    log("Building identity clusters (domain + normalized-name)...")
-    account_to_cluster = build_identity_clusters(universe)
-    multi_member_clusters = sum(1 for members in account_to_cluster.values() if len(members) > 1)
-    log(f"  {multi_member_clusters:,} accounts sit in a multi-member domain/name cluster")
-
-    log("Computing eligibility for every account...")
-    records = []
-    t0 = datetime.now()
-    for i, account_id in enumerate(universe['18 Digit Account ID']):
-        if verbose and i % 50000 == 0:
-            log(f"  ...{i:,}/{len(universe):,} ({(datetime.now()-t0).total_seconds():.1f}s elapsed)")
-        result = compute_eligibility(
-            account_id, universe_idx, parent_to_children, id15_to_id18,
-            status_map, name_map, active_map, open_deal_ids, lost_deal_ids,
-            account_to_cluster,
-        )
-        records.append({
-            '18 Digit Account ID': account_id,
-            'Account Name': name_map.get(account_id, ''),
-            'Account Status': status_map.get(account_id, ''),
-            'excluded': result['excluded'],
-            'exclusion_reasons': '; '.join(result['reasons']) if result['reasons'] else None,
-        })
-
-    audit_df = pd.DataFrame(records)
+    log("Computing eligibility (single vectorized pass: components + propagation)...")
+    audit_df = compute_eligibility_vectorized(universe, open_deal_ids, lost_deal_ids, active_map)
     safe_df = audit_df[~audit_df['excluded']].drop(columns=['excluded', 'exclusion_reasons'])
 
+    elapsed = (datetime.now() - t_start).total_seconds()
     log("\n=== Eligibility summary ===")
     log(f"  Total accounts:        {len(audit_df):,}")
-    log(f"  Excluded:              {audit_df['excluded'].sum():,}")
+    log(f"  Excluded:              {int(audit_df['excluded'].sum()):,}")
     log(f"  Safe to distribute:    {len(safe_df):,}")
+    log(f"  Total runtime:         {elapsed:.1f}s")
 
     if output_dir:
         os.makedirs(output_dir, exist_ok=True)
