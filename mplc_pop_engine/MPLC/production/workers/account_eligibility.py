@@ -234,8 +234,8 @@ def build_hierarchy_component_map(universe: pd.DataFrame) -> pd.Series:
     ONLY. Vectorized id-normalize + dict map, then one O(matches) loop of
     union() calls — not a recursive walk.
 
-    Kept strictly separate from identity (domain/name) clustering: see
-    build_identity_component_map docstring for why these must NOT be merged
+    Kept strictly separate from domain/name clustering: see
+    build_domain_component_map docstring for why these must NOT be merged
     into one graph.
     """
     id_col = '18 Digit Account ID'
@@ -255,96 +255,98 @@ def build_hierarchy_component_map(universe: pd.DataFrame) -> pd.Series:
     return components
 
 
-def build_identity_component_map(
+def _build_single_signal_component_map(
     universe: pd.DataFrame,
-    max_cluster_size: int = 50,
-    verbose: bool = True,
+    norm_series: pd.Series,
+    kind: str,
+    max_cluster_size: int,
 ) -> Tuple[pd.Series, List[Dict]]:
     """
-    Connected-components pass over shared normalized website domain OR
-    shared normalized exact account name. Domain and name edges DO chain
-    together here (two records linked by domain, and one of those linked to
-    a third by name, are treated as one identity cluster) — that mirrors
-    how mdu_dedup.py already matched the same real operator across several
-    garbled name strings via a shared domain.
-
-    CRITICAL: this must stay a SEPARATE Union-Find from the hierarchy one.
-    A first version of this module merged hierarchy edges and identity
-    edges into one graph, which let exclusion propagate transitively across
-    edge types — e.g. A is a real SF sibling of B, and B happens to share a
-    generically-normalized name with some unrelated C, so A would wrongly
-    inherit C's bad status despite having no real or domain/name connection
-    to C at all. Confirmed as a real bug via a 3,500-account sample
-    comparison against the original recursive logic (63 false-positive
-    exclusions, all from this exact mixing). Keeping hierarchy and identity
-    as two separate component maps, OR'd per-flag in
-    compute_eligibility_vectorized, reproduces the original (correct)
-    semantics: "check this account's real family tree, AND separately check
-    this account's own domain/name twins" — never a chain through both.
-
-    GENERIC-COLLISION GUARD (max_cluster_size): confirmed against the real
-    817,742-row account universe (2026-11-11) that a raw domain/name match
-    is NOT a reliable same-entity signal at scale. Real examples found:
-    the domain "freseniuskidneycare.com" was shared by 3,885 accounts that
-    are plainly unrelated businesses (a fitness chain, several county
-    names, random addresses) — almost certainly a placeholder/default
-    value written into the Website field, not evidence of common
-    ownership. "facebook.com" was shared by 1,787 accounts for the same
-    reason. On the name side, "First Baptist Church" (n=1,649) spans at
-    least ten different states — a common organization name, not one
-    entity. Left unguarded, this would propagate one church's Licensed
-    status across all 1,649 unrelated congregations nationwide. A genuine
-    duplicate-entity or real-franchise cluster should be small (tens, not
-    thousands); any domain or name group whose size exceeds
-    max_cluster_size is treated as coincidental/generic noise and EXCLUDED
-    from identity-cluster edges entirely — those accounts still get their
-    real Salesforce hierarchy checked via build_hierarchy_component_map,
-    just not this noisy identity layer. Oversized groups are returned
-    alongside the component map so a human can review the actual cutoff
-    chosen (default 50, unconfirmed against real review as of this
-    writing — Jeff did not have a strong prior on the right number when
-    asked, so this default is a reasoned starting point, not a settled
-    business rule).
-
-    Returns (component_series, oversized_groups) where oversized_groups is
-    a list of {'kind': 'domain'|'name', 'value': str, 'size': int} for
-    every group that got excluded by the cap, so it can be surfaced in the
-    run log / audit output rather than silently dropped.
+    Shared implementation for one normalized-signal clustering pass (domain
+    OR name, never both — see build_domain_component_map /
+    build_name_component_map for why they must stay separate).
     """
     id_col = '18 Digit Account ID'
     uf = _UnionFind()
     oversized_groups: List[Dict] = []
 
-    domain_norm = universe['Website'].apply(norm_domain) if 'Website' in universe.columns else pd.Series([None] * len(universe))
-    tmp = pd.DataFrame({id_col: universe[id_col], 'domain_norm': domain_norm})
-    for key, ids in tmp.loc[tmp['domain_norm'].notna()].groupby('domain_norm')[id_col]:
+    tmp = pd.DataFrame({id_col: universe[id_col], 'norm': norm_series})
+    valid = tmp['norm'].notna() & (tmp['norm'] != '')
+    for key, ids in tmp.loc[valid].groupby('norm')[id_col]:
         ids_list = list(ids)
         if len(ids_list) > max_cluster_size:
-            oversized_groups.append({'kind': 'domain', 'value': key, 'size': len(ids_list)})
+            oversized_groups.append({'kind': kind, 'value': key, 'size': len(ids_list)})
             continue
         for other in ids_list[1:]:
             uf.union(ids_list[0], other)
-
-    name_norm = universe['Account Name'].apply(norm_name) if 'Account Name' in universe.columns else pd.Series([''] * len(universe))
-    tmp2 = pd.DataFrame({id_col: universe[id_col], 'name_norm': name_norm})
-    for key, ids in tmp2.loc[tmp2['name_norm'] != ''].groupby('name_norm')[id_col]:
-        ids_list = list(ids)
-        if len(ids_list) > max_cluster_size:
-            oversized_groups.append({'kind': 'name', 'value': key, 'size': len(ids_list)})
-            continue
-        for other in ids_list[1:]:
-            uf.union(ids_list[0], other)
-
-    if verbose and oversized_groups:
-        print(f"  Identity clustering: {len(oversized_groups)} domain/name groups exceeded "
-              f"max_cluster_size={max_cluster_size} and were treated as generic noise "
-              f"(not used for exclusion propagation). Largest 5:")
-        for g in sorted(oversized_groups, key=lambda g: -g['size'])[:5]:
-            print(f"    {g['kind']}: {g['value']!r} ({g['size']:,} accounts)")
 
     components = universe[id_col].apply(uf.find)
     components.index = universe.index
     return components, oversized_groups
+
+
+def build_domain_component_map(
+    universe: pd.DataFrame,
+    max_cluster_size: int = 50,
+) -> Tuple[pd.Series, List[Dict]]:
+    """
+    Connected-components pass over shared normalized website domain ONLY.
+
+    CRITICAL: kept separate from build_name_component_map. A combined
+    version (domain and name chaining together in one graph) was the
+    module's actual state through 2026-11-11 and was confirmed to produce
+    real false-positive exclusions via generic facility names acting as
+    bridges between unrelated organizations. Concrete traced example: a
+    real "Wittenberg Village" account (a genuine Lutheran Life Communities
+    facility, correctly linked to its 6 real siblings by actual Parent
+    Account ID) was wrongly flagged with a lost-deal exclusion sourced from
+    "Alive Wesleyan Church" — a completely unrelated congregation. The
+    chain: Lutheran Life Communities' domain group (7 accounts, under the
+    cap) included a facility literally named "Pleasant View"; a totally
+    different company (a camping-resort chain) ALSO had an account named
+    "Pleasant View" under ITS OWN domain (also under the cap); because
+    domain and name edges fed the same Union-Find, that shared generic
+    name merged the two unrelated companies' domain groups into one
+    component, which then kept growing through other generic facility
+    names ("Four Winds", "Downtown Branch", "Central Branch") until it
+    contained 63 unrelated organizations (a dialysis-adjacent entity, two
+    different regional YMCAs, a church, a senior-living operator, a
+    camping-resort chain). Each individual domain/name group was under
+    max_cluster_size on its own — the cap doesn't catch this, because the
+    cap only looks at one group's size BEFORE the cross-signal merge.
+    Splitting domain and name into two independent component maps, each
+    capped on its own and OR'd (not chained) in
+    compute_eligibility_vectorized, closes this: a generic name can no
+    longer bridge two unrelated companies' real domain groups together.
+    """
+    domain_norm = universe['Website'].apply(norm_domain) if 'Website' in universe.columns else pd.Series([None] * len(universe))
+    return _build_single_signal_component_map(universe, domain_norm, 'domain', max_cluster_size)
+
+
+def build_name_component_map(
+    universe: pd.DataFrame,
+    max_cluster_size: int = 50,
+) -> Tuple[pd.Series, List[Dict]]:
+    """
+    Connected-components pass over shared normalized exact account name
+    ONLY. See build_domain_component_map's docstring for why this must stay
+    independent from domain-based clustering (confirmed real bug otherwise:
+    generic names like "Pleasant View" bridging unrelated companies'
+    domain groups into one giant false cluster).
+
+    GENERIC-COLLISION GUARD (max_cluster_size): confirmed against the real
+    703,260-row account universe (2026-11-11) that a shared exact name is
+    not a reliable same-entity signal at scale on its own either —
+    "First Baptist Church" (n=1,649) spans at least ten different US
+    states. A genuine duplicate-entity cluster should be small (tens, not
+    thousands); any group whose size exceeds max_cluster_size is treated
+    as coincidental/generic noise and excluded from this layer entirely —
+    those accounts still get their real Salesforce hierarchy checked via
+    build_hierarchy_component_map, and their own domain cluster via
+    build_domain_component_map, just not this layer.
+    """
+    name_norm = universe['Account Name'].apply(norm_name) if 'Account Name' in universe.columns else pd.Series([''] * len(universe))
+    return _build_single_signal_component_map(universe, name_norm, 'name', max_cluster_size)
 
 
 # ---------------------------------------------------------------------------
@@ -375,11 +377,11 @@ def compute_eligibility_vectorized(
         18 Digit Account ID, Account Name, Account Status,
         excluded (bool), exclusion_reasons (str or None)
 
-    oversized_identity_groups lists every domain/name group that exceeded
-    max_identity_cluster_size and was therefore excluded from identity
+    oversized_identity_groups lists every domain group and every name group
+    that exceeded max_identity_cluster_size and was therefore excluded from
     clustering (treated as generic/coincidental, not evidence of common
-    ownership) — see build_identity_component_map for why this guard
-    exists and real examples of what it caught.
+    ownership) — see build_domain_component_map / build_name_component_map
+    for why this guard exists and real examples of what it caught.
     """
     id_col = '18 Digit Account ID'
     status = universe['Account Status'].fillna('')
@@ -392,17 +394,32 @@ def compute_eligibility_vectorized(
     open_deal_bool = universe[id_col].isin(open_deal_ids)
     lost_deal_bool = universe[id_col].isin(lost_deal_ids) if lost_deal_ids else pd.Series(False, index=universe.index)
 
-    # Two SEPARATE component maps — see build_identity_component_map
-    # docstring for why these must not be merged into one graph.
+    # THREE fully independent component maps — hierarchy, domain, and name
+    # never chain into each other. See build_domain_component_map's
+    # docstring for the confirmed real bug (Wittenberg Village / generic
+    # facility names bridging unrelated companies) that this independence
+    # exists to prevent.
     hierarchy_component = build_hierarchy_component_map(universe)
-    identity_component, oversized_identity_groups = build_identity_component_map(
-        universe, max_cluster_size=max_identity_cluster_size, verbose=verbose
+    domain_component, oversized_domain_groups = build_domain_component_map(
+        universe, max_cluster_size=max_identity_cluster_size
     )
+    name_component, oversized_name_groups = build_name_component_map(
+        universe, max_cluster_size=max_identity_cluster_size
+    )
+    oversized_identity_groups = oversized_domain_groups + oversized_name_groups
+
+    if verbose and oversized_identity_groups:
+        print(f"  Identity clustering: {len(oversized_identity_groups)} domain/name groups exceeded "
+              f"max_cluster_size={max_identity_cluster_size} and were treated as generic noise "
+              f"(not used for exclusion propagation). Largest 5:")
+        for g in sorted(oversized_identity_groups, key=lambda g: -g['size'])[:5]:
+            print(f"    {g['kind']}: {g['value']!r} ({g['size']:,} accounts)")
 
     def _propagate(flag: pd.Series) -> pd.Series:
         via_hierarchy = flag.groupby(hierarchy_component).transform('any')
-        via_identity = flag.groupby(identity_component).transform('any')
-        return via_hierarchy | via_identity
+        via_domain = flag.groupby(domain_component).transform('any')
+        via_name = flag.groupby(name_component).transform('any')
+        return via_hierarchy | via_domain | via_name
 
     cluster_bad_status = _propagate(hierarchy_bad)
     cluster_name_marker = _propagate(name_marker_bool)
@@ -461,13 +478,16 @@ def run_eligibility_check(
     simply skipped (with a warning) rather than failing the run — this file
     is new and may not always be available.
 
-    max_identity_cluster_size: domain/name groups larger than this are
-    treated as generic/coincidental, not real duplicate entities, and
-    excluded from identity-cluster propagation. See
-    build_identity_component_map's docstring for real confirmed examples
-    (a 3,885-account "shared domain" that was really a data-quality
+    max_identity_cluster_size: domain groups and name groups larger than
+    this are treated as generic/coincidental, not real duplicate entities,
+    and excluded from clustering (domain and name are independent — see
+    build_domain_component_map's docstring for real confirmed examples:
+    a 3,885-account "shared domain" that was really a data-quality
     placeholder; a 1,649-account "First Baptist Church" name collision
-    spanning ten states). Default of 50 is a reasoned starting point, not
+    spanning ten states; and a confirmed cross-signal bug where a generic
+    name bridged two unrelated companies' domain groups into one 63-account
+    false cluster before domain/name were split apart). Default of 50 is a
+    reasoned starting point, not
     yet confirmed by a business-side review of real oversized groups —
     check the "oversized identity groups" CSV this writes to output_dir
     and adjust if it's cutting off something that should propagate, or
