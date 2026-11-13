@@ -20,11 +20,32 @@ Includes:
 
 import os
 import re
+import sys
 import time
 import json
 import hashlib
-import imghdr
 from pathlib import Path
+
+try:
+    import imghdr  # Python < 3.13
+except ModuleNotFoundError:
+    # Removed in Python 3.13 (PEP 594) -- see enrichers/image_sniff.py for why/what.
+    # FIX (2026-11-13): this module previously had an unguarded `import imghdr`
+    # with no fallback at all -- it would have crashed outright on Python 3.13+
+    # (not even degraded gracefully like the enrichers did before their own fix).
+    # Path-aware because locally this file lives in production/channels/ while
+    # image_sniff.py lives in production/enrichers/ (two different directories);
+    # on the droplets both are deployed flattened into the same directory
+    # (see deploy_all.sh), where a plain `import image_sniff` would already work.
+    for _path in (Path(__file__).parent, Path(__file__).parent.parent / 'enrichers'):
+        sys.path.insert(0, str(_path))
+        try:
+            import image_sniff as imghdr
+            break
+        except ModuleNotFoundError:
+            continue
+    else:
+        raise
 from datetime import datetime
 from typing import List, Dict, Optional, Set, Tuple
 from urllib.parse import urljoin, urlparse
@@ -538,6 +559,106 @@ class WebsiteImageEvidenceChannel:
             return []
         except Exception:
             return []
+
+    def find_embedded_videos(self, website_url: str) -> List[Dict]:
+        """
+        Find candidate TV-evidence videos embedded on the account's own
+        website (2026-11-13, Jeff: "Perhaps videos and images from the
+        websites themselves" + "add video-embed detection to the shared
+        module while I'm in there").
+
+        Checks the main page AND any gallery/amenity subpages (reusing
+        _find_gallery_pages(), same as search_evidence()'s own image crawl)
+        for two kinds of embed:
+        1. Direct <video> files: <video><source src="...mp4/.webm"></video>
+           (and a bare <video src="...">)
+        2. Third-party iframe embeds: youtube.com / youtu.be / vimeo.com
+
+        This method does NOT download, decode, or analyze the videos --
+        it only finds candidate URLs. Each vertical enricher already has
+        its own working download/frame-extraction/YOLO/VLM pipeline
+        (download_video, extract_frames, yolo_detect_tv, analyze_frame_vlm
+        in mdu_unified.py and healthcare_unified.py); the intent is for
+        those to consume this method's output rather than duplicating
+        video-processing logic inside this generic, vertical-agnostic
+        channel. Entity-certain by construction, same as the image channel:
+        since this crawls the account's OWN site, there's no search-based
+        wrong-entity ambiguity (unlike a YouTube/Serper video search).
+
+        Returns a list of dicts: {'url', 'type' ('direct'|'youtube'|'vimeo'),
+        'source_page'}. Empty list on error/timeout or if nothing found.
+        """
+        target_urls = [website_url]
+        if self.gallery_page_keywords:
+            target_urls.extend(self._find_gallery_pages(website_url))
+
+        videos: List[Dict] = []
+        seen_urls: Set[str] = set()
+
+        iframe_host_types = {
+            'youtube.com': 'youtube',
+            'youtu.be': 'youtube',
+            'youtube-nocookie.com': 'youtube',
+            'player.vimeo.com': 'vimeo',
+            'vimeo.com': 'vimeo',
+        }
+
+        for target_url in target_urls:
+            try:
+                with sync_playwright() as p:
+                    browser = p.chromium.launch(headless=True)
+                    page = browser.new_page()
+                    page.goto(target_url, wait_until="domcontentloaded", timeout=15000)
+                    time.sleep(1)
+
+                    # Direct <video> elements: bare src=, or nested <source src=>
+                    for video_el in page.locator('video').all():
+                        try:
+                            direct_src = video_el.get_attribute('src')
+                            if direct_src:
+                                abs_url = urljoin(target_url, direct_src)
+                                if abs_url not in seen_urls:
+                                    videos.append({'url': abs_url, 'type': 'direct', 'source_page': target_url})
+                                    seen_urls.add(abs_url)
+                        except Exception:
+                            pass
+
+                    for source_el in page.locator('video source').all():
+                        try:
+                            src = source_el.get_attribute('src')
+                            if src:
+                                abs_url = urljoin(target_url, src)
+                                if abs_url not in seen_urls:
+                                    videos.append({'url': abs_url, 'type': 'direct', 'source_page': target_url})
+                                    seen_urls.add(abs_url)
+                        except Exception:
+                            pass
+
+                    # Third-party embeds: <iframe src="...youtube.com/..."> etc.
+                    for iframe_el in page.locator('iframe').all():
+                        try:
+                            src = iframe_el.get_attribute('src')
+                            if not src:
+                                continue
+                            abs_url = urljoin(target_url, src)
+                            host = urlparse(abs_url).netloc.lower()
+                            for known_host, embed_type in iframe_host_types.items():
+                                if known_host in host:
+                                    if abs_url not in seen_urls:
+                                        videos.append({'url': abs_url, 'type': embed_type, 'source_page': target_url})
+                                        seen_urls.add(abs_url)
+                                    break
+                        except Exception:
+                            pass
+
+                    browser.close()
+
+            except PlaywrightTimeout:
+                continue
+            except Exception:
+                continue
+
+        return videos
 
     def _screenshot_fallback(
         self,

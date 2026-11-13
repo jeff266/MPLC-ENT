@@ -40,6 +40,16 @@ for droplet in $DROPLET1 $DROPLET2; do
     # Copy enrichers
     scp production/enrichers/*.py root@$droplet:/root/enrichment/enrichers/
 
+    # Copy the generic channels (website_image_channel.py, etc.) FLATTENED into
+    # the same enrichers/ directory. FIX (2026-11-13): this line was missing
+    # entirely, so production/channels/*.py was never deployed to either
+    # droplet. mdu_unified.py's own import comment ("Try same directory first
+    # (droplet deployment)") assumes this flattened layout -- without this copy,
+    # the import silently fails on the droplet, self.image_channel ends up
+    # None, and the website-image channel never runs there at all. Confirmed
+    # via Supabase: zero MDU prospects have ever had channel='website_images'.
+    scp production/channels/*.py root@$droplet:/root/enrichment/enrichers/
+
     # Copy unified worker
     scp production/workers/unified_worker.py root@$droplet:/root/enrichment/
 

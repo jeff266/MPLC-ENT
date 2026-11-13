@@ -39,6 +39,22 @@ import cv2
 from ultralytics import YOLO
 from anthropic import Anthropic
 
+# Import generic website image channel (2026-11-13, Jeff: "wire
+# WebsiteImageEvidenceChannel into Healthcare and Corporate the same way MDU
+# uses it"). Same guarded-import pattern as mdu_unified.py: try same directory
+# first (droplet deployment, flattened), then nested repo structure (local dev).
+GENERIC_IMAGE_CHANNEL_AVAILABLE = False
+for _path in (Path(__file__).parent, Path(__file__).parent.parent / 'channels'):
+    sys.path.insert(0, str(_path))
+    try:
+        from website_image_channel import WebsiteImageEvidenceChannel
+        GENERIC_IMAGE_CHANNEL_AVAILABLE = True
+        break
+    except ImportError:
+        continue
+if not GENERIC_IMAGE_CHANNEL_AVAILABLE:
+    print(f"Warning: Generic image channel not available (tried: {Path(__file__).parent}, {Path(__file__).parent.parent / 'channels'})")
+
 # Import normalization layer
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "core"))
 try:
@@ -119,9 +135,67 @@ class HealthcareEnricherUnified:
             self.normalizer = None
             print("⚠️  Normalization layer disabled - searches will use raw account names")
 
+        # Generic website-image channel (free, entity-certain by construction
+        # since it crawls the account's own website rather than searching the
+        # open web) -- same pattern as mdu_unified.py's self.image_channel.
+        self.image_channel = None
+        if GENERIC_IMAGE_CHANNEL_AVAILABLE:
+            try:
+                self.image_channel = WebsiteImageEvidenceChannel(
+                    target_object_classes=['tv', 'monitor'],
+                    gallery_page_keywords=[
+                        'waiting room', 'waiting area', 'lobby', 'patient',
+                        'gallery', 'amenities', 'facility tour', 'about us',
+                    ],
+                    vlm_classification_prompt=self._healthcare_vlm_prompt,
+                    anthropic_api_key=self.anthropic_key,
+                    yolo_model_path=self.yolo_model_path,
+                    min_yolo_confidence=0.2,
+                )
+            except Exception as e:
+                print(f"Warning: Could not initialize generic image channel: {e}")
+
         # Log channel configuration
         print(f"📺 YouTube channel: {'ENABLED' if self.enable_youtube else 'DISABLED'}")
         print(f"🖼️  Image search channel: {'ENABLED' if self.enable_image_search else 'DISABLED'}")
+        print(f"🌐 Website-image channel: {'ENABLED' if self.image_channel else 'DISABLED'}")
+
+    def _healthcare_vlm_prompt(self, property_name: str, yolo_confidence: float) -> str:
+        """VLM prompt for the generic website-image channel, adapted from this
+        file's own analyze_image_vlm() prompt (used by Stage 4 / hospital image
+        search) but reshaped to the generic channel's field names (is_common_area
+        / is_target_object / device_type) so _vlm_verify() can parse it the same
+        way it parses MDU's and Corporate's prompts."""
+        return f"""Analyze this image for TV/entertainment-screen evidence at a healthcare facility.
+
+Facility: {property_name}
+YOLO pre-filter confidence this image contains a TV/monitor-like object: {yolo_confidence:.2f}
+
+Look for TVs in PUBLIC, patient/visitor-accessible communal spaces:
+- Waiting room / waiting area
+- Public lobby
+- Common patient lounge
+
+CRITICAL EXCLUSIONS (must be ruled out):
+- Nurses' station or staff-only monitors
+- Medical/diagnostic equipment displays (EKG, vitals monitors, imaging screens)
+- Patient room TVs (private rooms, not public-facing)
+- Digital wayfinding / directory screens
+- Black screens (powered off)
+- Computer monitors at reception desks
+
+Answer ONLY with valid JSON in exactly this shape:
+{{
+  "tv_detected": true|false,
+  "device_type": "tv"|"monitor"|"projector_screen"|"computer_monitor",
+  "tv_location": "waiting_room|lobby|patient_lounge|none",
+  "confidence": "high"|"medium"|"low",
+  "is_entertainment_tv": true|false,
+  "is_common_area": true|false,
+  "is_target_object": true|false,
+  "tv_powered_on": true|false,
+  "reasoning": "Brief explanation"
+}}"""
 
     def _find_procurement_db(self) -> Optional[Path]:
         """Find state procurement database with fallback locations."""
@@ -1932,7 +2006,7 @@ Answer ONLY with valid JSON:
         - All evidence fields from qualifying path(s)
         """
         # Run Path A (TV Detection waterfall)
-        tv_result = self.enrich_facility(facility_name, city, state, segment, search_name)
+        tv_result = self.enrich_facility(facility_name, city, state, segment, search_name, account_website=account_website)
 
         # Detect facility type to route Path B appropriately
         facility_type = self.detect_facility_type(facility_name)
@@ -1979,7 +2053,7 @@ Answer ONLY with valid JSON:
                 'reason': f"TV detection: {tv_result.get('reason', 'No evidence')}; {path_b_name}: {path_b_result.get('reason', 'No evidence')}"
             }
 
-    def enrich_facility(self, facility_name: str, city: str, state: str, segment: str = 'UNKNOWN', search_name: str = None) -> Dict:
+    def enrich_facility(self, facility_name: str, city: str, state: str, segment: str = 'UNKNOWN', search_name: str = None, account_website: str = None) -> Dict:
         """
         PATH A (TV Detection): 7-stage waterfall with early exit on PROSPECT.
 
@@ -1989,6 +2063,8 @@ Answer ONLY with valid JSON:
             state: State code
             segment: SB/MM/ENT
             search_name: Simplified name for YouTube searches (optional, defaults to facility_name)
+            account_website: Account's own website URL, used by the generic
+                website-image channel (optional; added 2026-11-13)
 
         Returns evidence-compliant dict with tier, channel, cost, etc.
         """
@@ -2057,6 +2133,55 @@ Answer ONLY with valid JSON:
                 processing_log.append(f"Stage 2B: Error - {str(e)[:50]}")
                 total_cost += 0.001  # Still count API call
 
+            # Stage 2C: Website images (generic, free, entity-certain) -- 2026-11-13.
+            # Placed before the paid YouTube/image-search stages per the
+            # free-before-paid waterfall principle: crawling the account's OWN
+            # site means there's no entity-attribution ambiguity to begin with,
+            # unlike a YouTube/Serper search that can surface an unrelated
+            # same-named facility's videos or images.
+            if self.image_channel and account_website:
+                try:
+                    temp_dir = Path("/tmp/healthcare_enrichment") / facility_name.replace(" ", "_").replace("/", "_")
+                    temp_dir.mkdir(parents=True, exist_ok=True)
+
+                    image_result = self.image_channel.search_evidence(
+                        property_name=facility_name,
+                        website_url=account_website,
+                        temp_dir=temp_dir,
+                    )
+                    total_cost += image_result.get('cost', 0.0)
+
+                    # NOTE: search_evidence() returns 'tier': 'PROSPECT' on success,
+                    # never a 'lead_status' key -- confirmed 2026-11-13 after finding
+                    # mdu_unified.py had checked the wrong key and so had silently
+                    # never fired this channel in production. Correct key from the start.
+                    if image_result.get('tier') == 'PROSPECT':
+                        evidence = image_result['evidence']
+                        processing_log.append("Stage 2C: PROSPECT (website images)")
+                        return {
+                            'lead_status': 'qualified',
+                            'channel': 'website_images',
+                            'evidence_url': evidence.url,
+                            'source_url': evidence.url,
+                            'tv_location': evidence.vlm_result.get('tv_location', 'unknown'),
+                            'confidence': evidence.vlm_result.get('confidence', 'medium'),
+                            'vlm_confidence': evidence.vlm_result.get('confidence', 'medium'),
+                            'tv_powered_on': evidence.vlm_result.get('tv_powered_on', False),
+                            'reasoning': evidence.vlm_result.get('reasoning', ''),
+                            'cost': total_cost,
+                            'vertical': 'healthcare',
+                            'processing_log': processing_log,
+                        }
+                    else:
+                        processing_log.append(
+                            f"Stage 2C: {image_result.get('rejection_reason', 'No images found')} "
+                            f"({image_result.get('images_found', 0)} images, {image_result.get('images_analyzed', 0)} analyzed)"
+                        )
+                except Exception as e:
+                    processing_log.append(f"Stage 2C: Error - {str(e)[:50]}")
+            else:
+                processing_log.append("Stage 2C: SKIPPED (no image channel or no account_website)")
+
             # Stage 3: YouTube Video + YOLO + VLM ($0.015-0.025, assisted living only)
             if self.enable_youtube:
                 try:
@@ -2064,7 +2189,12 @@ Answer ONLY with valid JSON:
                     video_result = self.search_and_analyze_videos(search_name, city, state)
                     total_cost += video_result.get('cost', 0.0)
 
-                    if video_result['tier'] == 'qualified':
+                    # FIX (2026-11-13): search_and_analyze_videos() only ever sets
+                    # 'lead_status' (never 'tier') -- the old `video_result['tier']`
+                    # check KeyError'd on every call since this file's first commit
+                    # (91f4863), silently swallowed by this stage's own except block.
+                    # Stage 3 could never return a PROSPECT in production until now.
+                    if video_result.get('lead_status') == 'qualified':
                         processing_log.append("Stage 3: PROSPECT (video)")
                         return {**video_result, 'cost': total_cost, 'processing_log': processing_log, 'vertical': 'healthcare'}
                     else:
@@ -2081,7 +2211,9 @@ Answer ONLY with valid JSON:
                     image_result = self.search_and_analyze_images(facility_name, state=state, operating_market="United States")
                     total_cost += image_result.get('cost', 0.0)
 
-                    if image_result['tier'] == 'qualified':
+                    # FIX (2026-11-13): same bug as Stage 3 above -- search_and_
+                    # analyze_images() only ever sets 'lead_status', never 'tier'.
+                    if image_result.get('lead_status') == 'qualified':
                         processing_log.append("Stage 4: PROSPECT (hospital images)")
                         return {**image_result, 'cost': total_cost, 'processing_log': processing_log, 'vertical': 'healthcare'}
                     else:

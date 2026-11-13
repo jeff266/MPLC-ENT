@@ -1154,7 +1154,14 @@ Answer ONLY with valid JSON:
 
                 total_cost += image_result.get('cost', 0.0)
 
-                if image_result.get('lead_status') == 'qualified':
+                # FIX (2026-11-13): search_evidence() returns 'tier': 'PROSPECT' on
+                # success — it never sets a 'lead_status' key. The old check
+                # (`image_result.get('lead_status') == 'qualified'`) was therefore
+                # always False, silently discarding every real hit from this
+                # channel. Confirmed empirically: zero MDU prospects in Supabase
+                # have ever carried channel='website_images', despite this being
+                # the channel CLAUDE.md credits with 11.8% ($0.00 cost).
+                if image_result.get('tier') == 'PROSPECT':
                     evidence = image_result['evidence']
                     return {
                         'lead_status': 'qualified',

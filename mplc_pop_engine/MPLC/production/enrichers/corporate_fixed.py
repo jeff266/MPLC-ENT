@@ -23,6 +23,7 @@ Result: Dramatically reduces false positives (64% misattribution rate → near 0
 """
 
 import os
+import sys
 import json
 import requests
 import base64
@@ -33,8 +34,25 @@ except ModuleNotFoundError:
     import image_sniff as imghdr
 import io
 import time
+from pathlib import Path
 from typing import Dict, Optional
 from PIL import Image
+
+# Import generic website image channel (2026-11-13, Jeff: "wire
+# WebsiteImageEvidenceChannel into Healthcare and Corporate the same way MDU
+# uses it"). Same guarded-import pattern as mdu_unified.py: try same directory
+# first (droplet deployment, flattened), then nested repo structure (local dev).
+GENERIC_IMAGE_CHANNEL_AVAILABLE = False
+for _path in (Path(__file__).parent, Path(__file__).parent.parent / 'channels'):
+    sys.path.insert(0, str(_path))
+    try:
+        from website_image_channel import WebsiteImageEvidenceChannel
+        GENERIC_IMAGE_CHANNEL_AVAILABLE = True
+        break
+    except ImportError:
+        continue
+if not GENERIC_IMAGE_CHANNEL_AVAILABLE:
+    print(f"Warning: Generic image channel not available (tried: {Path(__file__).parent}, {Path(__file__).parent.parent / 'channels'})")
 
 # API Keys
 SERPER_API_KEY = os.getenv("SERPER_API_KEY")
@@ -52,6 +70,65 @@ class CorporateEnricher:
             raise ValueError("SERPER_API_KEY not set")
         if not self.anthropic_key:
             raise ValueError("ANTHROPIC_API_KEY not set")
+
+        # Generic website-image channel (free, entity-certain by construction
+        # since it crawls the account's own website rather than searching the
+        # open web) -- same pattern as mdu_unified.py's self.image_channel.
+        self.image_channel = None
+        if GENERIC_IMAGE_CHANNEL_AVAILABLE:
+            try:
+                self.image_channel = WebsiteImageEvidenceChannel(
+                    target_object_classes=['tv', 'monitor'],
+                    gallery_page_keywords=[
+                        'gym', 'fitness', 'cafeteria', 'break room', 'lounge',
+                        'amenities', 'office', 'careers', 'life at', 'culture',
+                    ],
+                    vlm_classification_prompt=self._corporate_vlm_prompt,
+                    anthropic_api_key=self.anthropic_key,
+                    min_yolo_confidence=0.2,
+                )
+            except Exception as e:
+                print(f"Warning: Could not initialize generic image channel: {e}")
+
+    def _corporate_vlm_prompt(self, property_name: str, yolo_confidence: float) -> str:
+        """VLM prompt for the generic website-image channel, adapted from this
+        file's own analyze_image_vlm() prompt (same exclusion list: menu boards,
+        logo displays, meeting rooms, computer monitors, black screens) but
+        reshaped to the generic channel's field names (is_common_area /
+        is_target_object / device_type) so _vlm_verify() can parse it the same
+        way it parses MDU's and Healthcare's prompts."""
+        return f"""Analyze this image for TV/entertainment-screen evidence at a corporate office.
+
+Company: {property_name}
+YOLO pre-filter confidence this image contains a TV/monitor-like object: {yolo_confidence:.2f}
+
+Look for TVs in employee-accessible communal spaces:
+- Gym / fitness center
+- Cafeteria / break room
+- Employee lounge / common area
+- Lobby (if clearly for employee/visitor use, not a private office)
+
+CRITICAL EXCLUSIONS (must be ruled out):
+- Menu boards (restaurant-style displays)
+- Logo displays / brand signage
+- Black screens (powered off)
+- Meeting room displays
+- Computer monitors at individual desks
+- Digital wayfinding screens
+- Reception desk monitors
+
+Answer ONLY with valid JSON in exactly this shape:
+{{
+  "tv_detected": true|false,
+  "device_type": "tv"|"monitor"|"projector_screen"|"computer_monitor",
+  "tv_location": "gym|cafeteria|employee_lounge|break_room|lobby|none",
+  "confidence": "high"|"medium"|"low",
+  "is_entertainment_tv": true|false,
+  "is_common_area": true|false,
+  "is_target_object": true|false,
+  "tv_powered_on": true|false,
+  "reasoning": "Brief explanation"
+}}"""
 
     def extract_domain(self, url: str) -> str:
         """Extract clean domain from URL."""
@@ -643,6 +720,49 @@ Answer ONLY with valid JSON:
         """
 
         total_cost = 0.0
+
+        # Channel 0: Website images (generic, free, entity-certain) -- 2026-11-13.
+        # Tried before the paid Serper search per the free-before-paid waterfall
+        # principle: crawling the account's OWN site means there's no entity-
+        # attribution ambiguity to begin with, unlike a Serper image search that
+        # can return a same-named but unrelated business's photos.
+        if self.image_channel and official_website:
+            print(f"  Channel 0: Website images (generic, free)...")
+            temp_dir = Path("/tmp/corporate_enrichment") / company_name.replace(" ", "_").replace("/", "_")
+            temp_dir.mkdir(parents=True, exist_ok=True)
+
+            image_result = self.image_channel.search_evidence(
+                property_name=company_name,
+                website_url=official_website,
+                temp_dir=temp_dir,
+            )
+            total_cost += image_result.get('cost', 0.0)
+
+            # NOTE: search_evidence() returns 'tier': 'PROSPECT' on success, never
+            # a 'lead_status' key -- confirmed 2026-11-13 after finding mdu_unified.py
+            # had checked the wrong key ('lead_status') and so had silently never
+            # fired this channel in production. Using the correct key from the start.
+            if image_result.get('tier') == 'PROSPECT':
+                evidence = image_result['evidence']
+                print("PROSPECT! (website images)")
+                return {
+                    'lead_status': 'qualified',
+                    'channel': 'website_images',
+                    'evidence_url': evidence.url,
+                    'tv_location': evidence.vlm_result.get('tv_location', 'unknown'),
+                    'confidence': evidence.vlm_result.get('confidence', 'medium'),
+                    'tv_powered_on': evidence.vlm_result.get('tv_powered_on', False),
+                    'reasoning': evidence.vlm_result.get('reasoning', ''),
+                    'cost': total_cost,
+                    'details': {
+                        'device_type': evidence.vlm_result.get('device_type', 'unknown'),
+                        'yolo_confidence': evidence.yolo_confidence,
+                        'source_method': evidence.source_method,
+                    },
+                }
+            else:
+                print(f"    Image channel: {image_result.get('rejection_reason', 'No images found')} "
+                      f"({image_result.get('images_found', 0)} images, {image_result.get('images_analyzed', 0)} analyzed)")
 
         print(f"  Searching images for {company_name} ({operating_market})...")
         images = self.search_corporate_images(company_name, operating_market)
