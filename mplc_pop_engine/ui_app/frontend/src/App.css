@@ -140,6 +140,13 @@
   margin-top: 0.4rem;
 }
 
+.step-description {
+  font-size: 0.85rem;
+  opacity: 0.75;
+  margin: 0 0 0.8rem;
+  max-width: 70ch;
+}
+
 /* ---- Filter bar ---- */
 .filter-bar {
   display: flex;
@@ -277,6 +284,65 @@
   opacity: 0.7;
   padding: 2rem 0;
   text-align: center;
+}
+
+/* ---- Pipeline Monitor (Step 3) ---- */
+.pipeline-monitor {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.pipeline-monitor-progress h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 1rem;
+}
+
+.pipeline-monitor-progress h4 {
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.status-live { color: #1f7a3d; font-size: 0.8rem; font-weight: 600; }
+.status-stopped { color: #92400e; font-size: 0.8rem; font-weight: 600; }
+
+.metric-tile {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  min-width: 120px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .metric-tile {
+    border-color: var(--border-dark);
+  }
+}
+
+.metric-value {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.metric-label {
+  font-size: 0.72rem;
+  opacity: 0.7;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.pipeline-monitor .metrics-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  border: none;
+  margin: 0.6rem 0 1rem;
+  padding: 0;
 }
 
 /* ---- Pagination ---- */

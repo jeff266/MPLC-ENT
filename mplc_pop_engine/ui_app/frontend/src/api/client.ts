@@ -9,6 +9,25 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000
 
 const client = axios.create({ baseURL: API_BASE_URL });
 
+// Without this, every useMutation onError handler across the app only ever
+// sees axios's generic "Request failed with status code 503" — the actual
+// FastAPI `detail` message (e.g. enrichment.DispatchError's "Neither
+// DATABASE_URL nor SUPABASE_PASSWORD is set...") is silently dropped.
+// Caught live (2026-11-13) via a real 503 from /accounts/check-already-enriched
+// in this sandbox (no Supabase creds configured) — the UI showed the generic
+// axios message instead of the actionable one. Fixes it for every endpoint,
+// not just the new enrichment ones.
+client.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const detail = error?.response?.data?.detail;
+    if (typeof detail === "string" && detail) {
+      error.message = detail;
+    }
+    return Promise.reject(error);
+  },
+);
+
 // ---- Shared row/filter shapes -------------------------------------------
 
 export interface AccountRow {
@@ -208,6 +227,137 @@ export async function findEnrichableAccounts(
     markedCount: Number(response.headers["x-marked-count"] ?? 0),
     missingCount: Number(response.headers["x-missing-count"] ?? 0),
   };
+}
+
+// ---- Step 2: Run Vertical Pipelines (local dispatch) ----------------------
+// Jeff (2026-11-13): "step 2 - take selected accounts and run it through
+// vertical pipelines + check already enriched accounts to not burn
+// credits." Vertical is a user choice for the dispatch job — see
+// backend/enrichment.py for why this isn't auto-routed per account.
+
+export interface DispatchableVertical {
+  key: string; // unified_worker.py's CLI arg, e.g. "corporate"
+  label: string; // display label, e.g. "Corporations"
+}
+
+export async function fetchDispatchableVerticals(): Promise<DispatchableVertical[]> {
+  const { data } = await client.get<DispatchableVertical[]>("/enrichment/verticals");
+  return data;
+}
+
+export interface EnrichmentSelectionRequest {
+  account_ids?: string[];
+  filter?: AccountFilters;
+  exclude_account_ids?: string[];
+  vertical: string;
+  created_by?: string;
+}
+
+export interface AlreadyEnrichedPreview {
+  vertical: string;
+  total_selected: number;
+  already_enriched_count: number;
+  to_dispatch_count: number;
+  already_enriched_account_ids: string[];
+}
+
+export async function checkAlreadyEnriched(
+  req: EnrichmentSelectionRequest,
+): Promise<AlreadyEnrichedPreview> {
+  const { data } = await client.post<AlreadyEnrichedPreview>(
+    "/accounts/check-already-enriched",
+    req,
+  );
+  return data;
+}
+
+export interface DispatchResult {
+  job_id: string;
+  vertical: string;
+  run_date: string;
+  total_requested: number;
+  total_dispatched: number;
+  skipped_already_enriched: number;
+  missing_account_ids: string[];
+  pid: number;
+  batch_file: string;
+}
+
+export async function dispatchEnrichment(
+  req: EnrichmentSelectionRequest,
+): Promise<DispatchResult> {
+  const { data } = await client.post<DispatchResult>("/enrichment/dispatch", req);
+  return data;
+}
+
+// ---- Step 3: Pipeline Monitor ---------------------------------------------
+
+export interface EnrichmentJobSummary {
+  job_id: string;
+  vertical: string;
+  display_vertical: string;
+  run_date: string;
+  status: string;
+  total_requested: number;
+  total_dispatched: number;
+  skipped_already_enriched: number;
+  pid: number | null;
+  started_at: string;
+  finished_at: string | null;
+  created_by: string | null;
+}
+
+export async function fetchEnrichmentJobs(): Promise<EnrichmentJobSummary[]> {
+  const { data } = await client.get<EnrichmentJobSummary[]>("/enrichment/jobs");
+  return data;
+}
+
+export interface EnrichmentResultRow {
+  account_id: string;
+  account_name: string | null;
+  status: string;
+  is_prospect: boolean | null;
+  enrichment_result: Record<string, unknown> | null;
+  error_message: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+  updated_at: string | null;
+}
+
+export interface EnrichmentHeartbeat {
+  id: number;
+  droplet: string | null;
+  worker_id: string;
+  vertical: string;
+  pid: number;
+  batch_file: string;
+  records_total: number;
+  records_done: number;
+  last_account_name: string | null;
+  last_error: string | null;
+  started_at: string;
+  last_seen_at: string;
+}
+
+export interface JobProgress {
+  job_id: string;
+  vertical: string;
+  display_vertical: string;
+  run_date: string;
+  status: string;
+  process_alive: boolean;
+  total_dispatched: number;
+  skipped_already_enriched: number;
+  status_counts: Record<string, number>;
+  cost_so_far: number;
+  heartbeat: EnrichmentHeartbeat | null;
+  results: EnrichmentResultRow[];
+  supabase_error: string | null;
+}
+
+export async function fetchJobProgress(jobId: string): Promise<JobProgress> {
+  const { data } = await client.get<JobProgress>(`/enrichment/jobs/${jobId}/progress`);
+  return data;
 }
 
 export function downloadBlob(blob: Blob, filename: string) {
