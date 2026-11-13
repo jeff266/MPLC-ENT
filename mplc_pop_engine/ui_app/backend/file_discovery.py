@@ -36,14 +36,28 @@ OUTPUT_DIR = DATA_DIR / "output"
 REQUIRED_ROLES = ("salesforce_export", "open_deals")
 
 # role -> filename substrings to match (case-insensitive, checked against
-# the whole filename), in no particular priority — first match wins among
-# ties by picking the most recently modified file.
+# the whole filename after stripping separators — see _normalize below),
+# in no particular priority — first match wins among ties by picking the
+# most recently modified file. Write patterns with underscores; they're
+# matched against filenames however Salesforce actually spells them
+# ("All Accounts-...", "All_Accounts_...", "all-accounts-..." all match
+# "all_account" after normalization).
 ROLE_PATTERNS = {
     "salesforce_export": ["all_account", "account_export", "accounts_export", "salesforce_export"],
     "open_deals": ["open_deal"],
     "activity_90_days": ["activit"],  # "Activities", "Activity", "90 Day(s)"
     "lost_deals_9_months": ["closed_lost", "lost_deal"],
 }
+
+
+def _normalize(s: str) -> str:
+    """Strips spaces/underscores/hyphens so pattern matching doesn't care
+    which separator a given Salesforce export actually used. Bug found
+    2026-11-12 (Jeff's real exports use spaces — "All Accounts-...",
+    "All Open Deals-...", "Closed Lost L9M-..." — but ROLE_PATTERNS was
+    underscore-only, so every file except the one pattern with no
+    separator ("activit") silently failed to match)."""
+    return s.lower().replace(" ", "").replace("_", "").replace("-", "")
 
 
 class DiscoveryError(Exception):
@@ -56,9 +70,9 @@ def ensure_dirs() -> None:
 
 
 def _find_candidates(role: str) -> list[Path]:
-    patterns = ROLE_PATTERNS[role]
+    patterns = [_normalize(pat) for pat in ROLE_PATTERNS[role]]
     return sorted(
-        (p for p in INCOMING_DIR.glob("*.csv") if any(pat in p.name.lower() for pat in patterns)),
+        (p for p in INCOMING_DIR.glob("*.csv") if any(pat in _normalize(p.name) for pat in patterns)),
         key=lambda p: p.stat().st_mtime,
         reverse=True,
     )

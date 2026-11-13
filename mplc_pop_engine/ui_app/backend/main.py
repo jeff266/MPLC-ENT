@@ -107,16 +107,16 @@ def list_incoming_files():
     the user clicks Run — and which required role (if any) each matches,
     so a user can tell at a glance whether they're ready to run."""
     ensure_dirs()
-    from .file_discovery import ROLE_PATTERNS
+    from .file_discovery import ROLE_PATTERNS, _normalize
 
     out = []
     for p in sorted(INCOMING_DIR.iterdir()):
         if not p.is_file():
             continue
         matched_role = None
-        lower = p.name.lower()
+        normalized_name = _normalize(p.name)
         for role, patterns in ROLE_PATTERNS.items():
-            if any(pat in lower for pat in patterns):
+            if any(_normalize(pat) in normalized_name for pat in patterns):
                 matched_role = role
                 break
         out.append({
