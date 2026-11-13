@@ -11,7 +11,7 @@ import io
 from datetime import date
 from typing import Optional
 
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -22,7 +22,10 @@ from .db import init_db, get_db
 from . import models
 from . import queries
 from .pipeline_runner import run_and_persist
-from .file_discovery import discover_weekly_files, archive_files, DiscoveryError, OUTPUT_DIR
+from .file_discovery import (
+    discover_weekly_files, archive_files, DiscoveryError, OUTPUT_DIR,
+    INCOMING_DIR, ensure_dirs,
+)
 
 app = FastAPI(title="PoP Detection Engine")
 
@@ -73,6 +76,56 @@ def trigger_pipeline_run(req: PipelineRunRequest, db: Session = Depends(get_db))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     return {"run_date": run_date, "summary": summary}
+
+
+@app.post("/pipeline/upload")
+async def upload_weekly_files(files: list[UploadFile] = File(...)):
+    """Jeff (2026-11-12): "wouldn't it be better to add a drop the files
+    feature and it is stored in that directory" — replaces the
+    Finder-navigation workflow with drag-and-drop in the browser. Writes
+    each uploaded file straight into the same incoming/ directory
+    discover_weekly_files() already reads from, under its original
+    filename (so a re-upload of this week's export just overwrites last
+    week's, which is what you want — discovery picks the most recently
+    modified match anyway). No parsing or validation here: the pipeline
+    run is what actually checks these are real, matching files."""
+    ensure_dirs()
+    saved = []
+    for f in files:
+        if not f.filename:
+            continue
+        dest = INCOMING_DIR / f.filename
+        contents = await f.read()
+        dest.write_bytes(contents)
+        saved.append(f.filename)
+    return {"saved": saved, "incoming_dir": str(INCOMING_DIR)}
+
+
+@app.get("/pipeline/incoming")
+def list_incoming_files():
+    """What's currently sitting in incoming/, so the UI can show it before
+    the user clicks Run — and which required role (if any) each matches,
+    so a user can tell at a glance whether they're ready to run."""
+    ensure_dirs()
+    from .file_discovery import ROLE_PATTERNS
+
+    out = []
+    for p in sorted(INCOMING_DIR.iterdir()):
+        if not p.is_file():
+            continue
+        matched_role = None
+        lower = p.name.lower()
+        for role, patterns in ROLE_PATTERNS.items():
+            if any(pat in lower for pat in patterns):
+                matched_role = role
+                break
+        out.append({
+            "filename": p.name,
+            "size_bytes": p.stat().st_size,
+            "modified_at": p.stat().st_mtime,
+            "matched_role": matched_role,
+        })
+    return {"files": out}
 
 
 @app.post("/pipeline/run/auto")

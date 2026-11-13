@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAccounts, type AccountFilters } from "./api/client";
 import { FilterBar } from "./components/FilterBar";
+import { UploadPanel } from "./components/UploadPanel";
 import { MetricsPanel } from "./components/MetricsPanel";
 import { AccountsTable } from "./components/AccountsTable";
 import { Pagination } from "./components/Pagination";
@@ -85,6 +86,8 @@ function App() {
 
       {tab === "triage" && (
         <>
+          <UploadPanel />
+
           <FilterBar filters={filters} onChange={handleFiltersChange} verticals={KNOWN_VERTICALS} />
 
           <ActionBar

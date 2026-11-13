@@ -154,6 +154,34 @@ export async function triggerPipelineRunAuto(): Promise<AutoRunResult> {
   return data;
 }
 
+// ---- Weekly file upload --------------------------------------------------
+
+export interface UploadResult {
+  saved: string[];
+  incoming_dir: string;
+}
+
+export async function uploadWeeklyFiles(files: File[]): Promise<UploadResult> {
+  const form = new FormData();
+  for (const f of files) form.append("files", f);
+  const { data } = await client.post<UploadResult>("/pipeline/upload", form, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return data;
+}
+
+export interface IncomingFile {
+  filename: string;
+  size_bytes: number;
+  modified_at: number;
+  matched_role: string | null;
+}
+
+export async function fetchIncomingFiles(): Promise<{ files: IncomingFile[] }> {
+  const { data } = await client.get<{ files: IncomingFile[] }>("/pipeline/incoming");
+  return data;
+}
+
 // ---- Find Enrichable Accounts -----------------------------------------
 
 export interface FindEnrichableRequest {

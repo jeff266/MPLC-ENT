@@ -76,6 +76,70 @@
   font-weight: 600;
 }
 
+/* ---- Upload panel ---- */
+.upload-panel {
+  margin-bottom: 1rem;
+}
+
+.upload-dropzone {
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.upload-dropzone.drag-over {
+  border-color: var(--accent);
+  opacity: 1;
+  background: rgba(37, 99, 235, 0.06);
+}
+
+@media (prefers-color-scheme: dark) {
+  .upload-dropzone {
+    border-color: var(--border-dark);
+  }
+}
+
+.incoming-files-table {
+  width: 100%;
+  margin-top: 0.6rem;
+  font-size: 0.82rem;
+  border-collapse: collapse;
+}
+
+.incoming-files-table th,
+.incoming-files-table td {
+  text-align: left;
+  padding: 0.3rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+@media (prefers-color-scheme: dark) {
+  .incoming-files-table th,
+  .incoming-files-table td {
+    border-color: var(--border-dark);
+  }
+}
+
+.unmatched-file {
+  color: #92400e;
+}
+
+.upload-missing {
+  font-size: 0.82rem;
+  color: #92400e;
+  margin-top: 0.4rem;
+}
+
+.upload-ready {
+  font-size: 0.82rem;
+  color: #1f7a3d;
+  margin-top: 0.4rem;
+}
+
 /* ---- Filter bar ---- */
 .filter-bar {
   display: flex;
