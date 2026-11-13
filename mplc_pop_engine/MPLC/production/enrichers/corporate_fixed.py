@@ -26,7 +26,11 @@ import os
 import json
 import requests
 import base64
-import imghdr
+try:
+    import imghdr  # Python < 3.13
+except ModuleNotFoundError:
+    # Removed in Python 3.13 (PEP 594) -- see image_sniff.py for why/what
+    import image_sniff as imghdr
 import io
 import time
 from typing import Dict, Optional

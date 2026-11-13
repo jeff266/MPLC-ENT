@@ -1,0 +1,17 @@
+# Vertical enrichment pipeline dependencies (unified_worker.py + the three
+# real enrichers: healthcare_unified.py, corporate_fixed.py, mdu_unified.py).
+#
+# Created 2026-11-13 — no requirements.txt existed for this part of the repo
+# either. Versions below are verified installed/working in this session
+# EXCEPT ultralytics, which needs a real GPU/CV stack this sandbox doesn't
+# carry — its version is a reasonable pin, not one I've personally verified
+# here, so if installing it on your Mac hits a snag, that's the one to check
+# first.
+
+requests==2.34.2
+opencv-python==5.0.0.93
+pillow==12.3.0
+anthropic==2.8.0
+ultralytics>=8.3.0                # not verified in this sandbox — see note above
+psycopg2-binary==2.9.13
+python-dotenv==1.2.3

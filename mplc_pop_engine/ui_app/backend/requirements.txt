@@ -1,0 +1,19 @@
+# UI backend (FastAPI app) dependencies.
+#
+# Created 2026-11-13 — this file didn't exist before, which meant "pip3
+# install -r requirements.txt" on a fresh machine (e.g. Jeff's Mac) had
+# nothing to install from. Versions below are what's actually running and
+# verified working in this session (import + real pipeline runs against the
+# real 703,260-account DB, real file uploads via python-multipart, etc.).
+
+fastapi==0.162.5
+uvicorn==0.54.0
+sqlalchemy==2.1.8
+pandas==3.0.5
+pydantic==2.13.5
+python-multipart==0.0.32          # required by FastAPI's UploadFile/File (used by /pipeline/upload) — easy to miss, it's a silent runtime failure without it, not an import-time one
+python-dotenv==1.2.3
+
+# Supabase connection (account_enrichment_results / worker_heartbeat reads
+# for the Step 2 "already enriched" check and Step 3 progress monitor).
+psycopg2-binary==2.9.13

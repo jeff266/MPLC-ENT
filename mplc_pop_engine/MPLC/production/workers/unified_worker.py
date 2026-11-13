@@ -492,6 +492,16 @@ def process_hotel(record: dict) -> dict:
 def process_healthcare(record: dict) -> dict:
     """Process healthcare record - PoP detection."""
     try:
+        # Local-checkout-first, droplet-path-second (matches process_mdu's
+        # existing pattern below). Fixed 2026-11-13: this previously only
+        # tried /root/enrichment/enrichers, a droplet-only absolute path —
+        # local dispatch (e.g. from Jeff's Mac) would ImportError every
+        # single account. The real module lives at production/enrichers/
+        # relative to this file either way, so insert that path too; on
+        # the droplet, /root/enrichment is inserted second (= searched
+        # first), so droplet behavior is unchanged.
+        enrichers_path = Path(__file__).parent.parent / 'enrichers'
+        sys.path.insert(0, str(enrichers_path))
         sys.path.insert(0, '/root/enrichment/enrichers')
         sys.path.insert(0, '/root/enrichment')
         from healthcare_unified import process_account
@@ -507,6 +517,9 @@ def process_healthcare(record: dict) -> dict:
 def process_corporate(record: dict) -> dict:
     """Process corporate record - PoP detection."""
     try:
+        # See process_healthcare's comment above — same fix, same reason.
+        enrichers_path = Path(__file__).parent.parent / 'enrichers'
+        sys.path.insert(0, str(enrichers_path))
         sys.path.insert(0, '/root/enrichment/enrichers')
         sys.path.insert(0, '/root/enrichment')
         from corporate_fixed import CorporateEnricher

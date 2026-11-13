@@ -22,7 +22,11 @@ import sqlite3
 import requests
 import base64
 import tempfile
-import imghdr
+try:
+    import imghdr  # Python < 3.13
+except ModuleNotFoundError:
+    # Removed in Python 3.13 (PEP 594) -- see image_sniff.py for why/what
+    import image_sniff as imghdr
 import time
 import signal
 from pathlib import Path
