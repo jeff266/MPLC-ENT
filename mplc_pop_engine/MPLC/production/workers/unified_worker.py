@@ -353,6 +353,65 @@ class SupabaseWriter:
 
         self._retry_with_backoff(_upsert)
 
+    def insert_heartbeat(
+        self, worker_id: str, vertical: str, pid: int, batch_file: str, records_total: int
+    ) -> Optional[int]:
+        """Inserts the initial worker_heartbeat row for this run, returns its id
+        for subsequent update_heartbeat() calls. The table existed in the schema
+        (with a docstring describing exactly this purpose) but nothing wrote to
+        it until now — added 2026-11-13 so the UI's Pipeline Monitor tab can show
+        live records_done/records_total without inferring progress purely from
+        account_enrichment_results status counts."""
+        def _insert():
+            with self._get_connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """
+                        INSERT INTO worker_heartbeat
+                        (droplet, worker_id, vertical, pid, batch_file, records_total,
+                         records_done, started_at, last_seen_at)
+                        VALUES (%s, %s, %s, %s, %s, %s, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                        RETURNING id
+                        """,
+                        (self.source_droplet, worker_id, vertical, pid, batch_file, records_total)
+                    )
+                    return cur.fetchone()[0]
+
+        try:
+            return self._retry_with_backoff(_insert)
+        except Exception as e:
+            log.warning(f"Failed to insert worker_heartbeat row: {e}")
+            return None
+
+    def update_heartbeat(
+        self, heartbeat_id: int, records_done: int,
+        last_account_name: str = None, last_error: str = None
+    ) -> None:
+        """Updates the heartbeat row. Called after every record (success or
+        error) — a no-op (returns silently) if insert_heartbeat failed earlier,
+        since heartbeat_id would be None. Never raises: a heartbeat failure
+        must not interrupt real enrichment work."""
+        if heartbeat_id is None:
+            return
+
+        def _update():
+            with self._get_connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """
+                        UPDATE worker_heartbeat
+                        SET records_done = %s, last_account_name = %s,
+                            last_error = %s, last_seen_at = CURRENT_TIMESTAMP
+                        WHERE id = %s
+                        """,
+                        (records_done, last_account_name, last_error, heartbeat_id)
+                    )
+
+        try:
+            self._retry_with_backoff(_update)
+        except Exception as e:
+            log.warning(f"Failed to update worker_heartbeat row: {e}")
+
     def get_batch_status(self, run_date: date, vertical: str = None) -> Dict[str, int]:
         """
         Get status breakdown for a run_date.
@@ -581,6 +640,13 @@ def process_batch(batch_file: str, vertical: str, worker_id: int, total_workers:
     skipped_count = 0
     partitioned_count = 0
 
+    heartbeat_id = None
+    if sb_writer:
+        heartbeat_id = sb_writer.insert_heartbeat(
+            worker_id=str(worker_id), vertical=vertical, pid=os.getpid(),
+            batch_file=batch_file, records_total=len(records),
+        )
+
     for i, record in enumerate(records, 1):
         # WORK PARTITIONING: Only process records assigned to this worker
         # Use modulo-based partitioning: worker N processes records where (index % total_workers) == (worker_id - 1)
@@ -625,6 +691,9 @@ def process_batch(batch_file: str, vertical: str, worker_id: int, total_workers:
                 except Exception as e:
                     log.error(f"Failed to write completed result to Supabase: {e}")
 
+            if sb_writer:
+                sb_writer.update_heartbeat(heartbeat_id, processed_count, last_account_name=account_name)
+
             # Progress checkpoint every 50 records
             if processed_count % 50 == 0:
                 log.info(f"Progress: {processed_count}/{len(records)} ({processed_count/len(records)*100:.1f}%)")
@@ -644,6 +713,9 @@ def process_batch(batch_file: str, vertical: str, worker_id: int, total_workers:
                     sb_writer.upsert_failed(account_id, run_date_obj, str(e), enricher_version=VERSION)
                 except Exception as e2:
                     log.error(f"Failed to write failed result to Supabase: {e2}")
+
+            if sb_writer:
+                sb_writer.update_heartbeat(heartbeat_id, processed_count, last_account_name=account_name, last_error=str(e)[:500])
 
     # Save results to CSV as backup
     output_file = f"results_{vertical}_worker_{worker_id}.csv"
