@@ -217,3 +217,58 @@ class Action(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
 
     account: Mapped["Account"] = relationship(back_populates="actions")
+
+
+class EnrichmentJob(Base):
+    """One local dispatch of unified_worker.py against a batch of accounts
+    (Step 2, 2026-11-13: "take selected accounts and run it through
+    vertical pipelines + check already enriched accounts to not burn
+    credits"). This table is OUR local bookkeeping only — the actual
+    per-account enrichment state/results live in Supabase's
+    account_enrichment_results (and, per-run, worker_heartbeat), written by
+    the subprocess itself. We track just enough here (pid, batch/log file
+    paths, which accounts were actually dispatched vs. skipped as already
+    enriched) to scope a Supabase query to *this* job specifically, since
+    account_enrichment_results has no job_id column of its own — see
+    EnrichmentJobAccount."""
+    __tablename__ = "enrichment_jobs"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)  # uuid4
+    vertical: Mapped[str] = mapped_column(String(20), index=True)  # worker's vertical key: healthcare|corporate|mdu
+    display_vertical: Mapped[str] = mapped_column(String(200))  # our app's vertical label, e.g. "Health Care Services"
+    run_date: Mapped[str] = mapped_column(String(10), index=True)
+    batch_file: Mapped[str] = mapped_column(String(500))
+    log_file: Mapped[str] = mapped_column(String(500))
+    worker_script: Mapped[str] = mapped_column(String(500))
+    pid: Mapped[Optional[int]] = mapped_column(Integer)
+    total_requested: Mapped[int] = mapped_column(Integer)  # accounts selected before the already-enriched filter
+    total_dispatched: Mapped[int] = mapped_column(Integer)  # accounts actually in the batch file (after filtering)
+    skipped_already_enriched: Mapped[int] = mapped_column(Integer, default=0)
+    # "running" until we observe the pid has exited; then "completed" (clean
+    # exit) or "failed" (nonzero exit / exited before fully processing).
+    # Never trust "running" alone as proof of life — the progress endpoint
+    # re-checks the pid every time, this column is a cache of the last check.
+    status: Mapped[str] = mapped_column(String(20), default="running", index=True)
+    started_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    finished_at: Mapped[Optional[datetime]] = mapped_column(DateTime)
+    created_by: Mapped[Optional[str]] = mapped_column(String(100))
+
+    job_accounts: Mapped[list["EnrichmentJobAccount"]] = relationship(back_populates="job")
+
+
+class EnrichmentJobAccount(Base):
+    """Which account_ids were actually dispatched in a given EnrichmentJob —
+    lets the progress endpoint scope its Supabase query to WHERE account_id
+    = ANY(these) AND run_date = job.run_date AND vertical = job.vertical,
+    so two jobs for the same vertical on the same day never bleed into each
+    other's progress view."""
+    __tablename__ = "enrichment_job_accounts"
+    __table_args__ = (
+        Index("ix_enrichment_job_accounts_job", "job_id"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    job_id: Mapped[str] = mapped_column(ForeignKey("enrichment_jobs.id"), index=True)
+    account_id: Mapped[str] = mapped_column(String(18), index=True)
+
+    job: Mapped["EnrichmentJob"] = relationship(back_populates="job_accounts")

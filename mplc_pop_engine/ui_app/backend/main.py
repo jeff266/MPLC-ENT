@@ -21,6 +21,8 @@ from sqlalchemy import select
 from .db import init_db, get_db
 from . import models
 from . import queries
+from . import enrichment
+from . import supabase_client
 from .pipeline_runner import run_and_persist
 from .file_discovery import (
     discover_weekly_files, archive_files, DiscoveryError, OUTPUT_DIR,
@@ -331,3 +333,109 @@ def find_enrichable_accounts(req: FindEnrichableRequest, db: Session = Depends(g
     if missing:
         headers["X-Missing-Account-Ids"] = ",".join(missing[:50])  # cap header size
     return StreamingResponse(buf, media_type="text/csv", headers=headers)
+
+
+# ---------------------------------------------------------------------------
+# Step 2: Run Vertical Pipelines (Jeff, 2026-11-13) — "take selected
+# accounts and run it through vertical pipelines + check already enriched
+# accounts to not burn credits". Local-only dispatch of
+# production/workers/unified_worker.py; see enrichment.py for the full
+# design rationale (vertical is a user choice, not auto-routed; the
+# already-enriched check is scoped per-vertical, any run_date).
+# ---------------------------------------------------------------------------
+
+@app.get("/enrichment/verticals")
+def list_dispatchable_verticals():
+    """What the Step 2 vertical picker should offer — deliberately NOT
+    {'hotels'}, since unified_worker.py's own CLI accepts it but its
+    target module (process_hotel's import) doesn't exist in this repo
+    checkout (verified 2026-11-13)."""
+    return [{"key": k, "label": v} for k, v in enrichment.DISPATCHABLE_VERTICALS.items()]
+
+
+class DispatchEnrichmentRequest(BaseModel):
+    account_ids: Optional[list[str]] = None
+    filter: Optional[AccountFilter] = None
+    exclude_account_ids: Optional[list[str]] = None
+    vertical: str
+    created_by: Optional[str] = None
+
+
+@app.post("/enrichment/dispatch")
+def dispatch_enrichment_job(req: DispatchEnrichmentRequest, db: Session = Depends(get_db)):
+    if bool(req.account_ids) == bool(req.filter):
+        raise HTTPException(
+            status_code=400,
+            detail="Provide exactly one of account_ids (explicit selection) or filter (select-all-filtered).",
+        )
+    if req.filter:
+        account_ids = queries.resolve_filtered_account_ids(
+            db, run_date=req.filter.run_date, vertical=req.filter.vertical,
+            segment=req.filter.segment, excluded=req.filter.excluded,
+            country=req.filter.country, operating_market=req.filter.operating_market,
+            capacity_type=req.filter.capacity_type, capacity_min=req.filter.capacity_min,
+            capacity_max=req.filter.capacity_max,
+            exclude_account_ids=req.exclude_account_ids,
+        )
+        if not account_ids:
+            raise HTTPException(status_code=400, detail="No accounts matched that filter.")
+    else:
+        account_ids = req.account_ids
+
+    try:
+        return enrichment.dispatch_job(
+            db, account_ids=account_ids, vertical=req.vertical, created_by=req.created_by,
+        )
+    except enrichment.DispatchError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/enrichment/jobs")
+def get_enrichment_jobs(db: Session = Depends(get_db)):
+    return enrichment.list_jobs(db)
+
+
+@app.get("/enrichment/jobs/{job_id}/progress")
+def get_enrichment_job_progress(job_id: str, db: Session = Depends(get_db)):
+    try:
+        return enrichment.job_progress(db, job_id)
+    except enrichment.DispatchError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@app.post("/accounts/check-already-enriched")
+def check_already_enriched_preview(req: DispatchEnrichmentRequest, db: Session = Depends(get_db)):
+    """Lets the Step 2 UI show "X of Y already enriched for this vertical"
+    BEFORE the user clicks dispatch — same selection contract as
+    /enrichment/dispatch, but read-only, no job created."""
+    if req.vertical not in enrichment.DISPATCHABLE_VERTICALS:
+        raise HTTPException(status_code=400, detail=f"Unknown vertical '{req.vertical}'")
+    if bool(req.account_ids) == bool(req.filter):
+        raise HTTPException(
+            status_code=400,
+            detail="Provide exactly one of account_ids (explicit selection) or filter (select-all-filtered).",
+        )
+    if req.filter:
+        account_ids = queries.resolve_filtered_account_ids(
+            db, run_date=req.filter.run_date, vertical=req.filter.vertical,
+            segment=req.filter.segment, excluded=req.filter.excluded,
+            country=req.filter.country, operating_market=req.filter.operating_market,
+            capacity_type=req.filter.capacity_type, capacity_min=req.filter.capacity_min,
+            capacity_max=req.filter.capacity_max,
+            exclude_account_ids=req.exclude_account_ids,
+        )
+    else:
+        account_ids = req.account_ids
+
+    try:
+        already = supabase_client.check_already_enriched(account_ids, req.vertical)
+    except supabase_client.SupabaseUnavailable as e:
+        raise HTTPException(status_code=503, detail=str(e))
+
+    return {
+        "vertical": req.vertical,
+        "total_selected": len(account_ids),
+        "already_enriched_count": len(already),
+        "to_dispatch_count": len(account_ids) - len(already),
+        "already_enriched_account_ids": sorted(already)[:500],  # cap response size
+    }
