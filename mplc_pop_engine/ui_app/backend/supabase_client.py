@@ -156,6 +156,73 @@ def get_job_cost(account_ids: list[str], run_date: str, vertical: str) -> float:
             return float(result) if result is not None else 0.0
 
 
+def get_cost_tracker_rollup(vertical: Optional[str] = None) -> list[dict]:
+    """Cumulative, all-time cost rollup by vertical x channel, computed
+    on-demand straight off account_enrichment_results -- no separate
+    rollup table, per Jeff's decision (2026-11-14, claude/Cost_Tracker_
+    Design.md): the per-account cost/is_prospect/channel fields are
+    already the durable, authoritative record, so a cache would just be
+    a second copy to keep in sync.
+
+    Includes an is_prospect consistency check in every call (not a
+    one-off script) -- see the module docstring's note on the real
+    2026-11-14 bug this caught: is_prospect can silently drift from
+    lead_status/tier (stale rows from before a fix to upsert_completed
+    sat around for over a week before anyone checked). Computing the
+    check inline here means a future regression gets surfaced the next
+    time anyone loads the Cost Tracker, not silently.
+
+    tier == 'SUSPECT' is checked even though no real row has ever had
+    one (confirmed 2026-11-14 -- every completed row today is lead_status
+    'qualified' or 'no_evidence', tier is always null): cost_per_lead
+    becomes meaningfully different from cost_per_prospect automatically
+    the moment any vertical starts emitting SUSPECT, with no schema
+    change needed here.
+    """
+    with _connection() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute(
+                """
+                SELECT
+                    vertical,
+                    enrichment_result->>'channel' AS channel,
+                    COUNT(*) AS accounts_processed,
+                    COUNT(*) FILTER (WHERE is_prospect) AS prospect_count,
+                    COUNT(*) FILTER (
+                        WHERE COALESCE(enrichment_result->>'tier','') = 'SUSPECT'
+                    ) AS suspect_count,
+                    COUNT(*) FILTER (WHERE enrichment_result ? 'cost') AS rows_with_cost,
+                    COALESCE(SUM((enrichment_result->>'cost')::numeric), 0) AS total_cost,
+                    COUNT(*) FILTER (
+                        WHERE is_prospect <> (
+                            COALESCE(enrichment_result->>'lead_status','') = 'qualified'
+                            OR COALESCE(enrichment_result->>'tier','') = 'PROSPECT'
+                        )
+                    ) AS is_prospect_mismatches
+                FROM account_enrichment_results
+                WHERE status = 'completed'
+                  AND (%s IS NULL OR vertical = %s)
+                GROUP BY vertical, channel
+                ORDER BY vertical, channel
+                """,
+                (vertical, vertical),
+            )
+            rows = [dict(row) for row in cur.fetchall()]
+
+    for row in rows:
+        total_cost = float(row["total_cost"])
+        rows_with_cost = row["rows_with_cost"]
+        prospect_count = row["prospect_count"]
+        lead_count = prospect_count + row["suspect_count"]
+
+        row["total_cost"] = total_cost
+        row["cost_per_account"] = (total_cost / rows_with_cost) if rows_with_cost else None
+        row["cost_per_prospect"] = (total_cost / prospect_count) if prospect_count else None
+        row["cost_per_lead"] = (total_cost / lead_count) if lead_count else None
+
+    return rows
+
+
 def get_latest_heartbeat(batch_file: str) -> Optional[dict]:
     """Most recent worker_heartbeat row for this exact batch_file path —
     batch files are unique per job (see enrichment.py's dispatch_job), so

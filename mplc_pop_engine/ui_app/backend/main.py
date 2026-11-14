@@ -467,6 +467,62 @@ def get_enrichment_job_progress(job_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail=str(e))
 
 
+@app.get("/cost-tracker")
+def get_cost_tracker(vertical: Optional[str] = None):
+    """Cumulative, on-demand cost rollup (vertical x channel), plus a
+    standing is_prospect data-integrity check, per claude/Cost_Tracker_
+    Design.md. No separate rollup table or scheduler -- computed fresh
+    from account_enrichment_results every call, per Jeff's 2026-11-14
+    decision. `summary` gives the per-vertical North Star numbers
+    ($/account, $/prospect, $/lead) aggregated across that vertical's
+    channels; `by_channel` is the full breakdown rows from Supabase.
+    `data_integrity_warnings` is only non-empty if is_prospect has drifted
+    from lead_status/tier again since the 2026-11-14 backfill -- silent
+    the rest of the time, so it reads as a real alert, not routine noise."""
+    try:
+        rows = supabase_client.get_cost_tracker_rollup(vertical=vertical)
+    except supabase_client.SupabaseUnavailable as e:
+        raise HTTPException(status_code=503, detail=str(e))
+
+    summary: dict[str, dict] = {}
+    for row in rows:
+        v = row["vertical"]
+        s = summary.setdefault(v, {
+            "vertical": v,
+            "accounts_processed": 0,
+            "prospect_count": 0,
+            "suspect_count": 0,
+            "rows_with_cost": 0,
+            "total_cost": 0.0,
+            "is_prospect_mismatches": 0,
+        })
+        s["accounts_processed"] += row["accounts_processed"]
+        s["prospect_count"] += row["prospect_count"]
+        s["suspect_count"] += row["suspect_count"]
+        s["rows_with_cost"] += row["rows_with_cost"]
+        s["total_cost"] += row["total_cost"]
+        s["is_prospect_mismatches"] += row["is_prospect_mismatches"]
+
+    for s in summary.values():
+        lead_count = s["prospect_count"] + s["suspect_count"]
+        s["cost_per_account"] = (s["total_cost"] / s["rows_with_cost"]) if s["rows_with_cost"] else None
+        s["cost_per_prospect"] = (s["total_cost"] / s["prospect_count"]) if s["prospect_count"] else None
+        s["cost_per_lead"] = (s["total_cost"] / lead_count) if lead_count else None
+
+    warnings = [
+        f"{row['vertical']}/{row['channel'] or '(no channel)'}: "
+        f"{row['is_prospect_mismatches']} rows where is_prospect disagrees with "
+        f"lead_status/tier -- re-run the 2026-11-14 backfill query"
+        for row in rows if row["is_prospect_mismatches"] > 0
+    ]
+
+    return {
+        "summary": sorted(summary.values(), key=lambda s: s["vertical"]),
+        "by_channel": rows,
+        "data_integrity_warnings": warnings,
+    }
+
+
 @app.post("/accounts/check-already-enriched")
 def check_already_enriched_preview(req: DispatchEnrichmentRequest, db: Session = Depends(get_db)):
     """Lets the Step 2 UI show "X of Y already enriched for this vertical"
