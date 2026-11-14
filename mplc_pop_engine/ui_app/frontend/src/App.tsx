@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchAccounts, type AccountFilters } from "./api/client";
+import { fetchAccounts, fetchCurrentUser, getToken, clearToken, type AccountFilters, type CurrentUser } from "./api/client";
 import { FilterBar } from "./components/FilterBar";
 import { UploadPanel } from "./components/UploadPanel";
 import { MetricsPanel } from "./components/MetricsPanel";
@@ -12,6 +12,7 @@ import { PipelineMonitor } from "./components/PipelineMonitor";
 import { UnresolvedQueue } from "./components/UnresolvedQueue";
 import { ClayAmbiguousQueue } from "./components/ClayAmbiguousQueue";
 import { CostTracker } from "./components/CostTracker";
+import { Login } from "./components/Login";
 import { useSelection } from "./hooks/useSelection";
 import "./App.css";
 
@@ -41,6 +42,35 @@ const PAGE_SIZE = 50;
 type Tab = "step1" | "step2" | "step3" | "unresolved" | "clay" | "cost-tracker";
 
 function App() {
+  // "checking" avoids a flash of the login screen while a saved token is
+  // being verified on load; the query hooks below are additionally gated
+  // on authState === "authenticated" so they never fire (and 401, and
+  // trigger the response interceptor's reload) before that check
+  // resolves.
+  const [authState, setAuthState] = useState<"checking" | "authenticated" | "unauthenticated">(
+    getToken() ? "checking" : "unauthenticated",
+  );
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+
+  useEffect(() => {
+    if (authState !== "checking") return;
+    fetchCurrentUser()
+      .then((user) => {
+        setCurrentUser(user);
+        setAuthState("authenticated");
+      })
+      .catch(() => {
+        clearToken();
+        setAuthState("unauthenticated");
+      });
+  }, [authState]);
+
+  const handleLogout = () => {
+    clearToken();
+    setCurrentUser(null);
+    setAuthState("unauthenticated");
+  };
+
   const [tab, setTab] = useState<Tab>("step1");
 
   // Step 1 (Find Safe Accounts) state — its own filters/selection, used by
@@ -64,13 +94,13 @@ function App() {
   const { data: data1, isLoading: loading1, isError: error1, error: errorObj1 } = useQuery({
     queryKey: ["accounts", filters1, page1],
     queryFn: () => fetchAccounts(filters1, page1, PAGE_SIZE),
-    enabled: tab === "step1",
+    enabled: tab === "step1" && authState === "authenticated",
   });
 
   const { data: data2, isLoading: loading2, isError: error2, error: errorObj2 } = useQuery({
     queryKey: ["accounts", filters2, page2],
     queryFn: () => fetchAccounts(filters2, page2, PAGE_SIZE),
-    enabled: tab === "step2",
+    enabled: tab === "step2" && authState === "authenticated",
   });
 
   const handleFilters1Change = (next: AccountFilters) => {
@@ -94,10 +124,28 @@ function App() {
     queryClient.invalidateQueries({ queryKey: ["enrichment-jobs"] });
   };
 
+  if (authState === "checking") {
+    return (
+      <div className="app">
+        <p className="auth-checking">Checking session…</p>
+      </div>
+    );
+  }
+
+  if (authState === "unauthenticated") {
+    return <Login onAuthenticated={() => setAuthState("authenticated")} />;
+  }
+
   return (
     <div className="app">
       <header className="app-header">
         <h1>MPLC PoP Detection Engine</h1>
+        <div className="app-header-user">
+          {currentUser && <span className="app-header-email">{currentUser.email}</span>}
+          <button type="button" className="logout-button" onClick={handleLogout}>
+            Log out
+          </button>
+        </div>
       </header>
 
       <MetricsPanel />

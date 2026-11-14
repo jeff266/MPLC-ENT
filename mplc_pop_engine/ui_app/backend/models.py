@@ -41,6 +41,21 @@ class Base(DeclarativeBase):
     pass
 
 
+class User(Base):
+    """A login account for this app. Added 2026-11-14 per Jeff: the backend
+    had zero auth and wide-open CORS (`allow_origins=["*"]` in main.py) —
+    fine for a read-only local triage tool, not fine once a settings page
+    can write API keys and DATABASE_URL. Multi-user with sign-up (Jeff's
+    choice over a single fixed admin account), protecting the whole app
+    via middleware (auth.py), not just the new settings endpoints."""
+    __tablename__ = "users"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)  # uuid4
+    email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    password_hash: Mapped[str] = mapped_column(String(255))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
 class Account(Base):
     """One row per real Salesforce account. Refreshed in place by each
     weekly pipeline run — never re-inserted for the same account_id."""

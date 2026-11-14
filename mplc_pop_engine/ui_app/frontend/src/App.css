@@ -401,3 +401,143 @@
   margin: 0.3rem 0 0;
   padding-left: 1.2rem;
 }
+
+/* ---- Auth (added 2026-11-14) ---- */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.app-header-user {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.app-header-email {
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+.logout-button {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.8rem;
+  color: inherit;
+}
+
+@media (prefers-color-scheme: dark) {
+  .logout-button {
+    border-color: var(--border-dark);
+  }
+}
+
+.auth-checking {
+  text-align: center;
+  margin-top: 4rem;
+  opacity: 0.7;
+}
+
+.login-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.login-form {
+  width: 100%;
+  max-width: 360px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .login-form {
+    border-color: var(--border-dark);
+  }
+}
+
+.login-form h1 {
+  font-size: 1.2rem;
+  margin: 0;
+  text-align: center;
+}
+
+.login-tabs {
+  display: flex;
+  gap: 0.4rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.6rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .login-tabs {
+    border-color: var(--border-dark);
+  }
+}
+
+.login-tabs button {
+  flex: 1;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.4rem 0;
+  color: inherit;
+  opacity: 0.7;
+}
+
+@media (prefers-color-scheme: dark) {
+  .login-tabs button {
+    border-color: var(--border-dark);
+  }
+}
+
+.login-tabs button.tab-active {
+  opacity: 1;
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.login-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+}
+
+.login-form input {
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .login-form input {
+    border-color: var(--border-dark);
+    background: var(--bg-dark);
+    color: var(--text-dark);
+  }
+}
+
+.login-form button[type="submit"] {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 0.55rem 0.9rem;
+  border-radius: 6px;
+  font-weight: 600;
+}

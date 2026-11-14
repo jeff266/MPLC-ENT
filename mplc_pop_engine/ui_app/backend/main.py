@@ -41,6 +41,7 @@ from . import models
 from . import queries
 from . import enrichment
 from . import supabase_client
+from . import auth
 from .pipeline_runner import run_and_persist
 from .file_discovery import (
     discover_weekly_files, archive_files, DiscoveryError, OUTPUT_DIR,
@@ -59,9 +60,89 @@ app.add_middleware(
 )
 
 
+# Whole-app auth, added 2026-11-14 (see auth.py's module docstring for why
+# and the scope decision). A middleware, not per-route Depends, so every
+# existing endpoint (accounts, cost-tracker, enrichment dispatch, etc.) is
+# covered without touching each one individually. CORS preflight (OPTIONS)
+# and the exempt paths (login/signup/health) pass through unauthenticated;
+# everything else needs a valid Authorization: Bearer <token> header or
+# gets a 401 before the real handler ever runs.
+@app.middleware("http")
+async def require_auth(request, call_next):
+    if request.method == "OPTIONS" or request.url.path in auth.EXEMPT_PATHS:
+        return await call_next(request)
+
+    from .db import SessionLocal  # local import: avoid a module-load-order issue with db.py's engine setup
+
+    db = SessionLocal()
+    try:
+        user = auth.authenticate_request(request.headers.get("authorization"), db)
+    finally:
+        db.close()
+
+    if user is None:
+        from fastapi.responses import JSONResponse
+        return JSONResponse(status_code=401, content={"detail": "Not authenticated"})
+
+    return await call_next(request)
+
+
 @app.on_event("startup")
 def on_startup():
     init_db()
+
+
+# ---- Auth -----------------------------------------------------------------
+
+class SignupRequest(BaseModel):
+    email: str
+    password: str
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+
+@app.post("/auth/signup", response_model=TokenResponse)
+def signup(req: SignupRequest, db: Session = Depends(get_db)):
+    email = req.email.strip().lower()
+    if not email or "@" not in email:
+        raise HTTPException(status_code=400, detail="Enter a valid email address.")
+    if len(req.password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters.")
+
+    existing = db.execute(select(models.User).where(models.User.email == email)).scalar_one_or_none()
+    if existing is not None:
+        raise HTTPException(status_code=400, detail="An account with that email already exists.")
+
+    user = models.User(id=auth.new_user_id(), email=email, password_hash=auth.hash_password(req.password))
+    db.add(user)
+    db.commit()
+
+    return TokenResponse(access_token=auth.create_access_token(user.id, user.email))
+
+
+@app.post("/auth/login", response_model=TokenResponse)
+def login(req: LoginRequest, db: Session = Depends(get_db)):
+    email = req.email.strip().lower()
+    user = db.execute(select(models.User).where(models.User.email == email)).scalar_one_or_none()
+    # Same error for "no such user" and "wrong password" -- don't let a login
+    # form be used to enumerate which emails have accounts.
+    if user is None or not auth.verify_password(req.password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Incorrect email or password.")
+
+    return TokenResponse(access_token=auth.create_access_token(user.id, user.email))
+
+
+@app.get("/auth/me")
+def me(user: models.User = Depends(auth.get_current_user)):
+    return {"id": user.id, "email": user.email}
 
 
 class PipelineRunRequest(BaseModel):

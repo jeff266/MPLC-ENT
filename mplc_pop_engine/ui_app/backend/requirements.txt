@@ -17,3 +17,7 @@ python-dotenv==1.2.3
 # Supabase connection (account_enrichment_results / worker_heartbeat reads
 # for the Step 2 "already enriched" check and Step 3 progress monitor).
 psycopg2-binary==2.9.13
+
+# Auth (added 2026-11-14) -- email+password sign-up/login, JWT sessions.
+bcrypt==4.2.1
+PyJWT==2.15.0

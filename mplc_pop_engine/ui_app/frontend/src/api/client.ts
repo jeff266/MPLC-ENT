@@ -9,6 +9,50 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000
 
 const client = axios.create({ baseURL: API_BASE_URL });
 
+const TOKEN_KEY = "pop_engine_token";
+
+export function getToken(): string | null {
+  return localStorage.getItem(TOKEN_KEY);
+}
+
+export function setToken(token: string) {
+  localStorage.setItem(TOKEN_KEY, token);
+}
+
+export function clearToken() {
+  localStorage.removeItem(TOKEN_KEY);
+}
+
+// Attach the token to every request. Added 2026-11-14 alongside the
+// backend's whole-app auth middleware (main.py's require_auth) -- every
+// endpoint except /auth/login, /auth/signup, /health now 401s without
+// this header.
+client.interceptors.request.use((config) => {
+  const token = getToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// On a 401 from anything other than the login/signup calls themselves
+// (those legitimately 401 on wrong credentials, not an expired session),
+// clear the stale token and reload so App.tsx's auth check sends the
+// person back to the login screen, instead of the UI quietly continuing
+// to issue requests that will all keep failing.
+client.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const url: string = error?.config?.url ?? "";
+    const isAuthEndpoint = url.includes("/auth/login") || url.includes("/auth/signup");
+    if (error?.response?.status === 401 && !isAuthEndpoint) {
+      clearToken();
+      window.location.reload();
+    }
+    return Promise.reject(error);
+  },
+);
+
 // Without this, every useMutation onError handler across the app only ever
 // sees axios's generic "Request failed with status code 503" — the actual
 // FastAPI `detail` message (e.g. enrichment.DispatchError's "Neither
@@ -407,6 +451,33 @@ export async function fetchCostTracker(vertical?: string): Promise<CostTrackerRe
   const { data } = await client.get<CostTrackerResponse>("/cost-tracker", {
     params: vertical ? { vertical } : undefined,
   });
+  return data;
+}
+
+// ---- Auth ---------------------------------------------------------------
+
+export interface TokenResponse {
+  access_token: string;
+  token_type: string;
+}
+
+export interface CurrentUser {
+  id: string;
+  email: string;
+}
+
+export async function signup(email: string, password: string): Promise<TokenResponse> {
+  const { data } = await client.post<TokenResponse>("/auth/signup", { email, password });
+  return data;
+}
+
+export async function login(email: string, password: string): Promise<TokenResponse> {
+  const { data } = await client.post<TokenResponse>("/auth/login", { email, password });
+  return data;
+}
+
+export async function fetchCurrentUser(): Promise<CurrentUser> {
+  const { data } = await client.get<CurrentUser>("/auth/me");
   return data;
 }
 
