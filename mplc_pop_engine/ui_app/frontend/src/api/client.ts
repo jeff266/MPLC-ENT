@@ -236,9 +236,15 @@ export async function findEnrichableAccounts(
 // credits." Vertical is a user choice for the dispatch job — see
 // backend/enrichment.py for why this isn't auto-routed per account.
 
+export interface ToggleableChannel {
+  key: string; // e.g. "youtube" — passed back in disabled_channels to turn it off
+  label: string; // display label, e.g. "YouTube video search"
+}
+
 export interface DispatchableVertical {
   key: string; // unified_worker.py's CLI arg, e.g. "corporate"
   label: string; // display label, e.g. "Corporations"
+  toggleable_channels: ToggleableChannel[]; // paid channels this vertical can disable per-run
 }
 
 export async function fetchDispatchableVerticals(): Promise<DispatchableVertical[]> {
@@ -252,6 +258,7 @@ export interface EnrichmentSelectionRequest {
   exclude_account_ids?: string[];
   vertical: string;
   created_by?: string;
+  disabled_channels?: string[]; // paid channel keys to turn OFF for this dispatch
 }
 
 export interface AlreadyEnrichedPreview {

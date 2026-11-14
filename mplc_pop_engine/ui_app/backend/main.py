@@ -381,13 +381,34 @@ def find_enrichable_accounts(req: FindEnrichableRequest, db: Session = Depends(g
 # already-enriched check is scoped per-vertical, any run_date).
 # ---------------------------------------------------------------------------
 
+CHANNEL_LABELS: dict[str, str] = {
+    "youtube": "YouTube video search",
+    "image_search": "Image search",
+}
+
+
 @app.get("/enrichment/verticals")
 def list_dispatchable_verticals():
     """What the Step 2 vertical picker should offer — deliberately NOT
     {'hotels'}, since unified_worker.py's own CLI accepts it but its
     target module (process_hotel's import) doesn't exist in this repo
-    checkout (verified 2026-11-13)."""
-    return [{"key": k, "label": v} for k, v in enrichment.DISPATCHABLE_VERTICALS.items()]
+    checkout (verified 2026-11-13).
+
+    toggleable_channels (2026-11-13): the paid channels this vertical has
+    that can be turned off for a given dispatch via disabled_channels —
+    single source of truth is enrichment.CHANNEL_ENV_VARS, so the frontend
+    never has its own copy to drift out of sync."""
+    return [
+        {
+            "key": k,
+            "label": v,
+            "toggleable_channels": [
+                {"key": ck, "label": CHANNEL_LABELS.get(ck, ck)}
+                for ck in enrichment.CHANNEL_ENV_VARS.get(k, {})
+            ],
+        }
+        for k, v in enrichment.DISPATCHABLE_VERTICALS.items()
+    ]
 
 
 class DispatchEnrichmentRequest(BaseModel):
@@ -396,6 +417,11 @@ class DispatchEnrichmentRequest(BaseModel):
     exclude_account_ids: Optional[list[str]] = None
     vertical: str
     created_by: Optional[str] = None
+    # Which paid channels to turn OFF for this run, e.g. ["youtube"]
+    # (2026-11-13) -- see enrichment.CHANNEL_ENV_VARS for which keys are
+    # valid per vertical. Unset/empty means "run everything" (unchanged
+    # default behavior).
+    disabled_channels: Optional[list[str]] = None
 
 
 @app.post("/enrichment/dispatch")
@@ -422,6 +448,7 @@ def dispatch_enrichment_job(req: DispatchEnrichmentRequest, db: Session = Depend
     try:
         return enrichment.dispatch_job(
             db, account_ids=account_ids, vertical=req.vertical, created_by=req.created_by,
+            disabled_channels=req.disabled_channels,
         )
     except enrichment.DispatchError as e:
         raise HTTPException(status_code=400, detail=str(e))

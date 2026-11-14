@@ -23,6 +23,7 @@ interface Props {
  * reaches this bar. See backend/enrichment.py for the full rationale. */
 export function DispatchBar({ selection, currentFilters, total, onDispatched }: Props) {
   const [vertical, setVertical] = useState("");
+  const [disabledChannels, setDisabledChannels] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
 
   const { data: verticals } = useQuery({
@@ -30,10 +31,28 @@ export function DispatchBar({ selection, currentFilters, total, onDispatched }: 
     queryFn: fetchDispatchableVerticals,
   });
 
-  const buildSelectionReq = (v: string) =>
-    selection.mode === "all-filtered"
+  // Jeff (2026-11-13): "Some steps in the pipeline are not always
+  // required. Like maybe I don't want YouTube on a particular run." —
+  // only the paid channels are toggleable (see backend/enrichment.py's
+  // CHANNEL_ENV_VARS for why); the list itself comes from the backend so
+  // this component never has its own copy to go stale.
+  const toggleableChannels = verticals?.find((v) => v.key === vertical)?.toggleable_channels ?? [];
+
+  const toggleChannel = (channelKey: string) => {
+    setDisabledChannels((prev) => {
+      const next = new Set(prev);
+      if (next.has(channelKey)) next.delete(channelKey);
+      else next.add(channelKey);
+      return next;
+    });
+  };
+
+  const buildSelectionReq = (v: string) => {
+    const base = selection.mode === "all-filtered"
       ? { filter: currentFilters, exclude_account_ids: Array.from(selection.excludedIds), vertical: v }
       : { account_ids: Array.from(selection.selectedIds), vertical: v };
+    return disabledChannels.size > 0 ? { ...base, disabled_channels: Array.from(disabledChannels) } : base;
+  };
 
   const preview = useMutation({
     mutationFn: checkAlreadyEnriched,
@@ -78,13 +97,36 @@ export function DispatchBar({ selection, currentFilters, total, onDispatched }: 
       <div className="action-bar-left">
         <label>
           Vertical pipeline
-          <select value={vertical} onChange={(e) => { setVertical(e.target.value); preview.reset(); }}>
+          <select
+            value={vertical}
+            onChange={(e) => {
+              setVertical(e.target.value);
+              setDisabledChannels(new Set()); // different vertical = different toggleable channels
+              preview.reset();
+            }}
+          >
             <option value="">Choose a vertical…</option>
             {verticals?.map((v) => (
               <option key={v.key} value={v.key}>{v.label}</option>
             ))}
           </select>
         </label>
+
+        {toggleableChannels.length > 0 && (
+          <div className="channel-toggles">
+            {toggleableChannels.map((c) => (
+              <label key={c.key} className="channel-toggle">
+                <input
+                  type="checkbox"
+                  checked={!disabledChannels.has(c.key)}
+                  onChange={() => toggleChannel(c.key)}
+                />
+                {c.label}
+              </label>
+            ))}
+          </div>
+        )}
+
         {hasSelection && <span className="selection-summary">{selectedCountLabel}</span>}
       </div>
 

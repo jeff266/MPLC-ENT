@@ -62,9 +62,19 @@ ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 class CorporateEnricher:
     """Corporate PoP detection via image search + VLM."""
 
-    def __init__(self):
+    def __init__(self, enable_image_search: bool = True):
+        """
+        Args:
+            enable_image_search: Enable the paid Serper image-search channel
+                (default: True). Added 2026-11-13 so a dispatch can turn off
+                the paid/wrong-entity-risk channel for a given run while
+                still running the free, entity-certain website-image channel.
+                Same convention as healthcare_unified.py's enable_youtube/
+                enable_image_search flags.
+        """
         self.serper_key = SERPER_API_KEY
         self.anthropic_key = ANTHROPIC_API_KEY
+        self.enable_image_search = enable_image_search
 
         if not self.serper_key:
             raise ValueError("SERPER_API_KEY not set")
@@ -763,6 +773,16 @@ Answer ONLY with valid JSON:
             else:
                 print(f"    Image channel: {image_result.get('rejection_reason', 'No images found')} "
                       f"({image_result.get('images_found', 0)} images, {image_result.get('images_analyzed', 0)} analyzed)")
+
+        if not self.enable_image_search:
+            return {
+                'lead_status': 'no_evidence',
+                'channel': 'none',
+                'evidence_url': '',
+                'confidence': 'none',
+                'cost': total_cost,
+                'details': {'reason': 'Paid image search disabled for this run (enable_image_search=False)'}
+            }
 
         print(f"  Searching images for {company_name} ({operating_market})...")
         images = self.search_corporate_images(company_name, operating_market)

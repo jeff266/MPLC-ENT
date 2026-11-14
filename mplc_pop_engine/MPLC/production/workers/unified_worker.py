@@ -524,7 +524,11 @@ def process_corporate(record: dict) -> dict:
         sys.path.insert(0, '/root/enrichment')
         from corporate_fixed import CorporateEnricher
 
-        enricher = CorporateEnricher()
+        # Channel config from env (2026-11-13, same convention as
+        # healthcare_unified.py's process_account()) -- lets a Step 2
+        # dispatch turn off the paid Serper image-search channel for a run.
+        enable_image_search = os.getenv('ENABLE_IMAGE_SEARCH', 'true').lower() == 'true'
+        enricher = CorporateEnricher(enable_image_search=enable_image_search)
 
         company_name = record.get('Account Name', record.get('account_name', ''))
         operating_market = record.get('Operating Market', record.get('operating_market', 'United States'))

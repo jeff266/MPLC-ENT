@@ -89,10 +89,20 @@ if not ANTHROPIC_API_KEY:
 class MDUEnricherUnified:
     """MDU PoP detection with video processing via RapidAPI."""
 
-    def __init__(self):
+    def __init__(self, enable_youtube: bool = True):
+        """
+        Args:
+            enable_youtube: Enable the paid YouTube video channel (Channel 3)
+                (default: True). Added 2026-11-13 so a dispatch can turn off
+                the paid/wrong-entity-risk channel for a given run while
+                still running the free website-image and amenity-text
+                channels. Same convention as healthcare_unified.py's
+                enable_youtube/enable_image_search flags.
+        """
         self.serper_key = SERPER_API_KEY
         self.anthropic_key = ANTHROPIC_API_KEY
         self.yolo_model_path = self._find_yolo_model()
+        self.enable_youtube = enable_youtube
 
         # Initialize generic website image channel
         if GENERIC_IMAGE_CHANNEL_AVAILABLE:
@@ -1202,8 +1212,12 @@ Answer ONLY with valid JSON:
                     }
 
             # Channel 3: YouTube property tours (paid downloads - last resort)
-            print(f"  Channel 3: Searching YouTube for property tours...")
-            videos = self.search_youtube_videos(property_name, city, state)
+            if not self.enable_youtube:
+                print(f"  Channel 3: SKIPPED (disabled for this run)")
+                videos = None
+            else:
+                print(f"  Channel 3: Searching YouTube for property tours...")
+                videos = self.search_youtube_videos(property_name, city, state)
 
             if videos:
                 print(f"    Found {len(videos)} videos")
@@ -1233,9 +1247,16 @@ Answer ONLY with valid JSON:
 
 
 def process_property(record: dict) -> dict:
-    """Process a single MDU property record."""
+    """
+    Process a single MDU property record (unified_worker compatible).
+
+    Channel Configuration (set via environment variables, 2026-11-13, same
+    convention as healthcare_unified.py's process_account()):
+    - ENABLE_YOUTUBE=true|false (default: true)
+    """
     try:
-        enricher = MDUEnricherUnified()
+        enable_youtube = os.getenv('ENABLE_YOUTUBE', 'true').lower() == 'true'
+        enricher = MDUEnricherUnified(enable_youtube=enable_youtube)
 
         property_name = record.get('account_name', record.get('property_name', ''))
         city = record.get('city', '')

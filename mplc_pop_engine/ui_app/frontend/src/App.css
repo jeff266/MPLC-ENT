@@ -189,6 +189,21 @@
   align-items: center;
 }
 
+.channel-toggles {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+
+.channel-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+}
+
 .action-bar .primary {
   background: var(--accent);
   color: white;

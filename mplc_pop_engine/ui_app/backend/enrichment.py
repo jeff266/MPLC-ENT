@@ -68,12 +68,26 @@ class DispatchError(Exception):
     pass
 
 
+#  vertical -> {toggle key -> env var} for the paid/wrong-entity-risk
+# channels worth turning off for a given run (2026-11-13, Jeff: "Some steps
+# in the pipeline are not always required... What makes sense?"). Scoped to
+# paid channels only -- the free ones (state procurement, federal contracts,
+# website images, amenity text mining) are either no-cost or entity-certain
+# by construction, so there's no real reason to disable them per-run.
+CHANNEL_ENV_VARS: dict[str, dict[str, str]] = {
+    "healthcare": {"youtube": "ENABLE_YOUTUBE", "image_search": "ENABLE_IMAGE_SEARCH"},
+    "corporate": {"image_search": "ENABLE_IMAGE_SEARCH"},
+    "mdu": {"youtube": "ENABLE_YOUTUBE"},
+}
+
+
 def dispatch_job(
     db: Session,
     account_ids: list[str],
     vertical: str,
     created_by: Optional[str] = None,
     run_date: Optional[str] = None,
+    disabled_channels: Optional[list[str]] = None,
 ) -> dict:
     """Resolves the selected accounts, filters out ones already enriched
     for THIS vertical (any run_date), writes the remainder to a batch CSV,
@@ -155,10 +169,23 @@ def dispatch_job(
         sys.executable, str(worker_script), vertical, str(batch_file.resolve()),
         "--worker-id", "1", "--run-date", run_date,
     ]
+
+    # Channel toggles (2026-11-13): unified_worker.py's process_* functions
+    # already read ENABLE_YOUTUBE/ENABLE_IMAGE_SEARCH from the environment
+    # (healthcare_unified.py's process_account() originated this convention;
+    # corporate_fixed.py and mdu_unified.py now honor it too) -- set them
+    # explicitly here rather than leaving them to whatever this backend
+    # process's own environment happens to have, so a disabled channel for
+    # one dispatch can't accidentally leak into another concurrent one.
+    env = {**os.environ}
+    for toggle_key, env_var in CHANNEL_ENV_VARS.get(vertical, {}).items():
+        env[env_var] = "false" if disabled_channels and toggle_key in disabled_channels else "true"
+
     with open(stdout_file, "w") as out:
         proc = subprocess.Popen(
             cmd, cwd=str(job_dir), stdout=out, stderr=subprocess.STDOUT,
             start_new_session=True,  # survives this request/response cycle
+            env=env,
         )
 
     job = models.EnrichmentJob(
