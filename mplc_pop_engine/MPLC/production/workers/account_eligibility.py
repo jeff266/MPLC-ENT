@@ -171,6 +171,88 @@ def _load_account_id_set(path: str, label: str) -> Set[str]:
     return set(df[col].dropna().astype(str))
 
 
+# ---------------------------------------------------------------------------
+# Pardot / marketing-automation filtering for the 90-day activity file.
+#
+# Per the US ROE's own "Definition of Activity" (US_ROE_Updated_Oct_2026.md):
+# "An activity counts only when it is logged in Salesforce with a clear
+# note. Qualifying activities are: Outbound calls made (including
+# voicemails left); Emails sent through Gong or Salesforce; Scheduled calls
+# or meetings (tracked in notes or on calendar). Activity not logged in
+# Gong or Salesforce does not count."
+#
+# Pardot/Salesforce Account Engagement marketing sends (auto-generated,
+# not rep-logged) do not meet this definition and must not count as
+# protective activity. Confirmed against the real
+# Last_90_Day_Activities-2026-11-11 export (201,624 rows, 2026-11-14):
+# 27,307 rows (13.5%) have a Subject containing "pardot" or "list email"
+# (e.g. "Pardot Misc Email: ...", "Pardot List Email: ..."), unambiguously
+# distinct from real rep activity ("[Gong Out] ...", "ADM - Update Schedule
+# A", real email-thread subjects). Of 30,630 accounts with any 90-day
+# activity row, 6,971 (22.8%) had ENTIRELY marketing-automation activity —
+# no real rep touch — and were incorrectly protected from recapture under
+# the old (type-blind) loader. A rerun of the full eligibility pipeline
+# with this fix (703,260-account universe, run_date 2026-11-14) confirmed
+# a net 6,846 accounts become newly safe-to-distribute (125 of the 6,971
+# remain protected for an independent, legitimate reason — open deal, bad
+# status, parent/hierarchy, or identity-cluster link).
+# ---------------------------------------------------------------------------
+SUBJECT_COL_CANDIDATES = ['Subject', 'Activity Subject', 'Task Subject']
+MARKETING_ACTIVITY_SUBJECT_MARKERS = ['pardot', 'list email']
+
+
+def _is_marketing_activity_subject(subject) -> bool:
+    if pd.isna(subject) or not str(subject).strip():
+        return False
+    s = str(subject).lower()
+    return any(marker in s for marker in MARKETING_ACTIVITY_SUBJECT_MARKERS)
+
+
+def _load_activity_account_ids(path: str, label: str) -> Tuple[Set[str], pd.DataFrame]:
+    """
+    Load the Activity Last 90 Days file and return the set of account IDs
+    with at least one QUALIFYING (non-marketing-automation) activity row,
+    plus a DataFrame of the rows for accounts whose ENTIRE 90-day activity
+    was marketing-automation (kept for the audit trail, not silently
+    dropped — this project's QA convention: exclude noise from the count,
+    don't hide it).
+
+    An account with a mix of real and Pardot rows still qualifies (it has
+    real activity too) — only accounts with NO non-marketing row at all are
+    excluded from the qualifying set.
+
+    If no Subject column is found in this extract, falls back to the old
+    behavior (every row counts) and returns an empty marketing-only frame,
+    rather than failing the run — some activity extracts may not include
+    Subject.
+    """
+    df = pd.read_csv(path, encoding='latin-1', low_memory=False)
+    id_col = _find_col(df, ACCOUNT_ID_COL_CANDIDATES)
+    if id_col is None:
+        raise ValueError(
+            f"Could not find an account-ID column in {label} ({path}). "
+            f"Columns present: {list(df.columns)}. "
+            f"Expected one of: {ACCOUNT_ID_COL_CANDIDATES}"
+        )
+
+    subject_col = _find_col(df, SUBJECT_COL_CANDIDATES)
+    if subject_col is None:
+        qualifying_ids = set(df[id_col].dropna().astype(str))
+        return qualifying_ids, df.iloc[0:0]
+
+    is_marketing = df[subject_col].apply(_is_marketing_activity_subject)
+
+    # An account qualifies if it has at least one NON-marketing row.
+    has_real_activity = (~is_marketing).groupby(df[id_col]).transform('any')
+    qualifying_ids = set(df.loc[has_real_activity, id_col].dropna().astype(str))
+
+    # Rows belonging to accounts whose entire activity is marketing-only —
+    # audit trail, not dropped.
+    marketing_only_rows = df.loc[is_marketing & ~has_real_activity].copy()
+
+    return qualifying_ids, marketing_only_rows
+
+
 def _load_lost_deal_ids(path: str, run_date: datetime, window_days: int = 274) -> Tuple[Set[str], bool]:
     """
     Load the Opportunities Lost Last 9 Months file.
@@ -525,11 +607,23 @@ def run_eligibility_check(
         log("  WARNING: no opportunities_lost_last_9_months file supplied — that exclusion is SKIPPED this run.")
 
     # 90-day activity: explicit file wins; else fall back to date columns.
+    # Marketing-automation (Pardot) rows are filtered out of "qualifying
+    # activity" per the ROE's own activity definition — see
+    # _load_activity_account_ids docstring.
+    marketing_only_rows = pd.DataFrame()
     if activity_last_90_days_path:
         log("Loading explicit Activity Last 90 Days file (overrides date-column fallback)...")
-        active_ids = _load_account_id_set(activity_last_90_days_path, "activity_last_90_days")
+        active_ids, marketing_only_rows = _load_activity_account_ids(
+            activity_last_90_days_path, "activity_last_90_days"
+        )
         active_map = {aid: True for aid in active_ids}
-        log(f"  {len(active_ids):,} accounts active in last 90 days (from explicit file)")
+        log(f"  {len(active_ids):,} accounts active in last 90 days (qualifying activity only — "
+            f"Pardot/marketing-automation rows excluded per ROE activity definition)")
+        if len(marketing_only_rows):
+            id_col_mkt = _find_col(marketing_only_rows, ACCOUNT_ID_COL_CANDIDATES)
+            n_marketing_accounts = marketing_only_rows[id_col_mkt].nunique() if id_col_mkt else 0
+            log(f"  {n_marketing_accounts:,} accounts excluded from 'active' because their ONLY 90-day "
+                f"activity was Pardot/marketing-automation (not rep-logged — see audit CSV)")
     else:
         log("Using date-column fallback for 90-day activity (Last Activity / Last Modified Date / Created Date)...")
         cutoff_date = run_date - timedelta(days=90)
@@ -569,6 +663,11 @@ def run_eligibility_check(
         log(f"\nSaved audit:            {audit_path}")
         log(f"Saved safe-to-distribute: {safe_path}")
         log(f"Saved oversized groups (for cap review): {oversized_path}")
+
+        if len(marketing_only_rows):
+            marketing_only_path = os.path.join(output_dir, f'marketing_only_activity_excluded_{run_tag}.csv')
+            marketing_only_rows.to_csv(marketing_only_path, index=False)
+            log(f"Saved Pardot/marketing-only activity rows excluded from 'active' (audit trail): {marketing_only_path}")
 
     return safe_df, audit_df
 
