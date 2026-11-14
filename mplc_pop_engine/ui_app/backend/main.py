@@ -40,6 +40,7 @@ from .db import init_db, get_db
 from . import models
 from . import queries
 from . import enrichment
+from . import clay_import
 from . import supabase_client
 from . import auth
 from . import settings as settings_module
@@ -358,6 +359,58 @@ def get_clay_ambiguous_queue(
     db: Session = Depends(get_db),
 ):
     return queries.clay_ambiguous_queue(db, batch_id=batch_id, page=page, page_size=page_size)
+
+
+# ---------------------------------------------------------------------------
+# Clay/ZoomInfo import — closes the gap Jeff flagged (2026-11-14): the
+# "Clay Ambiguous" queue above already existed and already reads
+# models.ClayMatch, but nothing in the app ever wrote a ClayMatch row.
+# clay_import.py wires the real, already-tested clay_dedupe.py logic in.
+#
+# Two-step flow, because column naming is NOT consistent across export
+# tools (Clay vs. ZoomInfo vs. others) and a wrong auto-detected mapping
+# is a worse, silent error than one the UI asks a human to confirm:
+#   1. POST /clay-dedupe/detect-columns — upload once, get back the real
+#      columns + a best-guess mapping + a few preview rows, so the UI can
+#      render an editable mapping form (never applied blind).
+#   2. POST /clay-dedupe/run — upload again (or re-send the same bytes)
+#      with the human-confirmed column_mapping, actually runs the dedupe
+#      and writes the ClayMatch rows.
+# ---------------------------------------------------------------------------
+
+@app.post("/clay-dedupe/detect-columns")
+async def clay_detect_columns(file: UploadFile = File(...)):
+    contents = await file.read()
+    try:
+        return clay_import.detect_columns(file.filename, contents)
+    except clay_import.ClayImportError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/clay-dedupe/run")
+async def clay_run_dedupe(
+    file: UploadFile = File(...),
+    column_mapping: Optional[str] = None,  # JSON string, e.g. '{"company_name":"Biz Name","website":"URL"}'
+    max_group_size: int = 50,
+    db: Session = Depends(get_db),
+):
+    import json as _json
+
+    contents = await file.read()
+    mapping = None
+    if column_mapping:
+        try:
+            mapping = _json.loads(column_mapping)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="column_mapping must be a JSON object string")
+
+    try:
+        return clay_import.run_import(
+            db, file.filename, contents,
+            column_mapping=mapping, max_group_size=max_group_size,
+        )
+    except clay_import.ClayImportError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 # ---------------------------------------------------------------------------

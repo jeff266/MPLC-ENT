@@ -11,6 +11,7 @@ import { DispatchBar } from "./components/DispatchBar";
 import { PipelineMonitor } from "./components/PipelineMonitor";
 import { UnresolvedQueue } from "./components/UnresolvedQueue";
 import { ClayAmbiguousQueue } from "./components/ClayAmbiguousQueue";
+import { ClayImport } from "./components/ClayImport";
 import { CostTracker } from "./components/CostTracker";
 import { Settings } from "./components/Settings";
 import { Login } from "./components/Login";
@@ -169,7 +170,7 @@ function App() {
           Unresolved Queue
         </button>
         <button type="button" className={tab === "clay" ? "tab-active" : ""} onClick={() => setTab("clay")}>
-          Clay Ambiguous
+          Clay Import
         </button>
         <button
           type="button"
@@ -243,7 +244,13 @@ function App() {
 
       {tab === "step3" && <PipelineMonitor />}
       {tab === "unresolved" && <UnresolvedQueue />}
-      {tab === "clay" && <ClayAmbiguousQueue />}
+      {tab === "clay" && (
+        <>
+          <ClayImport />
+          <h3>Ambiguous matches</h3>
+          <ClayAmbiguousQueue />
+        </>
+      )}
       {tab === "cost-tracker" && <CostTracker />}
       {tab === "settings" && <Settings />}
     </div>

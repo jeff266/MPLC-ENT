@@ -66,19 +66,52 @@ import pandas as pd
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from account_eligibility import norm_domain, norm_name  # noqa: E402
 
-CLAY_COMPANY_COL_CANDIDATES = ['Company name', 'Company Name', 'Name', 'company_name']
-CLAY_WEBSITE_COL_CANDIDATES = ['Website', 'website', 'Domain', 'domain']
-CLAY_PHONE_COL_CANDIDATES = ['Phone', 'phone']
-CLAY_ADDRESS_COL_CANDIDATES = ['Address', 'address', 'Street', 'street']
-CLAY_CITY_COL_CANDIDATES = ['City', 'city']
-CLAY_STATE_COL_CANDIDATES = ['State', 'state', 'State or Province']
+# Exact-name candidates, tried first (fast, no false-positive risk).
+# Expanded 2026-11-14 (Jeff: "sometimes the naming of the columns may be
+# inconsistent, how do I account for that?") to cover ZoomInfo's common
+# export headers alongside Clay's, on top of the fuzzy fallback below --
+# see detect_column_mapping()'s docstring for why neither alone is the
+# real answer.
+CLAY_COMPANY_COL_CANDIDATES = ['Company name', 'Company Name', 'Name', 'company_name', 'Account Name', 'Organization Name']
+CLAY_WEBSITE_COL_CANDIDATES = ['Website', 'website', 'Domain', 'domain', 'Company Website', 'Company Domain']
+CLAY_PHONE_COL_CANDIDATES = ['Phone', 'phone', 'Company Phone', 'Company HQ Phone', 'Main Phone', 'HQ Phone']
+CLAY_ADDRESS_COL_CANDIDATES = ['Address', 'address', 'Street', 'street', 'Company Street Address', 'Street Address', 'Street Address 1', 'HQ Address']
+CLAY_CITY_COL_CANDIDATES = ['City', 'city', 'Company City', 'HQ City']
+CLAY_STATE_COL_CANDIDATES = ['State', 'state', 'State or Province', 'Company State', 'Company State/Province', 'HQ State']
 
-SF_ACCOUNT_ID_COL_CANDIDATES = ['18 Digit Account ID', 'Account ID', 'AccountId']
+SF_ACCOUNT_ID_COL_CANDIDATES = ['18 Digit Account ID', 'Account ID', 'AccountId', 'account_id']
 SF_ACCOUNT_NAME_COL_CANDIDATES = ['Account Name', 'account_name', 'Name']
 SF_WEBSITE_COL_CANDIDATES = ['Website', 'website']
 SF_CITY_COL_CANDIDATES = ['Account City', 'City', 'city']
 SF_STATE_COL_CANDIDATES = ['Account State/Province (text only)', 'Account State/Province', 'State', 'state']
 SF_PHONE_COL_CANDIDATES = ['Phone', 'phone']
+
+# field -> ordered list of token-sets tried as a FUZZY fallback when none of
+# the exact candidates above are present (2026-11-14). A real header is
+# normalized (lowercased, punctuation/whitespace stripped) and matched if it
+# contains every token in a set -- e.g. tokens=['company','name'] matches
+# "Company Name", "company_name", "Company  Name " etc. without needing
+# every export tool's exact spelling hardcoded above. Tried in order so the
+# more specific token-set wins first (avoids 'name' alone grabbing a
+# "Contact Name" column meant for a person, not the company).
+FIELD_FUZZY_TOKENS: Dict[str, List[List[str]]] = {
+    'company_name': [['company', 'name'], ['business', 'name'], ['organization', 'name'], ['account', 'name']],
+    'website': [['website'], ['domain'], ['url']],
+    'phone': [['phone']],
+    'address': [['street'], ['address']],
+    'city': [['city']],
+    'state': [['state'], ['province']],
+}
+
+# logical field name -> the exact-candidate list to try first
+CLAY_FIELD_CANDIDATES: Dict[str, List[str]] = {
+    'company_name': CLAY_COMPANY_COL_CANDIDATES,
+    'website': CLAY_WEBSITE_COL_CANDIDATES,
+    'phone': CLAY_PHONE_COL_CANDIDATES,
+    'address': CLAY_ADDRESS_COL_CANDIDATES,
+    'city': CLAY_CITY_COL_CANDIDATES,
+    'state': CLAY_STATE_COL_CANDIDATES,
+}
 
 
 def _find_col(df: pd.DataFrame, candidates: List[str]) -> Optional[str]:
@@ -86,6 +119,47 @@ def _find_col(df: pd.DataFrame, candidates: List[str]) -> Optional[str]:
         if c in df.columns:
             return c
     return None
+
+
+def _normalize_header(s: str) -> str:
+    return ''.join(ch for ch in str(s).lower() if ch.isalnum())
+
+
+def _find_col_fuzzy(df: pd.DataFrame, token_sets: List[List[str]]) -> Optional[str]:
+    """Fallback for when _find_col's exact candidates miss. Tries each
+    token-set in order; the first real header whose normalized form
+    contains every token in a set wins. Returns None if nothing matches --
+    callers must still let a human confirm/override, since a heuristic
+    guess is exactly the kind of silent-wrong-attribution risk this
+    pipeline treats as a QA failure elsewhere (CLAUDE.md's entity-
+    attribution bar applies here too: a column mis-mapped to the wrong
+    field is a worse error than a column left unmapped)."""
+    normalized = {col: _normalize_header(col) for col in df.columns}
+    for tokens in token_sets:
+        for col, norm in normalized.items():
+            if all(tok in norm for tok in tokens):
+                return col
+    return None
+
+
+def detect_column_mapping(
+    df: pd.DataFrame,
+    field_candidates: Dict[str, List[str]] = CLAY_FIELD_CANDIDATES,
+    fuzzy_tokens: Dict[str, List[List[str]]] = FIELD_FUZZY_TOKENS,
+) -> Dict[str, Optional[str]]:
+    """Best-guess column mapping for an arbitrary Clay/ZoomInfo/other export:
+    exact candidate match first, fuzzy token match as a fallback, None if
+    neither finds anything. This is meant to PRE-FILL a mapping a human
+    confirms before the dedupe runs, never to be trusted blind -- naming
+    varies too much across export tools (and even between two exports from
+    the same tool) to guarantee a heuristic gets it right every time."""
+    mapping: Dict[str, Optional[str]] = {}
+    for field, candidates in field_candidates.items():
+        col = _find_col(df, candidates)
+        if col is None:
+            col = _find_col_fuzzy(df, fuzzy_tokens.get(field, []))
+        mapping[field] = col
+    return mapping
 
 
 def _norm_phone(p) -> Optional[str]:
@@ -225,74 +299,60 @@ def match_clay_row(clay_row: dict, idx: SFIndex) -> dict:
     }
 
 
-def run_clay_dedupe(
-    clay_csv_path: str,
-    all_accounts_path: str,
-    eligibility_audit_path: Optional[str] = None,
+def run_clay_dedupe_df(
+    clay_df: pd.DataFrame,
+    sf_df: pd.DataFrame,
+    column_mapping: Optional[Dict[str, Optional[str]]] = None,
+    eligibility_map: Optional[Dict[str, bool]] = None,
     max_group_size: int = 50,
-    output_path: Optional[str] = None,
     verbose: bool = True,
 ) -> pd.DataFrame:
-    if verbose:
-        print("Loading Clay export...")
-    clay_df = pd.read_csv(clay_csv_path, dtype=str, low_memory=False, keep_default_na=True,
-                          encoding='latin-1')
+    """DataFrame-native, mapping-aware core (2026-11-14) -- the shared
+    implementation both the CLI (run_clay_dedupe, below) and the UI app's
+    backend call, so there is exactly one matching logic to keep correct.
 
-    company_col = _find_col(clay_df, CLAY_COMPANY_COL_CANDIDATES)
-    website_col = _find_col(clay_df, CLAY_WEBSITE_COL_CANDIDATES)
-    phone_col = _find_col(clay_df, CLAY_PHONE_COL_CANDIDATES)
-    address_col = _find_col(clay_df, CLAY_ADDRESS_COL_CANDIDATES)
-    city_col = _find_col(clay_df, CLAY_CITY_COL_CANDIDATES)
-    state_col = _find_col(clay_df, CLAY_STATE_COL_CANDIDATES)
+    `column_mapping`, if given, OVERRIDES auto-detection entirely -- this is
+    how a human-confirmed mapping (the UI's column-mapping review step)
+    takes precedence over detect_column_mapping()'s best guess. Pass
+    {'company_name': 'Biz Name', 'website': 'URL', ...}; fields left out or
+    mapped to None are treated as absent (required fields missing raises,
+    optional ones are just skipped for disambiguation).
+    """
+    mapping = {**detect_column_mapping(clay_df), **(column_mapping or {})}
+    company_col = mapping.get('company_name')
+    website_col = mapping.get('website')
+    phone_col = mapping.get('phone')
+    address_col = mapping.get('address')
+    city_col = mapping.get('city')
+    state_col = mapping.get('state')
 
-    if company_col is None or website_col is None:
+    if not company_col or company_col not in clay_df.columns or \
+       not website_col or website_col not in clay_df.columns:
         raise ValueError(
-            f"Clay export must have a Company name column and a Website column. "
+            f"Clay/export file must have a company-name column and a website column "
+            f"mapped to real columns. Resolved mapping: {mapping}. "
             f"Columns found: {list(clay_df.columns)}"
         )
 
     if verbose:
-        print(f"  {len(clay_df):,} Clay rows loaded "
-              f"(company col='{company_col}', website col='{website_col}')")
-
-    if verbose:
-        print("Loading Salesforce account universe...")
-    sf_df = pd.read_csv(all_accounts_path, dtype=str, low_memory=False, encoding='latin-1')
-    if verbose:
-        print(f"  {len(sf_df):,} Salesforce accounts loaded")
+        print(f"  {len(clay_df):,} export rows loaded (mapping: {mapping})")
+        print("Building Salesforce index...")
 
     idx = SFIndex(sf_df, max_group_size=max_group_size, verbose=verbose)
-
-    eligibility_map: Dict[str, bool] = {}
-    if eligibility_audit_path:
-        if verbose:
-            print("Loading eligibility audit (for protected/available status)...")
-        audit_df = pd.read_csv(eligibility_audit_path, dtype=str, low_memory=False, encoding='latin-1')
-        id_col = _find_col(audit_df, SF_ACCOUNT_ID_COL_CANDIDATES)
-        excl_col = 'excluded' if 'excluded' in audit_df.columns else (
-            'Excluded' if 'Excluded' in audit_df.columns else None)
-        if id_col and excl_col:
-            for _, r in audit_df.iterrows():
-                val = str(r[excl_col]).strip().lower()
-                eligibility_map[r[id_col]] = val in ('true', '1', 'yes')
-            if verbose:
-                print(f"  {len(eligibility_map):,} accounts with known eligibility status")
-        elif verbose:
-            print(f"  Warning: could not find account-id/excluded columns in "
-                  f"eligibility audit, skipping protected/available classification")
+    eligibility_map = eligibility_map or {}
 
     if verbose:
-        print("Matching Clay rows against Salesforce universe...")
+        print("Matching export rows against Salesforce universe...")
 
     results = []
     for _, row in clay_df.iterrows():
         clay_row = {
             'company_name': row.get(company_col),
             'website': row.get(website_col),
-            'phone': _norm_phone(row.get(phone_col)) if phone_col else None,
-            'address': _norm_simple(row.get(address_col)) if address_col else None,
-            'city': _norm_simple(row.get(city_col)) if city_col else None,
-            'state': _norm_simple(row.get(state_col)) if state_col else None,
+            'phone': _norm_phone(row.get(phone_col)) if phone_col and phone_col in clay_df.columns else None,
+            'address': _norm_simple(row.get(address_col)) if address_col and address_col in clay_df.columns else None,
+            'city': _norm_simple(row.get(city_col)) if city_col and city_col in clay_df.columns else None,
+            'state': _norm_simple(row.get(state_col)) if state_col and state_col in clay_df.columns else None,
         }
         m = match_clay_row(clay_row, idx)
         candidates = m['candidates']
@@ -336,6 +396,54 @@ def run_clay_dedupe(
         print(result_df['classification'].value_counts().to_string())
         ambiguous = (result_df['num_candidates'] > 1).sum()
         print(f"\nAmbiguous matches (>1 SF candidate, needs human review): {ambiguous:,}")
+
+    return result_df
+
+
+def run_clay_dedupe(
+    clay_csv_path: str,
+    all_accounts_path: str,
+    eligibility_audit_path: Optional[str] = None,
+    max_group_size: int = 50,
+    output_path: Optional[str] = None,
+    verbose: bool = True,
+) -> pd.DataFrame:
+    """CLI entry point -- unchanged behavior/flags, now a thin wrapper
+    around run_clay_dedupe_df() (2026-11-14 refactor) so the file-path/CSV
+    contract here stays exactly as it was."""
+    if verbose:
+        print("Loading Clay export...")
+    clay_df = pd.read_csv(clay_csv_path, dtype=str, low_memory=False, keep_default_na=True,
+                          encoding='latin-1')
+
+    if verbose:
+        print("Loading Salesforce account universe...")
+    sf_df = pd.read_csv(all_accounts_path, dtype=str, low_memory=False, encoding='latin-1')
+    if verbose:
+        print(f"  {len(sf_df):,} Salesforce accounts loaded")
+
+    eligibility_map: Dict[str, bool] = {}
+    if eligibility_audit_path:
+        if verbose:
+            print("Loading eligibility audit (for protected/available status)...")
+        audit_df = pd.read_csv(eligibility_audit_path, dtype=str, low_memory=False, encoding='latin-1')
+        id_col = _find_col(audit_df, SF_ACCOUNT_ID_COL_CANDIDATES)
+        excl_col = 'excluded' if 'excluded' in audit_df.columns else (
+            'Excluded' if 'Excluded' in audit_df.columns else None)
+        if id_col and excl_col:
+            for _, r in audit_df.iterrows():
+                val = str(r[excl_col]).strip().lower()
+                eligibility_map[r[id_col]] = val in ('true', '1', 'yes')
+            if verbose:
+                print(f"  {len(eligibility_map):,} accounts with known eligibility status")
+        elif verbose:
+            print(f"  Warning: could not find account-id/excluded columns in "
+                  f"eligibility audit, skipping protected/available classification")
+
+    result_df = run_clay_dedupe_df(
+        clay_df, sf_df, eligibility_map=eligibility_map,
+        max_group_size=max_group_size, verbose=verbose,
+    )
 
     if output_path:
         result_df.to_csv(output_path, index=False)

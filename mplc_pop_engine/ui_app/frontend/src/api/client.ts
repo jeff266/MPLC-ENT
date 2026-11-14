@@ -181,6 +181,59 @@ export async function fetchClayAmbiguousQueue(
   return data;
 }
 
+// ---- Clay/ZoomInfo import ----------------------------------------------
+// Closes the gap Jeff flagged (2026-11-14): the ClayAmbiguousQueue above
+// already read clay_matches, but nothing wrote to it. These two calls are
+// the upload -> detect -> (human confirms mapping) -> run flow.
+
+export interface ClayColumnMapping {
+  company_name: string | null;
+  website: string | null;
+  phone: string | null;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+}
+
+export interface ClayDetectColumnsResult {
+  columns: string[];
+  detected_mapping: ClayColumnMapping;
+  row_count: number;
+  preview_rows: Record<string, string>[];
+}
+
+export async function detectClayColumns(file: File): Promise<ClayDetectColumnsResult> {
+  const formData = new FormData();
+  formData.append("file", file);
+  const { data } = await client.post<ClayDetectColumnsResult>(
+    "/clay-dedupe/detect-columns",
+    formData,
+    { headers: { "Content-Type": "multipart/form-data" } },
+  );
+  return data;
+}
+
+export interface ClayImportResult {
+  batch_id: string;
+  rows_processed: number;
+  classification_counts: Record<string, number>;
+  ambiguous_count: number;
+  eligibility_data_available: boolean;
+}
+
+export async function runClayDedupe(
+  file: File,
+  columnMapping: Partial<ClayColumnMapping>,
+): Promise<ClayImportResult> {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("column_mapping", JSON.stringify(columnMapping));
+  const { data } = await client.post<ClayImportResult>("/clay-dedupe/run", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return data;
+}
+
 // ---- Pipeline runs ----------------------------------------------------
 
 export interface PipelineRunSummary {
