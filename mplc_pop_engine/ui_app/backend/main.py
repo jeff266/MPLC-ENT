@@ -42,6 +42,7 @@ from . import queries
 from . import enrichment
 from . import supabase_client
 from . import auth
+from . import settings as settings_module
 from .pipeline_runner import run_and_persist
 from .file_discovery import (
     discover_weekly_files, archive_files, DiscoveryError, OUTPUT_DIR,
@@ -602,6 +603,39 @@ def get_cost_tracker(vertical: Optional[str] = None):
         "by_channel": rows,
         "data_integrity_warnings": warnings,
     }
+
+
+# ---------------------------------------------------------------------------
+# Settings (added 2026-11-14) -- store the production path's API keys /
+# connection strings in .env and verify each one against a real provider
+# call. See settings.py's module docstring for the full scope decision
+# (which vars are managed, which are deliberately excluded) and exactly
+# which real call each verify() makes and what it costs.
+# ---------------------------------------------------------------------------
+
+@app.get("/settings")
+def list_settings():
+    return {"settings": settings_module.list_settings()}
+
+
+class UpdateSettingRequest(BaseModel):
+    value: str
+
+
+@app.put("/settings/{key}")
+def update_setting(key: str, req: UpdateSettingRequest):
+    try:
+        return settings_module.set_setting(key, req.value)
+    except settings_module.UnknownSetting as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/settings/{key}/verify")
+def verify_setting(key: str):
+    try:
+        return settings_module.verify_setting(key)
+    except settings_module.UnknownSetting as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.post("/accounts/check-already-enriched")

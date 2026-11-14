@@ -21,3 +21,8 @@ psycopg2-binary==2.9.13
 # Auth (added 2026-11-14) -- email+password sign-up/login, JWT sessions.
 bcrypt==4.2.1
 PyJWT==2.15.0
+
+# Settings page (added 2026-11-14) -- verify a stored key against the real
+# provider API (settings.py's _verify_* functions).
+anthropic==2.8.0
+requests==2.34.2

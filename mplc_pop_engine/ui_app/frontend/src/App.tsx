@@ -12,6 +12,7 @@ import { PipelineMonitor } from "./components/PipelineMonitor";
 import { UnresolvedQueue } from "./components/UnresolvedQueue";
 import { ClayAmbiguousQueue } from "./components/ClayAmbiguousQueue";
 import { CostTracker } from "./components/CostTracker";
+import { Settings } from "./components/Settings";
 import { Login } from "./components/Login";
 import { useSelection } from "./hooks/useSelection";
 import "./App.css";
@@ -39,7 +40,7 @@ const KNOWN_VERTICALS = [
 
 const PAGE_SIZE = 50;
 
-type Tab = "step1" | "step2" | "step3" | "unresolved" | "clay" | "cost-tracker";
+type Tab = "step1" | "step2" | "step3" | "unresolved" | "clay" | "cost-tracker" | "settings";
 
 function App() {
   // "checking" avoids a flash of the login screen while a saved token is
@@ -177,6 +178,13 @@ function App() {
         >
           Cost Tracker
         </button>
+        <button
+          type="button"
+          className={tab === "settings" ? "tab-active" : ""}
+          onClick={() => setTab("settings")}
+        >
+          Settings
+        </button>
       </nav>
 
       {tab === "step1" && (
@@ -237,6 +245,7 @@ function App() {
       {tab === "unresolved" && <UnresolvedQueue />}
       {tab === "clay" && <ClayAmbiguousQueue />}
       {tab === "cost-tracker" && <CostTracker />}
+      {tab === "settings" && <Settings />}
     </div>
   );
 }

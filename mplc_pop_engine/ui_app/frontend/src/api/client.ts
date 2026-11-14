@@ -481,6 +481,47 @@ export async function fetchCurrentUser(): Promise<CurrentUser> {
   return data;
 }
 
+// ---- Settings (added 2026-11-14) ---------------------------------------
+// Store the production path's API keys/connection strings in .env and
+// verify each against a real provider call. See backend/settings.py's
+// module docstring for exactly which vars are managed (and which are
+// deliberately excluded) and what each verify() call actually costs.
+
+export type SettingCategory = "secret" | "connection" | "flag";
+
+export interface SettingField {
+  key: string;
+  label: string;
+  category: SettingCategory;
+  help: string;
+  is_set: boolean;
+  value: string | null; // only populated for flag-category fields
+  masked_value: string | null; // only populated for secret/connection fields
+  source_file: string | null;
+  verifiable: boolean;
+}
+
+export async function fetchSettings(): Promise<SettingField[]> {
+  const { data } = await client.get<{ settings: SettingField[] }>("/settings");
+  return data.settings;
+}
+
+export async function updateSetting(key: string, value: string): Promise<{ key: string; source_file: string }> {
+  const { data } = await client.put(`/settings/${encodeURIComponent(key)}`, { value });
+  return data;
+}
+
+export interface VerifyResult {
+  ok: boolean;
+  detail: string;
+  cost_note: string;
+}
+
+export async function verifySetting(key: string): Promise<VerifyResult> {
+  const { data } = await client.post<VerifyResult>(`/settings/${encodeURIComponent(key)}/verify`);
+  return data;
+}
+
 export function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
