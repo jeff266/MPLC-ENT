@@ -527,7 +527,7 @@ Answer ONLY with valid JSON in exactly this shape:
             # Call RapidAPI YouTube Download API
             api_url = "https://youtube-info-download-api.p.rapidapi.com/ajax/download.php"
             headers = {
-                "X-RapidAPI-Key": "REDACTED-ROTATED-RAPIDAPI-KEY",
+                "X-RapidAPI-Key": self.rapidapi_key,
                 "X-RapidAPI-Host": "youtube-info-download-api.p.rapidapi.com",
                 "accept": "application/json"
             }

@@ -28,6 +28,7 @@ from ultralytics import YOLO
 # API Keys
 SERPER_API_KEY = os.getenv("SERPER_API_KEY")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
 
 
 class MDUEnricherUnified:
@@ -36,6 +37,7 @@ class MDUEnricherUnified:
     def __init__(self):
         self.serper_key = SERPER_API_KEY
         self.anthropic_key = ANTHROPIC_API_KEY
+        self.rapidapi_key = RAPIDAPI_KEY
         self.yolo_model_path = self._find_yolo_model()
         self.used_video_urls = set()  # NEW: Track used videos to prevent reuse
 
@@ -161,7 +163,7 @@ class MDUEnricherUnified:
             # Step 1: Initiate download
             api_url = "https://youtube-info-download-api.p.rapidapi.com/ajax/download.php"
             headers = {
-                "X-RapidAPI-Key": "REDACTED-ROTATED-RAPIDAPI-KEY",
+                "X-RapidAPI-Key": self.rapidapi_key,
                 "X-RapidAPI-Host": "youtube-info-download-api.p.rapidapi.com",
                 "accept": "application/json"
             }

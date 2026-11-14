@@ -29,9 +29,15 @@ from urllib.parse import urljoin, quote_plus
 import concurrent.futures
 from datetime import datetime
 
-# Load Serper API key
-SERPER_API_KEY = os.getenv('SERPER_API_KEY', 'REDACTED-ROTATED-SERPER-KEY')
-SLACK_WEBHOOK = os.getenv('SLACK_WEBHOOK_URL', 'https://REDACTED-ZAPIER-WEBHOOK/')
+# Load Serper API key.
+#
+# SECURITY FIX (2026-11-14): both of these used to fall back to hardcoded
+# literals (a Serper key and a Zapier webhook URL) if the env var was unset
+# -- both were committed to this (public) repo. See
+# PoP_Detection_Engine_Learnings.md for the incident note. No fallback
+# defaults anymore -- unset means None/empty, not a leaked credential.
+SERPER_API_KEY = os.getenv('SERPER_API_KEY')
+SLACK_WEBHOOK = os.getenv('SLACK_WEBHOOK_URL')
 
 # Known brokerages/lenders to filter out
 BROKERAGES_LENDERS = {

@@ -77,8 +77,17 @@ config_env = Path(__file__).parent.parent / 'config' / '.env'
 if config_env.exists():
     load_env_file(config_env)
 
-# API Keys (with fallback defaults matching rest of pipeline)
-SERPER_API_KEY = os.getenv("SERPER_API_KEY", "REDACTED-ROTATED-SERPER-KEY")
+# API Keys.
+#
+# SECURITY FIX (2026-11-14): SERPER_API_KEY used to fall back to a hardcoded
+# literal key ("df2e4e36...") if the env var was unset -- that key was
+# committed to this (public) repo and needs rotation if it hasn't happened
+# yet; see PoP_Detection_Engine_Learnings.md for the incident note. No
+# fallback default anymore -- if SERPER_API_KEY isn't set, this is None and
+# callers that need it should fail loudly instead of silently using a dead
+# key.
+SERPER_API_KEY = os.getenv("SERPER_API_KEY")
+RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
 # Get Anthropic key from environment (droplets have it set, local needs it)
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 if not ANTHROPIC_API_KEY:
@@ -101,6 +110,7 @@ class MDUEnricherUnified:
         """
         self.serper_key = SERPER_API_KEY
         self.anthropic_key = ANTHROPIC_API_KEY
+        self.rapidapi_key = RAPIDAPI_KEY
         self.yolo_model_path = self._find_yolo_model()
         self.enable_youtube = enable_youtube
 
@@ -283,7 +293,7 @@ Answer ONLY with valid JSON:
                 # Step 1: Initiate download
                 api_url = "https://youtube-info-download-api.p.rapidapi.com/ajax/download.php"
                 headers = {
-                    "X-RapidAPI-Key": "REDACTED-ROTATED-RAPIDAPI-KEY",
+                    "X-RapidAPI-Key": self.rapidapi_key,
                     "X-RapidAPI-Host": "youtube-info-download-api.p.rapidapi.com",
                     "accept": "application/json"
                 }
