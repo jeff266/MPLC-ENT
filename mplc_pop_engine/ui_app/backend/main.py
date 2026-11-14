@@ -9,7 +9,25 @@ Run locally with:
 import csv
 import io
 from datetime import date
+from pathlib import Path
 from typing import Optional
+
+# FIX (2026-11-13): this app never actually loaded a .env file -- python-dotenv
+# was in requirements.txt but unused, so DATABASE_URL/SUPABASE_PASSWORD only
+# ever worked if exported in the shell by hand. supabase_client.py's own error
+# message says to "reuse whatever .env Jeff already has configured for the
+# workers" -- so look there (production/workers/.env), same contract
+# unified_worker.py itself uses, falling back to a backend-local .env if one
+# exists (e.g. if Jeff prefers to keep the UI's own secrets separate).
+try:
+    from dotenv import load_dotenv
+    _workers_env = Path(__file__).parent.parent.parent / "MPLC" / "production" / "workers" / ".env"
+    _local_env = Path(__file__).parent / ".env"
+    for _env_path in (_local_env, _workers_env):
+        if _env_path.exists():
+            load_dotenv(_env_path)
+except ImportError:
+    pass  # python-dotenv not installed; rely on system environment only
 
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
