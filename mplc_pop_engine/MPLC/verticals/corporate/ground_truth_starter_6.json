@@ -1,0 +1,11 @@
+{
+  "_note": "NOT the full 42-account corporate ground truth CLAUDE.md references -- that fixture file doesn't exist anywhere in this repo checkout (confirmed 2026-11-14: not in Supabase, not in any local SQLite db, not in the one evidence JSON on disk which is a different/older 'yelp_photos' run with only 2 records). These 6 are the only ones CLAUDE.md names explicitly, with real, unambiguous public websites filled in so this is runnable as a smoke test today. The other ~36 ground-truth accounts aren't recorded anywhere Claude could find -- Jeff, if you have the real list (a spreadsheet, a Salesforce view, anything), that's what should replace this file for the real comparison.",
+  "accounts": [
+    {"company_name": "Intel Corporation", "website": "intel.com", "operating_market": "United States"},
+    {"company_name": "Fifth Third Bank", "website": "53.com", "operating_market": "United States"},
+    {"company_name": "NXP Semiconductors", "website": "nxp.com", "operating_market": "United States"},
+    {"company_name": "Cigna", "website": "cigna.com", "operating_market": "United States"},
+    {"company_name": "PNC", "website": "pnc.com", "operating_market": "United States"},
+    {"company_name": "Costco", "website": "costco.com", "operating_market": "United States"}
+  ]
+}
