@@ -368,3 +368,36 @@
   margin-top: 0.8rem;
   font-size: 0.85rem;
 }
+
+/* ---- Cost Tracker ---- */
+.cost-tracker-vertical {
+  margin-bottom: 1.2rem;
+}
+
+.cost-tracker-vertical h3 {
+  margin: 0 0 0.4rem;
+  font-size: 1rem;
+}
+
+.cost-tracker .metrics-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  border: none;
+  margin: 0 0 1rem;
+  padding: 0;
+}
+
+.cost-tracker-warning {
+  border: 1px solid #c0362c;
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+  margin: 0.6rem 0 1rem;
+  color: #c0362c;
+  font-size: 0.85rem;
+}
+
+.cost-tracker-warning ul {
+  margin: 0.3rem 0 0;
+  padding-left: 1.2rem;
+}

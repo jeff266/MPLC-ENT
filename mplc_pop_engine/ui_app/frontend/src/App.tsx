@@ -11,6 +11,7 @@ import { DispatchBar } from "./components/DispatchBar";
 import { PipelineMonitor } from "./components/PipelineMonitor";
 import { UnresolvedQueue } from "./components/UnresolvedQueue";
 import { ClayAmbiguousQueue } from "./components/ClayAmbiguousQueue";
+import { CostTracker } from "./components/CostTracker";
 import { useSelection } from "./hooks/useSelection";
 import "./App.css";
 
@@ -37,7 +38,7 @@ const KNOWN_VERTICALS = [
 
 const PAGE_SIZE = 50;
 
-type Tab = "step1" | "step2" | "step3" | "unresolved" | "clay";
+type Tab = "step1" | "step2" | "step3" | "unresolved" | "clay" | "cost-tracker";
 
 function App() {
   const [tab, setTab] = useState<Tab>("step1");
@@ -121,6 +122,13 @@ function App() {
         <button type="button" className={tab === "clay" ? "tab-active" : ""} onClick={() => setTab("clay")}>
           Clay Ambiguous
         </button>
+        <button
+          type="button"
+          className={tab === "cost-tracker" ? "tab-active" : ""}
+          onClick={() => setTab("cost-tracker")}
+        >
+          Cost Tracker
+        </button>
       </nav>
 
       {tab === "step1" && (
@@ -180,6 +188,7 @@ function App() {
       {tab === "step3" && <PipelineMonitor />}
       {tab === "unresolved" && <UnresolvedQueue />}
       {tab === "clay" && <ClayAmbiguousQueue />}
+      {tab === "cost-tracker" && <CostTracker />}
     </div>
   );
 }

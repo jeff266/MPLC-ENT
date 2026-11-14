@@ -368,6 +368,48 @@ export async function fetchJobProgress(jobId: string): Promise<JobProgress> {
   return data;
 }
 
+// ---- Cost Tracker -----------------------------------------------------
+// Per claude/Cost_Tracker_Design.md and Jeff's 2026-11-14 decisions:
+// on-demand, cumulative (all-time, no date filter), no separate rollup
+// table on the backend -- this just reflects GET /cost-tracker's shape.
+
+export interface CostTrackerVerticalSummary {
+  vertical: string;
+  accounts_processed: number;
+  prospect_count: number;
+  suspect_count: number;
+  rows_with_cost: number;
+  total_cost: number;
+  is_prospect_mismatches: number;
+  cost_per_account: number | null;
+  cost_per_prospect: number | null;
+  cost_per_lead: number | null;
+}
+
+export interface CostTrackerChannelRow {
+  vertical: string;
+  channel: string | null;
+  accounts_processed: number;
+  prospect_count: number;
+  suspect_count: number;
+  rows_with_cost: number;
+  total_cost: number;
+  is_prospect_mismatches: number;
+}
+
+export interface CostTrackerResponse {
+  summary: CostTrackerVerticalSummary[];
+  by_channel: CostTrackerChannelRow[];
+  data_integrity_warnings: string[];
+}
+
+export async function fetchCostTracker(vertical?: string): Promise<CostTrackerResponse> {
+  const { data } = await client.get<CostTrackerResponse>("/cost-tracker", {
+    params: vertical ? { vertical } : undefined,
+  });
+  return data;
+}
+
 export function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
