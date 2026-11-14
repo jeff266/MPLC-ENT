@@ -94,6 +94,16 @@ if not ANTHROPIC_API_KEY:
     # Try common key names
     ANTHROPIC_API_KEY = os.getenv("CLAUDE_API_KEY") or os.getenv("ANTHROPIC_KEY")
 
+# Cost constants (2026-11-14, Jeff: Serper is currently on the $50/50,000
+# credits plan -- 1 search/image/video call = 1 credit = $0.001). RapidAPI
+# figure is from CLAUDE.md's documented PRO plan math (4 units/video on a
+# $5/100,000-unit plan = $0.0002/video). These were previously either
+# missing entirely (the YouTube video channel charged $0.0 for every Serper
+# search and every RapidAPI download attempt) or hardcoded to guessed
+# values -- see PoP_Detection_Engine_Learnings.md for the incident note.
+SERPER_COST_PER_CALL = 0.001
+RAPIDAPI_COST_PER_VIDEO = 0.0002
+
 
 class MDUEnricherUnified:
     """MDU PoP detection with video processing via RapidAPI."""
@@ -653,6 +663,11 @@ Answer ONLY with valid JSON:
     ) -> Optional[Dict]:
         """Process YouTube videos to find TV evidence with entity verification."""
 
+        # Seeded with the Serper video-search call that found `videos` --
+        # that call already happened in the caller before process_videos()
+        # was invoked, so this is the first point we can attribute its cost.
+        # Previously this cost was never tracked at all (2026-11-14 fix).
+        total_cost = SERPER_COST_PER_CALL
         rejection_reasons = []  # Track why videos were rejected
 
         for i, video in enumerate(videos[:3], 1):  # Process up to 3 videos
@@ -674,8 +689,11 @@ Answer ONLY with valid JSON:
                 rejection_reasons.append(rejection_reason)
                 continue
 
-            # Download video
+            # Download video (RapidAPI charges per attempt regardless of
+            # outcome, since the request already went out -- 2026-11-14 fix,
+            # previously this attempt was entirely unpriced).
             video_path, error = self.download_video(video_url, temp_dir)
+            total_cost += RAPIDAPI_COST_PER_VIDEO
             if error:
                 print(f"      Failed: {error}")
                 continue
@@ -752,7 +770,7 @@ Answer ONLY with valid JSON:
                     'tv_powered_on': vlm_result.get('tv_powered_on', False),
                     'yolo_confidence': best_frame['confidence'],
                     'reasoning': vlm_result.get('reasoning', ''),
-                    'cost': vlm_result.get('cost', 0.0)
+                    'cost': vlm_result.get('cost', 0.0) + total_cost
                 }
 
         # If we got here, all videos failed
@@ -761,11 +779,22 @@ Answer ONLY with valid JSON:
             return {
                 'lead_status': 'no_evidence',
                 'channel': 'youtube_video_yolo',
+                'cost': total_cost,
                 'rejection_reasons': rejection_reasons,
                 'reason': f"All videos rejected: {', '.join(rejection_reasons[:2])}"  # First 2 reasons
             }
 
-        return None
+        # Previously returned None here, which silently dropped every
+        # dollar of Serper/RapidAPI cost spent above -- the caller only
+        # adds cost from a dict's 'cost' key, so a None result meant this
+        # channel's real spend never reached account_enrichment_results.cost
+        # at all (2026-11-14 fix).
+        return {
+            'lead_status': 'no_evidence',
+            'channel': 'youtube_video_yolo',
+            'cost': total_cost,
+            'reason': 'No TV evidence after processing all candidate videos',
+        }
 
     def scrape_website_images(self, website_url: str) -> List[str]:
         """

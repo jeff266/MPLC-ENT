@@ -80,6 +80,99 @@ CHANNEL_ENV_VARS: dict[str, dict[str, str]] = {
     "mdu": {"youtube": "ENABLE_YOUTUBE"},
 }
 
+# toggle key -> the enrichment_result.channel string(s) it gates, verified
+# 2026-11-14 by reading each enricher's own waterfall (not guessed from the
+# toggle's name): healthcare's ENABLE_IMAGE_SEARCH only gates Stage 4
+# (search_and_analyze_images -> channel 'hospital_image_search') — the
+# senior_activity_*/pediatric_waiting_area channels exist in
+# healthcare_unified.py but aren't wired into the waterfall this toggle
+# controls, so they're deliberately left out here. Used by
+# estimate_dispatch_cost() below to back a disabled channel's historical
+# cost out of the estimate.
+TOGGLE_CHANNELS: dict[tuple[str, str], list[str]] = {
+    ("healthcare", "youtube"): ["youtube_video_yolo"],
+    ("healthcare", "image_search"): ["hospital_image_search"],
+    ("corporate", "image_search"): ["serper_images"],
+    ("mdu", "youtube"): ["youtube_video_yolo"],
+}
+
+# CLAUDE.md's QA bar #5: "Small-sample results (n<20) labeled directional,
+# retest at larger n." Applies here too -- an estimate built off a handful
+# of historical accounts for a vertical isn't wrong, but shouldn't be
+# presented with the same confidence as one built off hundreds.
+DIRECTIONAL_SAMPLE_THRESHOLD = 20
+
+
+def estimate_dispatch_cost(
+    vertical: str,
+    account_count: int,
+    disabled_channels: Optional[list[str]] = None,
+) -> dict:
+    """Projects what dispatching `account_count` accounts through
+    `vertical` is likely to cost, from this vertical's OWN real historical
+    $/account (Cost Tracker's rollup) -- never a guessed or hand-entered
+    rate. If a channel is being disabled for this run, that channel's
+    historical share of total cost is backed out first, since those calls
+    simply won't happen.
+
+    This is Jeff's 2026-11-14 ask: Step 2 commits real account counts and
+    real channel toggle choices with no cost preview beforehand today --
+    this is what renders that preview in DispatchBar.
+    """
+    if vertical not in DISPATCHABLE_VERTICALS:
+        raise DispatchError(
+            f"Unknown or unsupported vertical '{vertical}'. "
+            f"Supported: {', '.join(DISPATCHABLE_VERTICALS)}."
+        )
+    if account_count <= 0:
+        raise DispatchError("account_count must be positive.")
+
+    rows = supabase_client.get_cost_tracker_rollup(vertical=vertical)
+    total_accounts = sum(r["accounts_processed"] for r in rows)
+    total_cost = sum(r["total_cost"] for r in rows)
+
+    if total_accounts == 0 or sum(r["rows_with_cost"] for r in rows) == 0:
+        return {
+            "vertical": vertical,
+            "account_count": account_count,
+            "estimable": False,
+            "reason": "No completed enrichment history with cost data for "
+                      "this vertical yet -- nothing to base an estimate on.",
+        }
+
+    excluded_channels: set[str] = set()
+    for toggle_key in disabled_channels or []:
+        excluded_channels.update(TOGGLE_CHANNELS.get((vertical, toggle_key), []))
+
+    adjusted_cost = total_cost
+    excluded_detail = []
+    for row in rows:
+        if row["channel"] in excluded_channels and row["rows_with_cost"]:
+            adjusted_cost -= row["total_cost"]
+            excluded_detail.append({
+                "channel": row["channel"],
+                "historical_cost_per_account": row["total_cost"] / row["rows_with_cost"],
+            })
+
+    cost_per_account = adjusted_cost / total_accounts
+    return {
+        "vertical": vertical,
+        "account_count": account_count,
+        "estimable": True,
+        "cost_per_account": cost_per_account,
+        "estimated_total_cost": cost_per_account * account_count,
+        "based_on_historical_accounts": total_accounts,
+        "directional": total_accounts < DIRECTIONAL_SAMPLE_THRESHOLD,
+        "excluded_channels": excluded_detail,
+        "note": (
+            f"Based on this vertical's own historical cost/account across "
+            f"{total_accounts} completed accounts"
+            + (" (small sample -- directional only, per QA bar)" if total_accounts < DIRECTIONAL_SAMPLE_THRESHOLD else "")
+            + ". Actual cost for this run depends on how many accounts hit "
+              "each paid channel, which varies."
+        ),
+    }
+
 
 def dispatch_job(
     db: Session,

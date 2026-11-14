@@ -493,6 +493,25 @@ def list_dispatchable_verticals():
     ]
 
 
+@app.get("/enrichment/cost-estimate")
+def get_enrichment_cost_estimate(
+    vertical: str,
+    account_count: int,
+    disabled_channels: Optional[str] = None,
+):
+    """Pre-dispatch cost preview for Step 2 (Jeff, 2026-11-14: "are we
+    showing an estimate of how much each run and total will cost?" --
+    previously no). `disabled_channels` is a comma-separated list of
+    toggle keys, matching DispatchBar's existing disabled_channels shape."""
+    toggles = [c for c in disabled_channels.split(",") if c] if disabled_channels else None
+    try:
+        return enrichment.estimate_dispatch_cost(
+            vertical=vertical, account_count=account_count, disabled_channels=toggles,
+        )
+    except enrichment.DispatchError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 class DispatchEnrichmentRequest(BaseModel):
     account_ids: Optional[list[str]] = None
     filter: Optional[AccountFilter] = None

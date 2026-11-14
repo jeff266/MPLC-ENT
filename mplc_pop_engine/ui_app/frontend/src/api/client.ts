@@ -342,6 +342,47 @@ export async function dispatchEnrichment(
   return data;
 }
 
+// Pre-dispatch cost preview (2026-11-14, Jeff: "are we showing an estimate
+// of how much each run and total will cost?" -- this is that estimate,
+// built from this vertical's own historical $/account in Cost Tracker,
+// never a guessed rate).
+export interface CostEstimateRequest {
+  vertical: string;
+  account_count: number;
+  disabled_channels?: string[];
+}
+
+export interface ExcludedChannelCost {
+  channel: string;
+  historical_cost_per_account: number;
+}
+
+export type CostEstimate =
+  | { estimable: false; vertical: string; account_count: number; reason: string }
+  | {
+      estimable: true;
+      vertical: string;
+      account_count: number;
+      cost_per_account: number;
+      estimated_total_cost: number;
+      based_on_historical_accounts: number;
+      directional: boolean;
+      excluded_channels: ExcludedChannelCost[];
+      note: string;
+    };
+
+export async function fetchCostEstimate(req: CostEstimateRequest): Promise<CostEstimate> {
+  const params = new URLSearchParams({
+    vertical: req.vertical,
+    account_count: String(req.account_count),
+  });
+  if (req.disabled_channels && req.disabled_channels.length > 0) {
+    params.set("disabled_channels", req.disabled_channels.join(","));
+  }
+  const { data } = await client.get<CostEstimate>(`/enrichment/cost-estimate?${params.toString()}`);
+  return data;
+}
+
 // ---- Step 3: Pipeline Monitor ---------------------------------------------
 
 export interface EnrichmentJobSummary {

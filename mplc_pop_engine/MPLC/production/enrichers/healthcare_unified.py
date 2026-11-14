@@ -83,6 +83,20 @@ except ImportError:
     SERPER_API_KEY = os.getenv("SERPER_API_KEY")
     ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 
+# Serper cost (2026-11-14, Jeff: currently on the $50/50,000 credits plan --
+# 1 search/image/video call = 1 credit = $0.001). The flat costs below used
+# to be guessed/inconsistent ($0.003 in some channels, $0.001 in others, one
+# of them even mislabeled "RapidAPI search cost" for what is actually a
+# Serper call) rather than tied to the real plan -- normalized to this one
+# constant everywhere a single Serper call is made. See
+# PoP_Detection_Engine_Learnings.md for the incident note.
+SERPER_COST_PER_CALL = 0.001
+# RapidAPI video download, from CLAUDE.md's documented PRO plan math (4
+# units/video on a $5/100,000-unit plan = $0.0002/video). The video channel
+# below searched + downloaded videos via RapidAPI without ever pricing the
+# download call in -- only VLM cost was tracked.
+RAPIDAPI_COST_PER_VIDEO = 0.0002
+
 # USASpending.gov API
 USASPENDING_API = "https://api.usaspending.gov/api/v2/search/spending_by_award/"
 
@@ -744,7 +758,10 @@ Answer ONLY with valid JSON:
 
     def search_and_analyze_videos(self, facility_name: str, city: str, state: str) -> Dict:
         """Process video channel: search + download + YOLO + VLM."""
-        total_cost = 0.003  # RapidAPI search cost
+        # Mislabeled and wrong value before 2026-11-14: search_youtube_videos()
+        # below calls Serper (not RapidAPI), and the real Serper cost is
+        # $0.001/call on the current plan, not $0.003.
+        total_cost = SERPER_COST_PER_CALL
 
         with tempfile.TemporaryDirectory() as tmpdir:
             tmpdir_path = Path(tmpdir)
@@ -764,8 +781,10 @@ Answer ONLY with valid JSON:
             for video in videos:
                 print(f"    Processing video: {video['title'][:50]}...")
 
-                # Download video
+                # Download video (RapidAPI charges per attempt, win or lose --
+                # 2026-11-14 fix, previously unpriced entirely)
                 video_path, error = self.download_video(video['url'], tmpdir_path)
+                total_cost += RAPIDAPI_COST_PER_VIDEO
                 if not video_path:
                     print(f"      Failed: {error}")
                     continue
@@ -1194,7 +1213,7 @@ Answer ONLY with valid JSON:
 
     def search_and_analyze_images(self, hospital_name: str, state: str = "", operating_market: str = "United States") -> Dict:
         """Process image channel: search + domain validation + VLM."""
-        total_cost = 0.001  # Serper search cost
+        total_cost = SERPER_COST_PER_CALL
 
         # Search for hospital images
         images = self.search_hospital_images(hospital_name, state)
@@ -1398,10 +1417,14 @@ Answer ONLY with valid JSON:
         - Entertainment activities with residents
         """
         if not self.serper_key:
+            # No call was made at all here -- charging a cost (previously
+            # 0.003) for a request that never went out was a real billing
+            # bug, independent of what the per-call price should be
+            # (2026-11-14 fix).
             return {
                 'lead_status': 'no_evidence',
                 'channel': 'senior_activity_reviews',
-                'cost': 0.003,
+                'cost': 0.0,
                 'reason': 'Serper API key not available',
                 'qualifying_path': 'senior_activity'
             }
@@ -1421,7 +1444,7 @@ Answer ONLY with valid JSON:
                 timeout=10
             )
 
-            cost = 0.003  # Serper search cost
+            cost = SERPER_COST_PER_CALL
 
             if response.status_code != 200:
                 print(f"      Serper API error {response.status_code}: {response.text[:100]}")
@@ -1504,7 +1527,7 @@ Answer ONLY with valid JSON:
             return {
                 'lead_status': 'no_evidence',
                 'channel': 'senior_activity_reviews',
-                'cost': 0.003,
+                'cost': SERPER_COST_PER_CALL,
                 'reason': f'Search error: {str(e)[:100]}',
                 'qualifying_path': 'senior_activity'
             }
@@ -1666,7 +1689,7 @@ Return JSON:
         - cost: total detection cost
         - qualifying_path: 'senior_activity' (for reporting)
         """
-        total_cost = 0.003  # Serper image search cost
+        total_cost = SERPER_COST_PER_CALL
 
         # Search for senior activity images
         images = self.search_senior_activity_images(facility_name, state)
@@ -1903,7 +1926,7 @@ Answer ONLY with valid JSON:
         - cost: total detection cost
         - qualifying_path: 'pediatric_area' (for reporting)
         """
-        total_cost = 0.003  # Serper image search cost
+        total_cost = SERPER_COST_PER_CALL
 
         # Search for pediatric images
         images = self.search_pediatric_images(facility_name, state)

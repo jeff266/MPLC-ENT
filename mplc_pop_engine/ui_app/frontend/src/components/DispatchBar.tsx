@@ -3,6 +3,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   checkAlreadyEnriched,
   dispatchEnrichment,
+  fetchCostEstimate,
   fetchDispatchableVerticals,
   type AccountFilters,
 } from "../api/client";
@@ -80,6 +81,29 @@ export function DispatchBar({ selection, currentFilters, total, onDispatched }: 
       ? `all ${(total - selection.excludedIds.size).toLocaleString()} filtered`
       : `${selection.selectedIds.size.toLocaleString()} selected`;
 
+  const rawSelectedCount =
+    selection.mode === "all-filtered"
+      ? total - selection.excludedIds.size
+      : selection.selectedIds.size;
+
+  // Once "Check Already Enriched" has run, estimate off the count that
+  // will ACTUALLY dispatch (post-dedup), not the raw selection — a
+  // selection that's mostly already-enriched accounts would otherwise
+  // produce a wildly overstated estimate.
+  const estimateAccountCount = preview.data?.to_dispatch_count ?? rawSelectedCount;
+  const disabledChannelsArray = Array.from(disabledChannels).sort();
+
+  const { data: costEstimate, isFetching: estimateLoading } = useQuery({
+    queryKey: ["cost-estimate", vertical, estimateAccountCount, disabledChannelsArray],
+    queryFn: () =>
+      fetchCostEstimate({
+        vertical,
+        account_count: estimateAccountCount,
+        disabled_channels: disabledChannelsArray.length > 0 ? disabledChannelsArray : undefined,
+      }),
+    enabled: hasSelection && !!vertical && estimateAccountCount > 0,
+  });
+
   const handleCheck = () => {
     if (!vertical) return;
     setError(null);
@@ -128,6 +152,29 @@ export function DispatchBar({ selection, currentFilters, total, onDispatched }: 
         )}
 
         {hasSelection && <span className="selection-summary">{selectedCountLabel}</span>}
+
+        {hasSelection && vertical && (
+          <div className="cost-estimate">
+            {estimateLoading && <span className="cost-estimate-loading">Estimating cost…</span>}
+            {!estimateLoading && costEstimate && costEstimate.estimable && (
+              <span className={costEstimate.directional ? "cost-estimate-directional" : ""}>
+                Est. ~${costEstimate.estimated_total_cost.toFixed(2)} total (~$
+                {costEstimate.cost_per_account.toFixed(4)}/account) for{" "}
+                {costEstimate.account_count.toLocaleString()} account(s)
+                {costEstimate.directional
+                  ? ` — directional only, based on just ${costEstimate.based_on_historical_accounts} historical accounts`
+                  : ` — based on ${costEstimate.based_on_historical_accounts.toLocaleString()} historical accounts`}
+                {costEstimate.excluded_channels.length > 0 && (
+                  <> (excludes disabled channel{costEstimate.excluded_channels.length > 1 ? "s" : ""}:{" "}
+                  {costEstimate.excluded_channels.map((c) => c.channel).join(", ")})</>
+                )}
+              </span>
+            )}
+            {!estimateLoading && costEstimate && !costEstimate.estimable && (
+              <span className="cost-estimate-unavailable">{costEstimate.reason}</span>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="action-bar-right">

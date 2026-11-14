@@ -58,6 +58,15 @@ if not GENERIC_IMAGE_CHANNEL_AVAILABLE:
 SERPER_API_KEY = os.getenv("SERPER_API_KEY")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 
+# Serper cost (2026-11-14, Jeff: currently on the $50/50,000 credits plan --
+# 1 image-search call = 1 credit = $0.001). search_corporate_images() below
+# makes 1-4 of these calls per account (early-exits once a query returns
+# images) and, until this fix, never priced any of them into the returned
+# 'cost' -- Cost Tracker's corporate $/account and $/prospect figures were
+# Anthropic-VLM-only, undercounting real spend. See
+# PoP_Detection_Engine_Learnings.md for the incident note.
+SERPER_COST_PER_CALL = 0.001
+
 
 class CorporateEnricher:
     """Corporate PoP detection via image search + VLM."""
@@ -166,13 +175,19 @@ Answer ONLY with valid JSON in exactly this shape:
         # Exact match or subdomain match
         return d1 == d2 or d1 in d2 or d2 in d1
 
-    def search_corporate_images(self, company_name: str, operating_market: str = "United States") -> Optional[list]:
+    def search_corporate_images(self, company_name: str, operating_market: str = "United States") -> tuple[Optional[list], float]:
         """
         Search for corporate office images via Serper API.
 
         Uses geographic terms in queries to filter international offices
         for US accounts (prevents Intel India, Amazon UK, etc.).
+
+        Returns (images_or_None, cost) -- cost is SERPER_COST_PER_CALL times
+        the number of queries actually sent (the loop below early-exits on
+        the first query that returns images, so this is usually 1 call, but
+        can be up to len(queries) when earlier queries come back empty).
         """
+        queries_sent = 0
 
         # For US accounts, add geographic terms to queries to bias results
         if operating_market == "United States":
@@ -203,6 +218,7 @@ Answer ONLY with valid JSON in exactly this shape:
                 }
 
                 response = requests.post(url, headers=headers, data=payload, timeout=30)
+                queries_sent += 1  # the call was made (and billed) regardless of the response status
 
                 if response.status_code != 200:
                     print(f"  Serper API error: {response.status_code}")
@@ -226,7 +242,7 @@ Answer ONLY with valid JSON in exactly this shape:
                 print(f"  Image search error: {e}")
                 continue
 
-        return all_images if all_images else None
+        return (all_images if all_images else None), (queries_sent * SERPER_COST_PER_CALL)
 
     def validate_with_sonnet(self, domain: str, company_name: str, official_website: str,
                             page_url: str = "", context: str = "",
@@ -785,7 +801,8 @@ Answer ONLY with valid JSON:
             }
 
         print(f"  Searching images for {company_name} ({operating_market})...")
-        images = self.search_corporate_images(company_name, operating_market)
+        images, search_cost = self.search_corporate_images(company_name, operating_market)
+        total_cost += search_cost  # 2026-11-14 fix: this call was previously unpriced
 
         if not images:
             return {
