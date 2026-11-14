@@ -21,6 +21,7 @@ const REQUIRED_ROLES = ["salesforce_export", "open_deals"];
 export function UploadPanel() {
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastReplaced, setLastReplaced] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
 
@@ -32,8 +33,12 @@ export function UploadPanel() {
 
   const upload = useMutation({
     mutationFn: uploadWeeklyFiles,
-    onSuccess: () => {
+    onSuccess: (result) => {
       setError(null);
+      // Jeff (2026-11-13): "I'd prefer we delete the old files and only
+      // work with the new ones" — confirm it actually happened, since a
+      // silent delete is as unclear as a silent stale-file bug would be.
+      setLastReplaced(result.deleted);
       queryClient.invalidateQueries({ queryKey: ["incoming-files"] });
     },
     onError: (err: Error) => setError(err.message),
@@ -81,6 +86,9 @@ export function UploadPanel() {
       </div>
 
       {error && <p className="action-error">Upload failed: {error}</p>}
+      {!error && lastReplaced.length > 0 && (
+        <p className="upload-ready">Replaced previous version(s): {lastReplaced.join(", ")}</p>
+      )}
 
       {incoming.data && incoming.data.files.length > 0 && (
         <table className="incoming-files-table">

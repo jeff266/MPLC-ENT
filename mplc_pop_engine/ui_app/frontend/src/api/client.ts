@@ -177,6 +177,7 @@ export async function triggerPipelineRunAuto(): Promise<AutoRunResult> {
 
 export interface UploadResult {
   saved: string[];
+  deleted: string[];
   incoming_dir: string;
 }
 

@@ -78,6 +78,20 @@ def _find_candidates(role: str) -> list[Path]:
     )
 
 
+def role_for_filename(filename: str) -> Optional[str]:
+    """Which of the 4 roles this filename matches, if any (same pattern
+    matching _find_candidates uses, factored out so the upload endpoint can
+    delete same-role files already in incoming/ before saving a new one --
+    Jeff (2026-11-13): "I'd prefer we delete the old files and only work
+    with the new ones," rather than leaving last week's export sitting
+    alongside this week's and relying on most-recent-mtime to pick right."""
+    normalized = _normalize(filename)
+    for role, patterns in ROLE_PATTERNS.items():
+        if any(_normalize(pat) in normalized for pat in patterns):
+            return role
+    return None
+
+
 def discover_weekly_files(verbose: bool = True) -> dict:
     """Returns {role: Path} for whichever of the 4 roles are found in
     incoming/. Raises DiscoveryError naming exactly which REQUIRED role(s)

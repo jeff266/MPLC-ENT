@@ -102,23 +102,42 @@ def trigger_pipeline_run(req: PipelineRunRequest, db: Session = Depends(get_db))
 async def upload_weekly_files(files: list[UploadFile] = File(...)):
     """Jeff (2026-11-12): "wouldn't it be better to add a drop the files
     feature and it is stored in that directory" — replaces the
-    Finder-navigation workflow with drag-and-drop in the browser. Writes
-    each uploaded file straight into the same incoming/ directory
-    discover_weekly_files() already reads from, under its original
-    filename (so a re-upload of this week's export just overwrites last
-    week's, which is what you want — discovery picks the most recently
-    modified match anyway). No parsing or validation here: the pipeline
-    run is what actually checks these are real, matching files."""
+    Finder-navigation workflow with drag-and-drop in the browser.
+
+    FIX (2026-11-13, Jeff: "I'd prefer we delete the old files and only
+    work with the new ones"): the old comment here claimed a re-upload
+    "just overwrites last week's" file, but that's only true if the
+    filename is identical -- Salesforce exports embed a timestamp in the
+    filename (e.g. "All_Open_Deals-2026-11-11-19-28-26.csv"), so a new
+    weekly export never collides with the old one by name. It would
+    previously just sit alongside it in incoming/, relying on
+    discover_weekly_files()'s most-recent-mtime tiebreak to pick the right
+    one. Now: before saving each upload, delete any existing incoming/
+    file that matches the SAME role (by the same pattern matching
+    discovery itself uses), so incoming/ only ever holds the current
+    file for each of the 4 roles -- no stale exports, no mtime-dependent
+    tiebreak, no "WARNING: N files matched role" ambiguity."""
+    from .file_discovery import role_for_filename
+
     ensure_dirs()
     saved = []
+    deleted = []
     for f in files:
         if not f.filename:
             continue
+
+        role = role_for_filename(f.filename)
+        if role:
+            for existing in INCOMING_DIR.glob("*.csv"):
+                if existing.name != f.filename and role_for_filename(existing.name) == role:
+                    existing.unlink()
+                    deleted.append(existing.name)
+
         dest = INCOMING_DIR / f.filename
         contents = await f.read()
         dest.write_bytes(contents)
         saved.append(f.filename)
-    return {"saved": saved, "incoming_dir": str(INCOMING_DIR)}
+    return {"saved": saved, "deleted": deleted, "incoming_dir": str(INCOMING_DIR)}
 
 
 @app.get("/pipeline/incoming")
