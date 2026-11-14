@@ -379,6 +379,24 @@ def verify_entity_match(
         }
 
     # Layer 3: Geographic distance check (when available)
+    # FIX (2026-11-14): this layer used to compute `geographic_flag` and say
+    # in a comment that it "requires stricter name match" without ever
+    # actually enforcing it -- the flag was set and then dropped.
+    #
+    # First attempt at the fix just raised the name-similarity threshold to
+    # 0.92 when geography conflicted. That's insufficient and was caught by
+    # testing against the exact case the MDU code's own docstring documents:
+    # two DIFFERENT, unrelated apartment complexes both literally named
+    # "Heritage Crossing" (one in Austin, TX; one at Reunion Resort, FL).
+    # That's a 100% token-similarity score -- no numeric threshold catches
+    # it, because the names are not just similar, they're identical. A
+    # geography conflict combined with a strong name match isn't weak
+    # evidence that needs a higher bar; it's genuinely ambiguous evidence
+    # that name-matching alone cannot resolve, however good the score looks.
+    # So: a confirmed different-state conflict blocks Layer 4/4B from
+    # auto-accepting at all, regardless of score, and defers to Layer 5
+    # (LLM arbitration) if enabled, or the safe default-reject if not.
+    geo_conflict = False
     if account_state and evidence_location:
         distance = _calculate_geographic_distance_approx(
             account_state,
@@ -389,11 +407,10 @@ def verify_entity_match(
         details['geographic_distance'] = distance
 
         if distance is not None and distance > 500:  # Different state
-            # Don't auto-reject on geography alone (legitimate third-party sources)
-            # But flag it for name matching to be more strict
             details['geographic_flag'] = 'different_state'
+            geo_conflict = True
             if verbose:
-                print(f"⚠️  Layer 3 (Geography): Different state - requires stricter name match")
+                print(f"⚠️  Layer 3 (Geography): Different state - name match alone cannot resolve this, deferring")
 
     # Layer 4: Name similarity (token-based, NOT substring containment)
     if evidence_title:
@@ -406,19 +423,8 @@ def verify_entity_match(
         details['name_similarity_score'] = name_score
         details['name_similarity_reason'] = name_reason
 
-        # Apply threshold
-        if name_score >= min_name_match_threshold:
-            if verbose:
-                print(f"✅ Layer 4 (Name): Match - {name_score:.1%} ({name_reason})")
-
-            return {
-                'match': True,
-                'confidence': 'high' if name_score >= 0.90 else 'medium',
-                'reason': f"Name similarity: {name_score:.1%} - {name_reason}",
-                'layer': 'name_similarity',
-                'details': details
-            }
-        else:
+        if name_score < min_name_match_threshold:
+            # Clear mismatch by name alone -- geography is moot, reject now.
             if verbose:
                 print(f"❌ Layer 4 (Name): Reject - {name_score:.1%} below threshold ({name_reason})")
 
@@ -426,6 +432,24 @@ def verify_entity_match(
                 'match': False,
                 'confidence': 'high',
                 'reason': f"Name mismatch: {name_score:.1%} below threshold - {name_reason}",
+                'layer': 'name_similarity',
+                'details': details
+            }
+        elif geo_conflict:
+            # Name looks like a match (score >= threshold, possibly 100%)
+            # but a confirmed different-state conflict means that alone
+            # isn't decisive -- don't return here, fall through to Layer 5.
+            details['geo_conflict_blocked_autoaccept'] = True
+            if verbose:
+                print(f"⚠️  Layer 4 (Name): {name_score:.1%} match, but geography conflicts - not auto-accepting, deferring to arbitration")
+        else:
+            if verbose:
+                print(f"✅ Layer 4 (Name): Match - {name_score:.1%} ({name_reason})")
+
+            return {
+                'match': True,
+                'confidence': 'high' if name_score >= 0.90 else 'medium',
+                'reason': f"Name similarity: {name_score:.1%} - {name_reason}",
                 'layer': 'name_similarity',
                 'details': details
             }
@@ -456,7 +480,13 @@ def verify_entity_match(
             details['url_path_similarity_score'] = name_score
             details['url_path_similarity_reason'] = name_reason
 
-            if name_score >= min_name_match_threshold:
+            # Same geo_conflict logic as Layer 4 -- a geographic mismatch
+            # shouldn't be easier to slip past via the weaker URL-path fallback.
+            if name_score >= min_name_match_threshold and geo_conflict:
+                details['geo_conflict_blocked_autoaccept'] = True
+                if verbose:
+                    print(f"⚠️  Layer 4B (URL Path): {name_score:.1%} match, but geography conflicts - not auto-accepting, deferring to arbitration")
+            elif name_score >= min_name_match_threshold:
                 if verbose:
                     print(f"✅ Layer 4B (URL Path): Match - {name_score:.1%} ({name_reason})")
 
@@ -470,11 +500,43 @@ def verify_entity_match(
         except:
             pass  # If URL parsing fails, continue to next layer
 
-    # Layer 5: LLM arbitration (optional, for ambiguous cases)
+    # Layer 5: LLM arbitration (optional, cost-gated, for ambiguous cases)
+    # FIX (2026-11-14): this was a stub ("for now, default to reject") --
+    # reaching here means no decisive signal from layers 1-4B (no domain
+    # match, no category hard-reject, and either no name/URL text to
+    # compare at all, or a name score below the threshold but not
+    # confidently rejected by Layer 4B's weaker URL-path check). That's
+    # exactly the "ambiguous case" this layer was designed for, so arbitrate
+    # for real instead of silently falling through to default-reject.
     if use_llm_arbitration:
-        # TODO: Implement LLM arbitration (corporate's validate_with_sonnet pattern)
-        # For now, default to reject if we got here without a clear signal
-        pass
+        arbitration = _llm_arbitrate(
+            account_name=account_name,
+            account_industry=account_industry,
+            account_state=account_state,
+            account_website=account_website,
+            evidence_url=evidence_url,
+            evidence_title=evidence_title,
+            evidence_location=evidence_location,
+            evidence_snippet=evidence_snippet,
+            details=details,
+        )
+        details['llm_arbitration'] = arbitration
+
+        if arbitration.get('error'):
+            if verbose:
+                print(f"⚠️  Layer 5 (LLM): Error - {arbitration['error']} - defaulting to reject")
+        else:
+            if verbose:
+                verdict_icon = "✅" if arbitration['match'] else "❌"
+                print(f"{verdict_icon} Layer 5 (LLM): {arbitration['reason']}")
+
+            return {
+                'match': arbitration['match'],
+                'confidence': arbitration['confidence'],
+                'reason': f"LLM arbitration: {arbitration['reason']}",
+                'layer': 'llm_arbitration',
+                'details': details
+            }
 
     # Default: reject if no layer provided a clear match
     if verbose:
@@ -487,3 +549,95 @@ def verify_entity_match(
         'layer': 'default_reject',
         'details': details
     }
+
+
+def _llm_arbitrate(
+    account_name: str,
+    account_industry: Optional[str],
+    account_state: Optional[str],
+    account_website: Optional[str],
+    evidence_url: Optional[str],
+    evidence_title: Optional[str],
+    evidence_location: Optional[str],
+    evidence_snippet: Optional[str],
+    details: Dict,
+) -> Dict:
+    """Layer 5 implementation: ask Claude to judge an ambiguous case,
+    following corporate_fixed.py's validate_with_sonnet pattern (same
+    model, same structured VERDICT/CONFIDENCE/REASONING response format,
+    same cost calculation) so this behaves consistently with the other
+    LLM-gated verification already in production.
+
+    Returns {'match': bool, 'confidence': str, 'reason': str, 'cost': float}
+    on success, or {'error': str} if the call itself failed -- the caller
+    treats an error the same as "no signal" (falls through to default
+    reject), it never raises.
+    """
+    import os
+
+    api_key = os.getenv('ANTHROPIC_API_KEY')
+    if not api_key:
+        return {'error': 'ANTHROPIC_API_KEY not set'}
+
+    try:
+        from anthropic import Anthropic
+        client = Anthropic(api_key=api_key)
+
+        prompt = f"""You are verifying whether a piece of evidence found online is actually about a specific business, or about a different, unrelated entity with a similar name.
+
+Target account:
+- Name: {account_name}
+- Industry: {account_industry or "Not available"}
+- State: {account_state or "Not available"}
+- Website: {account_website or "Not available"}
+
+Evidence found:
+- URL: {evidence_url or "Not available"}
+- Title: {evidence_title or "Not available"}
+- Location mentioned: {evidence_location or "Not available"}
+- Snippet: {evidence_snippet or "Not available"}
+
+Automated checks so far (for context, not a substitute for your judgment):
+- Name similarity score: {details.get('name_similarity_score', details.get('url_path_similarity_score', 'not computed'))}
+- Geographic flag: {details.get('geographic_flag', 'none')}
+
+Your task: decide whether this evidence is genuinely about the target account, or about a different entity that happens to share part of its name (e.g. "Capital Senior Living" vs "Capital Health" -- different organizations; a street name containing the account's name, like "Citra" matching "Citracado Parkway" -- unrelated).
+
+Respond in EXACTLY this format:
+VERDICT: YES (same entity) / NO (different entity)
+CONFIDENCE: HIGH/MEDIUM/LOW
+REASONING: [One clear sentence explaining your decision]"""
+
+        response = client.messages.create(
+            model="claude-sonnet-4-5-20250929",
+            max_tokens=150,
+            messages=[{"role": "user", "content": prompt}],
+        )
+
+        content = response.content[0].text
+
+        verdict = "NO"
+        confidence = "LOW"
+        reasoning = "Unable to parse response"
+        for line in content.split('\n'):
+            line = line.strip()
+            if line.startswith('VERDICT:'):
+                verdict = line.split(':', 1)[1].strip().upper()
+            elif line.startswith('CONFIDENCE:'):
+                confidence = line.split(':', 1)[1].strip().upper()
+            elif line.startswith('REASONING:'):
+                reasoning = line.split(':', 1)[1].strip()
+
+        input_tokens = response.usage.input_tokens
+        output_tokens = response.usage.output_tokens
+        cost = (input_tokens * 0.000003) + (output_tokens * 0.000015)
+
+        return {
+            'match': verdict.startswith('YES') and confidence in ('HIGH', 'MEDIUM'),
+            'confidence': confidence.lower(),
+            'reason': reasoning,
+            'cost': cost,
+        }
+
+    except Exception as e:
+        return {'error': f'LLM arbitration call failed: {str(e)[:100]}'}
