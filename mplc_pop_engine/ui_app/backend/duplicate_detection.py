@@ -45,6 +45,7 @@ def _build_accounts_df(db: Session) -> pd.DataFrame:
             models.Account.state,
             models.Account.industry,
             models.Account.parent_account_id,
+            models.Account.account_status,
         )
     ).all()
     if not rows:
@@ -53,11 +54,19 @@ def _build_accounts_df(db: Session) -> pd.DataFrame:
             "run the weekly pipeline's Stage 1 upload first so the "
             "`accounts` table is populated."
         )
-    return pd.DataFrame(
+    df = pd.DataFrame(
         rows,
         columns=["account_id", "account_name", "website", "phone", "state",
-                 "industry", "parent_account_id"],
+                 "industry", "parent_account_id", "account_status"],
     )
+
+    # Jeff (2026-11-14): "if an account already says Delete / Duplicate for
+    # Account Status they should be omitted since we've already flagged them"
+    # -- filter before duplicate detection runs, not after.
+    already_flagged = df["account_status"].fillna("").str.contains(
+        "Delete|Duplicate", case=False, regex=True
+    )
+    return df[~already_flagged].reset_index(drop=True)
 
 
 def find_duplicates(db: Session, max_group_size: int = 50) -> pd.DataFrame:
@@ -88,7 +97,9 @@ def summarize(db: Session, max_group_size: int = 50) -> dict:
     )
 
     result_df = internal_duplicate_detection.find_internal_duplicates(
-        accounts_df, max_group_size=max_group_size,
+        accounts_df,
+        max_group_size=max_group_size,
+        exclude_already_parented=True,  # Same filtering as find_duplicates()
     )
     n_groups = int(result_df["group_id"].nunique()) if len(result_df) else 0
     n_already_hierarchical = int(
