@@ -1,11 +1,7 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import {
-  ClayColumnMapping,
-  ClayImportResult,
-  detectClayColumns,
-  runClayDedupe,
-} from "../api/client";
+import type { ClayColumnMapping, ClayImportResult } from "../api/client";
+import { detectClayColumns, runClayDedupe } from "../api/client";
 
 const MAPPING_FIELDS: { key: keyof ClayColumnMapping; label: string; required: boolean }[] = [
   { key: "company_name", label: "Company name", required: true },

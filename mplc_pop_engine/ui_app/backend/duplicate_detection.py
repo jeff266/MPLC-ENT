@@ -63,7 +63,9 @@ def _build_accounts_df(db: Session) -> pd.DataFrame:
 def find_duplicates(db: Session, max_group_size: int = 50) -> pd.DataFrame:
     accounts_df = _build_accounts_df(db)
     return internal_duplicate_detection.find_internal_duplicates(
-        accounts_df, max_group_size=max_group_size,
+        accounts_df,
+        max_group_size=max_group_size,
+        exclude_already_parented=True,  # Filter out child accounts - only show orphaned duplicates
     )
 
 
