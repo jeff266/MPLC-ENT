@@ -260,6 +260,7 @@ export interface DuplicateSummary {
   counts_by_type: Record<string, number>;
   preview_rows: DuplicateGroupRow[];
   preview_truncated: boolean;
+  has_any_parent_data: boolean;
 }
 
 export async function fetchDuplicateSummary(maxGroupSize = 50): Promise<DuplicateSummary> {

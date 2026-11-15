@@ -70,7 +70,24 @@ def find_duplicates(db: Session, max_group_size: int = 50) -> pd.DataFrame:
 def summarize(db: Session, max_group_size: int = 50) -> dict:
     """JSON-friendly summary for the UI: counts + a capped preview, not the
     full (potentially large) row set -- the CSV export is the full dump."""
-    result_df = find_duplicates(db, max_group_size=max_group_size)
+    accounts_df = _build_accounts_df(db)
+
+    # Jeff (2026-11-14): after adding exclude_already_parented, the result
+    # was byte-for-byte unchanged even for an account he could show had a
+    # real parent in Salesforce's own UI. Root cause (confirmed against
+    # the real weekly export CSV): 0 of 86,300 accounts in that file had a
+    # non-empty "Parent Account ID" -- the export itself wasn't carrying
+    # the field, not a bug in the exclusion logic. Surface that distinction
+    # up front so "no duplicates found because everything's organized" and
+    # "no duplicates excluded because there's no parent data to exclude by"
+    # are never silently indistinguishable again.
+    has_any_parent_data = bool(
+        (accounts_df["parent_account_id"].notna() & (accounts_df["parent_account_id"] != "")).any()
+    )
+
+    result_df = internal_duplicate_detection.find_internal_duplicates(
+        accounts_df, max_group_size=max_group_size,
+    )
     n_groups = int(result_df["group_id"].nunique()) if len(result_df) else 0
     n_already_hierarchical = int(
         result_df.loc[result_df["already_hierarchical"], "group_id"].nunique()
@@ -87,6 +104,7 @@ def summarize(db: Session, max_group_size: int = 50) -> dict:
         "counts_by_type": counts,
         "preview_rows": preview,
         "preview_truncated": len(result_df) > len(preview),
+        "has_any_parent_data": has_any_parent_data,
     }
 
 

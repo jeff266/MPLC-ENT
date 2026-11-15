@@ -65,6 +65,17 @@ export function DuplicatesPanel() {
         <p className="action-error">Scan failed: {String(summaryQuery.error)}</p>
       )}
 
+      {summaryQuery.data && !summaryQuery.data.has_any_parent_data && (
+        <p className="action-error">
+          None of the loaded accounts have a Parent Account ID — the duplicate/sibling
+          exclusion for already-parented accounts has nothing to exclude by, so counts
+          below include accounts that may already be correctly organized under a parent
+          in Salesforce (it just didn't come through in this weekly export). Check that
+          the Salesforce report/export used for Step 1 actually includes the real
+          Parent Account ID (ParentId) field before trusting these numbers.
+        </p>
+      )}
+
       {summaryQuery.data && (
         <div className="clay-import-result">
           <h3>
