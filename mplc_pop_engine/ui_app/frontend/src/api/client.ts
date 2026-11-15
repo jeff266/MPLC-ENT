@@ -234,6 +234,49 @@ export async function runClayDedupe(
   return data;
 }
 
+// ---- Internal Salesforce duplicate/sibling detection -------------------
+// Jeff (2026-11-14): accounts already loaded into this app with the same
+// name or website, compared against each other (not against an external
+// export like Clay/ZoomInfo above).
+
+export interface DuplicateGroupRow {
+  group_id: number;
+  match_type: string;
+  account_id: string;
+  account_name: string;
+  website: string;
+  phone: string;
+  state: string;
+  industry: string;
+  parent_account_id: string;
+  already_hierarchical: boolean;
+  group_size: number;
+}
+
+export interface DuplicateSummary {
+  total_groups: number;
+  total_accounts_flagged: number;
+  groups_already_hierarchical: number;
+  counts_by_type: Record<string, number>;
+  preview_rows: DuplicateGroupRow[];
+  preview_truncated: boolean;
+}
+
+export async function fetchDuplicateSummary(maxGroupSize = 50): Promise<DuplicateSummary> {
+  const { data } = await client.get<DuplicateSummary>("/duplicates/summary", {
+    params: { max_group_size: maxGroupSize },
+  });
+  return data;
+}
+
+export async function downloadDuplicatesCsv(maxGroupSize = 50): Promise<Blob> {
+  const response = await client.get("/duplicates/export.csv", {
+    params: { max_group_size: maxGroupSize },
+    responseType: "blob",
+  });
+  return response.data as Blob;
+}
+
 // ---- Pipeline runs ----------------------------------------------------
 
 export interface PipelineRunSummary {

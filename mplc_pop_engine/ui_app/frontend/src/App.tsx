@@ -12,6 +12,7 @@ import { PipelineMonitor } from "./components/PipelineMonitor";
 import { UnresolvedQueue } from "./components/UnresolvedQueue";
 import { ClayAmbiguousQueue } from "./components/ClayAmbiguousQueue";
 import { ClayImport } from "./components/ClayImport";
+import { DuplicatesPanel } from "./components/DuplicatesPanel";
 import { CostTracker } from "./components/CostTracker";
 import { Settings } from "./components/Settings";
 import { Login } from "./components/Login";
@@ -41,7 +42,7 @@ const KNOWN_VERTICALS = [
 
 const PAGE_SIZE = 50;
 
-type Tab = "step1" | "step2" | "step3" | "unresolved" | "clay" | "cost-tracker" | "settings";
+type Tab = "step1" | "step2" | "step3" | "unresolved" | "clay" | "duplicates" | "cost-tracker" | "settings";
 
 function App() {
   // "checking" avoids a flash of the login screen while a saved token is
@@ -174,6 +175,13 @@ function App() {
         </button>
         <button
           type="button"
+          className={tab === "duplicates" ? "tab-active" : ""}
+          onClick={() => setTab("duplicates")}
+        >
+          Duplicates
+        </button>
+        <button
+          type="button"
           className={tab === "cost-tracker" ? "tab-active" : ""}
           onClick={() => setTab("cost-tracker")}
         >
@@ -251,6 +259,7 @@ function App() {
           <ClayAmbiguousQueue />
         </>
       )}
+      {tab === "duplicates" && <DuplicatesPanel />}
       {tab === "cost-tracker" && <CostTracker />}
       {tab === "settings" && <Settings />}
     </div>

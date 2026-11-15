@@ -41,6 +41,7 @@ from . import models
 from . import queries
 from . import enrichment
 from . import clay_import
+from . import duplicate_detection
 from . import supabase_client
 from . import auth
 from . import settings as settings_module
@@ -411,6 +412,36 @@ async def clay_run_dedupe(
         )
     except clay_import.ClayImportError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+# ---------------------------------------------------------------------------
+# Internal Salesforce duplicate/sibling detection — Jeff (2026-11-14):
+# "there's quite a few accounts with exact same names or website and
+# should be identified as either a duplicate or a sibling account...
+# export a file with the findings in a CSV which I can send to support
+# at MPLC." Different from the Clay/ZoomInfo import above: this compares
+# the Salesforce universe already loaded into this app AGAINST ITSELF.
+# ---------------------------------------------------------------------------
+
+@app.get("/duplicates/summary")
+async def get_duplicate_summary(max_group_size: int = 50, db: Session = Depends(get_db)):
+    try:
+        return duplicate_detection.summarize(db, max_group_size=max_group_size)
+    except duplicate_detection.DuplicateDetectionError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/duplicates/export.csv")
+async def export_duplicate_csv(max_group_size: int = 50, db: Session = Depends(get_db)):
+    try:
+        csv_text = duplicate_detection.export_csv(db, max_group_size=max_group_size)
+    except duplicate_detection.DuplicateDetectionError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    buf = io.StringIO(csv_text)
+    headers = {
+        "Content-Disposition": f'attachment; filename="internal_duplicates_{date.today().isoformat()}.csv"',
+    }
+    return StreamingResponse(buf, media_type="text/csv", headers=headers)
 
 
 # ---------------------------------------------------------------------------
