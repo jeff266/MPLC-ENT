@@ -47,10 +47,10 @@ export function DuplicatesPanel() {
       <p className="step-description">
         Finds Salesforce accounts already loaded into this app that share a name or a
         website with another account — a likely duplicate record, or a sibling account
-        (e.g. the same chain/franchise name at a different location). Nothing here is
-        merged automatically; every group is for a human to review. Groups where
-        Salesforce already models the relationship as parent/child are still shown, but
-        marked as already linked.
+        (e.g. the same chain/franchise name at a different location). Accounts that
+        already have a parent account set in Salesforce are excluded — only orphaned,
+        standalone accounts are flagged. Nothing here is merged automatically; every
+        group is for a human to review. Hover a truncated cell to see the full value.
       </p>
 
       <button type="button" onClick={() => setRan(true)} disabled={summaryQuery.isFetching}>
@@ -91,7 +91,7 @@ export function DuplicatesPanel() {
               <h4>
                 Preview{summaryQuery.data.preview_truncated ? " (first 200 rows — download the CSV for the rest)" : ""}
               </h4>
-              <table className="accounts-table">
+              <table className="accounts-table duplicates-table">
                 <thead>
                   <tr>
                     <th>Group</th>
@@ -100,19 +100,23 @@ export function DuplicatesPanel() {
                     <th>Name</th>
                     <th>Website</th>
                     <th>State</th>
-                    <th>Already linked?</th>
+                    {summaryQuery.data.groups_already_hierarchical > 0 && <th>Already linked?</th>}
                   </tr>
                 </thead>
                 <tbody>
                   {summaryQuery.data.preview_rows.map((row) => (
                     <tr key={row.account_id}>
                       <td>{row.group_id}</td>
-                      <td>{MATCH_TYPE_LABELS[row.match_type] ?? row.match_type}</td>
-                      <td>{row.account_id}</td>
-                      <td>{row.account_name}</td>
-                      <td>{row.website}</td>
+                      <td title={MATCH_TYPE_LABELS[row.match_type] ?? row.match_type}>
+                        {MATCH_TYPE_LABELS[row.match_type] ?? row.match_type}
+                      </td>
+                      <td title={row.account_id}>{row.account_id}</td>
+                      <td title={row.account_name}>{row.account_name}</td>
+                      <td title={row.website}>{row.website}</td>
                       <td>{row.state}</td>
-                      <td>{row.already_hierarchical ? "Yes" : ""}</td>
+                      {summaryQuery.data.groups_already_hierarchical > 0 && (
+                        <td>{row.already_hierarchical ? "Yes" : ""}</td>
+                      )}
                     </tr>
                   ))}
                 </tbody>

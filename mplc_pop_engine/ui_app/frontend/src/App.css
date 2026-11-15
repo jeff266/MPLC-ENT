@@ -698,3 +698,20 @@
     color: var(--text-dark);
   }
 }
+
+/* ---- Duplicates table: wide/varied-length names & URLs, so override
+   the shared .accounts-table truncation instead of relying on hover. ---- */
+.duplicates-table th:nth-child(2),
+.duplicates-table td:nth-child(2) {
+  max-width: 260px;
+}
+.duplicates-table th:nth-child(4),
+.duplicates-table td:nth-child(4),
+.duplicates-table th:nth-child(5),
+.duplicates-table td:nth-child(5) {
+  max-width: 320px;
+}
+.duplicates-table td {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

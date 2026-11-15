@@ -87,14 +87,33 @@ def _find_col(df: pd.DataFrame, candidates: List[str]) -> Optional[str]:
     return None
 
 
-def find_internal_duplicates(accounts_df: pd.DataFrame, max_group_size: int = 50) -> pd.DataFrame:
+def find_internal_duplicates(
+    accounts_df: pd.DataFrame,
+    max_group_size: int = 50,
+    exclude_already_parented: bool = True,
+) -> pd.DataFrame:
     """Finds name/website collisions WITHIN a Salesforce account universe.
+
+    Jeff (2026-11-14): "if the account is already under a parent we don't
+    need to flag it. it's just the orphaned standalone accounts" -- with
+    exclude_already_parented=True (the default), any account that already
+    has a parent_account_id set is dropped from consideration BEFORE
+    grouping, not just flagged after the fact. Salesforce already models
+    that account as correctly organized under a parent, so it isn't an
+    "orphaned standalone" duplicate needing review, whether or not that
+    parent happens to be one of the other matched accounts. An account
+    that IS a parent of others (but has no parent of its own) is still
+    eligible -- it's the top of its own hierarchy, not "under" anything.
 
     Returns a flat DataFrame, one row per account, with columns:
         group_id, match_type, account_id, account_name, website, phone,
         state, industry, parent_account_id, already_hierarchical,
         group_size
     Rows sharing the same group_id are the accounts flagged together.
+    `already_hierarchical` stays in the output for anyone who calls this
+    with exclude_already_parented=False -- with the default True, every
+    row in the result already has no parent_account_id, so it is always
+    False there (nothing to filter further downstream).
     Empty DataFrame (same columns, zero rows) if nothing is found.
     """
     id_col = _find_col(accounts_df, ACCOUNT_ID_COL_CANDIDATES)
@@ -125,6 +144,11 @@ def find_internal_duplicates(accounts_df: pd.DataFrame, max_group_size: int = 50
     # Drop rows with no usable account_id -- can't report a group we can't
     # point support back to.
     work = work[work['account_id'].notna()].reset_index(drop=True)
+
+    if exclude_already_parented:
+        has_parent = work['parent_account_id'].notna() & (work['parent_account_id'] != '')
+        work = work[~has_parent].reset_index(drop=True)
+
     records = work.to_dict('records')
     by_id = {r['account_id']: r for r in records}
 
@@ -227,11 +251,17 @@ def main():
     parser.add_argument('--max-group-size', type=int, default=50,
                          help='Name/domain groups larger than this are treated as generic, not flagged (default 50)')
     parser.add_argument('--output', default='internal_duplicates.csv', help='Output CSV path')
+    parser.add_argument('--include-already-parented', action='store_true',
+                         help='Also flag accounts that already have a parent_account_id set '
+                              '(default: excluded -- only orphaned/standalone accounts are flagged)')
     parser.add_argument('--quiet', action='store_true')
     args = parser.parse_args()
 
     accounts_df = pd.read_csv(args.all_accounts, dtype=str, low_memory=False)
-    result_df = find_internal_duplicates(accounts_df, max_group_size=args.max_group_size)
+    result_df = find_internal_duplicates(
+        accounts_df, max_group_size=args.max_group_size,
+        exclude_already_parented=not args.include_already_parented,
+    )
     result_df.to_csv(args.output, index=False)
 
     if not args.quiet:
