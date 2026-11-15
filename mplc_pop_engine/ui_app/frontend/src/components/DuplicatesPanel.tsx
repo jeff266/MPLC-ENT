@@ -1,6 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { downloadBlob, downloadDuplicatesCsv, fetchDuplicateSummary } from "../api/client";
+import {
+  downloadBlob,
+  downloadDuplicatesCsv,
+  downloadSelectedDuplicatesCsv,
+  fetchDuplicateRows,
+  fetchDuplicateSummary,
+} from "../api/client";
 
 const MATCH_TYPE_LABELS: Record<string, string> = {
   DUPLICATE_NAME_AND_WEBSITE: "Duplicate (same name + website)",
@@ -8,11 +14,22 @@ const MATCH_TYPE_LABELS: Record<string, string> = {
   SIBLING_NAME_ONLY: "Sibling (same name, different site)",
 };
 
+const PAGE_SIZE = 50;
+const MAX_GROUP_SIZE = 50;
+
 /** Finds Account records within this app's own Salesforce universe that
  * share a name or website with another Account — a likely duplicate or a
  * sibling (e.g. multi-location) account. Jeff (2026-11-14): "there's
  * quite a few accounts with exact same names or website... export a
  * file with the findings in a CSV which I can send to support at MPLC."
+ *
+ * Later the same day: "In duplicates, I can only see the first set of
+ * records. I want to be able to paginate and search with filters. Select
+ * records and export the selected records" -- the table below is backed
+ * by /duplicates/rows (paginated + searchable + filterable server-side,
+ * since the full result set can run into six figures of rows) rather
+ * than the summary endpoint's 200-row preview, and selection persists
+ * across pages so a review pass isn't lost by paging forward.
  *
  * This is deliberately a flag-for-review tool, not an auto-merge: every
  * group is for a human (Jeff, then MPLC support) to look at and decide,
@@ -23,17 +40,57 @@ export function DuplicatesPanel() {
   const [downloading, setDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
 
+  const [page, setPage] = useState(1);
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
+  const [matchType, setMatchType] = useState("");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [exportingSelected, setExportingSelected] = useState(false);
+  const [exportSelectedError, setExportSelectedError] = useState<string | null>(null);
+
+  // Debounce the search box so every keystroke doesn't fire a request.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setSearch(searchInput);
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [searchInput]);
+
   const summaryQuery = useQuery({
     queryKey: ["duplicate-summary"],
-    queryFn: () => fetchDuplicateSummary(50),
+    queryFn: () => fetchDuplicateSummary(MAX_GROUP_SIZE),
     enabled: ran,
   });
 
-  async function handleDownload() {
+  const rowsQuery = useQuery({
+    queryKey: ["duplicate-rows", page, search, matchType],
+    queryFn: () =>
+      fetchDuplicateRows({
+        maxGroupSize: MAX_GROUP_SIZE,
+        search,
+        matchType,
+        page,
+        pageSize: PAGE_SIZE,
+      }),
+    enabled: ran,
+    placeholderData: (prev) => prev, // keep showing the current page while the next loads
+  });
+
+  async function handleScan() {
+    if (ran) {
+      summaryQuery.refetch();
+      rowsQuery.refetch();
+    } else {
+      setRan(true);
+    }
+  }
+
+  async function handleDownloadAll() {
     setDownloading(true);
     setDownloadError(null);
     try {
-      const blob = await downloadDuplicatesCsv(50);
+      const blob = await downloadDuplicatesCsv(MAX_GROUP_SIZE);
       downloadBlob(blob, `internal_duplicates_${new Date().toISOString().slice(0, 10)}.csv`);
     } catch (e) {
       setDownloadError(String(e));
@@ -42,22 +99,66 @@ export function DuplicatesPanel() {
     }
   }
 
+  async function handleDownloadSelected() {
+    setExportingSelected(true);
+    setExportSelectedError(null);
+    try {
+      const blob = await downloadSelectedDuplicatesCsv(Array.from(selectedIds), MAX_GROUP_SIZE);
+      downloadBlob(
+        blob,
+        `internal_duplicates_selected_${new Date().toISOString().slice(0, 10)}.csv`,
+      );
+    } catch (e) {
+      setExportSelectedError(String(e));
+    } finally {
+      setExportingSelected(false);
+    }
+  }
+
+  function toggleRow(accountId: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(accountId)) next.delete(accountId);
+      else next.add(accountId);
+      return next;
+    });
+  }
+
+  const pageRows = rowsQuery.data?.rows ?? [];
+  const pageRowIds = pageRows.map((r) => r.account_id);
+  const allOnPageSelected = pageRowIds.length > 0 && pageRowIds.every((id) => selectedIds.has(id));
+  const someOnPageSelected = pageRowIds.some((id) => selectedIds.has(id));
+
+  function toggleSelectAllOnPage() {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (allOnPageSelected) {
+        pageRowIds.forEach((id) => next.delete(id));
+      } else {
+        pageRowIds.forEach((id) => next.add(id));
+      }
+      return next;
+    });
+  }
+
+  const totalRows = rowsQuery.data?.total_rows ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalRows / PAGE_SIZE));
+  const showAlreadyLinkedCol =
+    (summaryQuery.data?.groups_already_hierarchical ?? 0) > 0;
+
   return (
     <div className="duplicates-panel">
       <p className="step-description">
         Finds Salesforce accounts already loaded into this app that share a name or a
         website with another account — a likely duplicate record, or a sibling account
         (e.g. the same chain/franchise name at a different location). Accounts that
-        already have a parent account set in Salesforce are excluded — only orphaned,
-        standalone accounts are flagged. Nothing here is merged automatically; every
+        already have a parent account set in Salesforce, or are already flagged
+        Delete/Duplicate in Account Status, are excluded — only orphaned, standalone
+        accounts needing review are shown. Nothing here is merged automatically; every
         group is for a human to review. Hover a truncated cell to see the full value.
       </p>
 
-      <button
-        type="button"
-        onClick={() => (ran ? summaryQuery.refetch() : setRan(true))}
-        disabled={summaryQuery.isFetching}
-      >
+      <button type="button" onClick={handleScan} disabled={summaryQuery.isFetching}>
         {summaryQuery.isFetching ? "Scanning…" : ran ? "Re-scan" : "Scan for duplicates/siblings"}
       </button>
 
@@ -96,31 +197,98 @@ export function DuplicatesPanel() {
             </p>
           )}
 
-          <button type="button" onClick={handleDownload} disabled={downloading}>
-            {downloading ? "Preparing CSV…" : "Download CSV for MPLC support"}
+          <button type="button" onClick={handleDownloadAll} disabled={downloading}>
+            {downloading ? "Preparing CSV…" : "Download all as CSV"}
           </button>
           {downloadError && <p className="action-error">Download failed: {downloadError}</p>}
 
           {summaryQuery.data.total_groups > 0 && (
             <>
+              <div className="duplicates-toolbar">
+                <input
+                  type="text"
+                  placeholder="Search name, website, or account ID…"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                />
+                <select
+                  value={matchType}
+                  onChange={(e) => {
+                    setMatchType(e.target.value);
+                    setPage(1);
+                  }}
+                >
+                  <option value="">All types</option>
+                  {Object.entries(MATCH_TYPE_LABELS).map(([type, label]) => (
+                    <option key={type} value={type}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+
+                <button
+                  type="button"
+                  onClick={handleDownloadSelected}
+                  disabled={selectedIds.size === 0 || exportingSelected}
+                >
+                  {exportingSelected
+                    ? "Preparing CSV…"
+                    : `Export ${selectedIds.size.toLocaleString()} selected`}
+                </button>
+                {selectedIds.size > 0 && (
+                  <button type="button" onClick={() => setSelectedIds(new Set())}>
+                    Clear selection
+                  </button>
+                )}
+              </div>
+              {exportSelectedError && (
+                <p className="action-error">Export failed: {exportSelectedError}</p>
+              )}
+
               <h4>
-                Preview{summaryQuery.data.preview_truncated ? " (first 200 rows — download the CSV for the rest)" : ""}
+                {totalRows.toLocaleString()} row(s) match
+                {search || matchType ? " this filter" : ""} — page {page} of{" "}
+                {totalPages.toLocaleString()}
               </h4>
+
+              {rowsQuery.isError && (
+                <p className="action-error">Could not load rows: {String(rowsQuery.error)}</p>
+              )}
+
               <table className="accounts-table duplicates-table">
                 <thead>
                   <tr>
+                    <th>
+                      <input
+                        type="checkbox"
+                        checked={allOnPageSelected}
+                        ref={(el) => {
+                          if (el) el.indeterminate = !allOnPageSelected && someOnPageSelected;
+                        }}
+                        onChange={toggleSelectAllOnPage}
+                        aria-label="Select all rows on this page"
+                      />
+                    </th>
                     <th>Group</th>
                     <th>Type</th>
                     <th>Account ID</th>
                     <th>Name</th>
                     <th>Website</th>
                     <th>State</th>
-                    {summaryQuery.data.groups_already_hierarchical > 0 && <th>Already linked?</th>}
+                    {showAlreadyLinkedCol && <th>Already linked?</th>}
                   </tr>
                 </thead>
                 <tbody>
-                  {summaryQuery.data.preview_rows.map((row) => (
+                  {pageRows.map((row) => (
                     <tr key={row.account_id}>
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(row.account_id)}
+                          onChange={() => toggleRow(row.account_id)}
+                          aria-label={`Select ${row.account_name}`}
+                        />
+                      </td>
                       <td>{row.group_id}</td>
                       <td title={MATCH_TYPE_LABELS[row.match_type] ?? row.match_type}>
                         {MATCH_TYPE_LABELS[row.match_type] ?? row.match_type}
@@ -129,13 +297,38 @@ export function DuplicatesPanel() {
                       <td title={row.account_name}>{row.account_name}</td>
                       <td title={row.website}>{row.website}</td>
                       <td>{row.state}</td>
-                      {summaryQuery.data.groups_already_hierarchical > 0 && (
+                      {showAlreadyLinkedCol && (
                         <td>{row.already_hierarchical ? "Yes" : ""}</td>
                       )}
                     </tr>
                   ))}
+                  {pageRows.length === 0 && !rowsQuery.isFetching && (
+                    <tr>
+                      <td colSpan={showAlreadyLinkedCol ? 8 : 7}>No rows match this filter.</td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
+
+              <div className="duplicates-pagination">
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page <= 1 || rowsQuery.isFetching}
+                >
+                  ← Previous
+                </button>
+                <span>
+                  Page {page} of {totalPages.toLocaleString()}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page >= totalPages || rowsQuery.isFetching}
+                >
+                  Next →
+                </button>
+              </div>
             </>
           )}
         </div>

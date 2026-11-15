@@ -132,3 +132,73 @@ def export_csv(db: Session, max_group_size: int = 50) -> str:
             "industry,parent_account_id,already_hierarchical,group_size\n"
         )
     return buf.getvalue()
+
+
+_EMPTY_CSV_HEADER = (
+    "group_id,match_type,account_id,account_name,website,phone,state,"
+    "industry,parent_account_id,already_hierarchical,group_size\n"
+)
+
+
+def query_rows(
+    db: Session,
+    max_group_size: int = 50,
+    search: str | None = None,
+    match_type: str | None = None,
+    page: int = 1,
+    page_size: int = 50,
+) -> dict:
+    """Jeff (2026-11-14): "I can only see the first set of records. I want
+    to be able to paginate and search with filters." The preview in
+    summarize() is hard-capped at 200 rows with no way to see the rest
+    short of downloading the CSV -- this is the paginated/filterable
+    listing the Duplicates table actually renders from.
+
+    Re-runs find_duplicates() per call rather than caching, same as
+    summarize()/export_csv() already do -- consistent with the rest of
+    this module, not a new perf tradeoff introduced here."""
+    result_df = find_duplicates(db, max_group_size=max_group_size)
+
+    if match_type:
+        result_df = result_df[result_df["match_type"] == match_type]
+
+    if search and search.strip():
+        needle = search.strip().lower()
+        haystack = (
+            result_df["account_name"].fillna("").str.lower()
+            + " "
+            + result_df["website"].fillna("").str.lower()
+            + " "
+            + result_df["account_id"].fillna("").astype(str).str.lower()
+        )
+        result_df = result_df[haystack.str.contains(needle, regex=False)]
+
+    total_rows = int(len(result_df))
+    total_groups = int(result_df["group_id"].nunique()) if total_rows else 0
+
+    page = max(page, 1)
+    page_size = max(min(page_size, 500), 1)  # cap page size to keep responses light
+    start = (page - 1) * page_size
+    page_df = result_df.iloc[start : start + page_size]
+
+    return {
+        "rows": page_df.fillna("").to_dict("records"),
+        "total_rows": total_rows,
+        "total_groups": total_groups,
+        "page": page,
+        "page_size": page_size,
+    }
+
+
+def export_selected_csv(db: Session, account_ids: list[str], max_group_size: int = 50) -> str:
+    """Export only the checked rows, distinct from export_csv()'s full dump
+    (Jeff, 2026-11-14: "Select records and export the selected records")."""
+    result_df = find_duplicates(db, max_group_size=max_group_size)
+    wanted = set(account_ids)
+    selected = result_df[result_df["account_id"].isin(wanted)]
+    buf = io.StringIO()
+    if len(selected):
+        selected.to_csv(buf, index=False, quoting=csv.QUOTE_MINIMAL)
+    else:
+        buf.write(_EMPTY_CSV_HEADER)
+    return buf.getvalue()

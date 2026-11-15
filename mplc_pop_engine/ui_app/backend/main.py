@@ -444,6 +444,53 @@ async def export_duplicate_csv(max_group_size: int = 50, db: Session = Depends(g
     return StreamingResponse(buf, media_type="text/csv", headers=headers)
 
 
+# Jeff (2026-11-14): "In duplicates, I can only see the first set of
+# records. I want to be able to paginate and search with filters. Select
+# records and export the selected records." The summary preview above is
+# hard-capped at 200 rows -- this is the paginated/filterable listing the
+# table actually renders from.
+@app.get("/duplicates/rows")
+async def get_duplicate_rows(
+    max_group_size: int = 50,
+    search: Optional[str] = None,
+    match_type: Optional[str] = None,
+    page: int = 1,
+    page_size: int = 50,
+    db: Session = Depends(get_db),
+):
+    try:
+        return duplicate_detection.query_rows(
+            db, max_group_size=max_group_size, search=search,
+            match_type=match_type, page=page, page_size=page_size,
+        )
+    except duplicate_detection.DuplicateDetectionError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+class ExportSelectedDuplicatesRequest(BaseModel):
+    account_ids: list[str]
+    max_group_size: int = 50
+
+
+@app.post("/duplicates/export-selected.csv")
+async def export_selected_duplicates_csv(
+    req: ExportSelectedDuplicatesRequest, db: Session = Depends(get_db)
+):
+    if not req.account_ids:
+        raise HTTPException(status_code=400, detail="No account_ids provided to export.")
+    try:
+        csv_text = duplicate_detection.export_selected_csv(
+            db, account_ids=req.account_ids, max_group_size=req.max_group_size,
+        )
+    except duplicate_detection.DuplicateDetectionError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    buf = io.StringIO(csv_text)
+    headers = {
+        "Content-Disposition": f'attachment; filename="internal_duplicates_selected_{date.today().isoformat()}.csv"',
+    }
+    return StreamingResponse(buf, media_type="text/csv", headers=headers)
+
+
 # ---------------------------------------------------------------------------
 # Find Enrichable Accounts — the one real row-selection action today (Jeff,
 # 2026-11-12): mark the selected accounts as candidates (an Action row, for

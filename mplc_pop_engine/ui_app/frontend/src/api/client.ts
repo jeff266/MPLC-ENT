@@ -278,6 +278,52 @@ export async function downloadDuplicatesCsv(maxGroupSize = 50): Promise<Blob> {
   return response.data as Blob;
 }
 
+export interface DuplicateRowsQuery {
+  maxGroupSize?: number;
+  search?: string;
+  matchType?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface DuplicateRowsResult {
+  rows: DuplicateGroupRow[];
+  total_rows: number;
+  total_groups: number;
+  page: number;
+  page_size: number;
+}
+
+/** Jeff (2026-11-14): "I can only see the first set of records. I want to
+ * be able to paginate and search with filters." Backs the Duplicates
+ * table directly, separate from fetchDuplicateSummary()'s capped preview. */
+export async function fetchDuplicateRows(q: DuplicateRowsQuery = {}): Promise<DuplicateRowsResult> {
+  const { data } = await client.get<DuplicateRowsResult>("/duplicates/rows", {
+    params: {
+      max_group_size: q.maxGroupSize ?? 50,
+      search: q.search || undefined,
+      match_type: q.matchType || undefined,
+      page: q.page ?? 1,
+      page_size: q.pageSize ?? 50,
+    },
+  });
+  return data;
+}
+
+/** "Select records and export the selected records" -- distinct from
+ * downloadDuplicatesCsv()'s full-dataset export above. */
+export async function downloadSelectedDuplicatesCsv(
+  accountIds: string[],
+  maxGroupSize = 50,
+): Promise<Blob> {
+  const response = await client.post(
+    "/duplicates/export-selected.csv",
+    { account_ids: accountIds, max_group_size: maxGroupSize },
+    { responseType: "blob" },
+  );
+  return response.data as Blob;
+}
+
 // ---- Pipeline runs ----------------------------------------------------
 
 export interface PipelineRunSummary {

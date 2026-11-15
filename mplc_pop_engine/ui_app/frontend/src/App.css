@@ -700,18 +700,44 @@
 }
 
 /* ---- Duplicates table: wide/varied-length names & URLs, so override
-   the shared .accounts-table truncation instead of relying on hover. ---- */
-.duplicates-table th:nth-child(2),
-.duplicates-table td:nth-child(2) {
+   the shared .accounts-table truncation instead of relying on hover.
+   Column 1 is the row-selection checkbox, so indices below are shifted
+   one past the original Type/Account ID/Name positions. ---- */
+.duplicates-table th:nth-child(3),
+.duplicates-table td:nth-child(3) {
   max-width: 260px;
 }
-.duplicates-table th:nth-child(4),
-.duplicates-table td:nth-child(4),
 .duplicates-table th:nth-child(5),
-.duplicates-table td:nth-child(5) {
+.duplicates-table td:nth-child(5),
+.duplicates-table th:nth-child(6),
+.duplicates-table td:nth-child(6) {
   max-width: 320px;
 }
 .duplicates-table td {
   white-space: normal;
   overflow-wrap: anywhere;
+}
+.duplicates-table th:first-child,
+.duplicates-table td:first-child {
+  width: 2rem;
+  text-align: center;
+}
+
+.duplicates-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+}
+.duplicates-toolbar input[type="text"] {
+  flex: 1 1 240px;
+  min-width: 180px;
+}
+
+.duplicates-pagination {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.75rem;
 }
