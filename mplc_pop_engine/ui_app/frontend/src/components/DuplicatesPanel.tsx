@@ -53,8 +53,12 @@ export function DuplicatesPanel() {
         group is for a human to review. Hover a truncated cell to see the full value.
       </p>
 
-      <button type="button" onClick={() => setRan(true)} disabled={summaryQuery.isFetching}>
-        {summaryQuery.isFetching ? "Scanning…" : "Scan for duplicates/siblings"}
+      <button
+        type="button"
+        onClick={() => (ran ? summaryQuery.refetch() : setRan(true))}
+        disabled={summaryQuery.isFetching}
+      >
+        {summaryQuery.isFetching ? "Scanning…" : ran ? "Re-scan" : "Scan for duplicates/siblings"}
       </button>
 
       {summaryQuery.isError && (
