@@ -1,5 +1,6 @@
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchCostTracker } from "../api/client";
+import { downloadBlob, downloadCostTrackerCsv, fetchCostTracker } from "../api/client";
 
 /** Cost Tracker tab. Per claude/Cost_Tracker_Design.md and Jeff's
  * 2026-11-14 decisions: on-demand (no scheduler, no separate rollup
@@ -10,12 +11,55 @@ import { fetchCostTracker } from "../api/client";
  * backend's inline is_prospect-vs-lead_status/tier check actually finds
  * a mismatch -- see the real 139-row bug this caught and fixed earlier
  * the same day this tab was built. Silent the rest of the time, so it
- * reads as a real alert, not routine noise. */
+ * reads as a real alert, not routine noise.
+ *
+ * Jeff (2026-11-16): "let's add a filtering and export feature to the
+ * cost tracker." Vertical is a chip row (server-side -- scopes both the
+ * summary tiles and the by_channel table, same convention as /cost-
+ * tracker?vertical=); search is a text box (server-side too, but only
+ * narrows by_channel, same "chips/counts don't move with the filter"
+ * convention the Clay batch review table already uses). Download CSV
+ * hits /cost-tracker/export.csv with the exact same two params, so the
+ * file always matches what's on screen. */
 export function CostTracker() {
+  const [vertical, setVertical] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
+  const [downloading, setDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const t = setTimeout(() => setSearch(searchInput), 300);
+    return () => clearTimeout(t);
+  }, [searchInput]);
+
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ["cost-tracker"],
+    queryKey: ["cost-tracker", vertical, search],
+    queryFn: () => fetchCostTracker(vertical || undefined, search || undefined),
+    placeholderData: (prev) => prev,
+  });
+
+  // Vertical chips come from the backend's own full (unfiltered-by-search)
+  // vertical list -- fetched once, unscoped, so the chip row itself never
+  // disappears/reorders as the active vertical filter changes.
+  const allVerticalsQuery = useQuery({
+    queryKey: ["cost-tracker-all-verticals"],
     queryFn: () => fetchCostTracker(),
   });
+  const availableVerticals = (allVerticalsQuery.data?.summary ?? []).map((s) => s.vertical);
+
+  async function handleDownload() {
+    setDownloading(true);
+    setDownloadError(null);
+    try {
+      const blob = await downloadCostTrackerCsv(vertical || undefined, search || undefined);
+      downloadBlob(blob, "cost_tracker.csv");
+    } catch (e) {
+      setDownloadError(String(e));
+    } finally {
+      setDownloading(false);
+    }
+  }
 
   const fmtMoney = (v: number | null, digits = 4) => (v === null ? "—" : `$${v.toFixed(digits)}`);
 
@@ -25,6 +69,39 @@ export function CostTracker() {
         Cumulative, all-time cost rollup computed on demand from the real per-account
         enrichment results — no cached snapshot, no hand-maintained log.
       </p>
+
+      <div className="clay-review-chips">
+        <button
+          type="button"
+          className={vertical === "" ? "chip chip-active" : "chip"}
+          onClick={() => setVertical("")}
+        >
+          All verticals
+        </button>
+        {availableVerticals.map((v) => (
+          <button
+            key={v}
+            type="button"
+            className={vertical === v ? "chip chip-active" : "chip"}
+            onClick={() => setVertical(v)}
+          >
+            {v}
+          </button>
+        ))}
+      </div>
+
+      <div className="clay-review-toolbar">
+        <input
+          type="text"
+          placeholder="Search channel or vertical…"
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+        />
+        <button type="button" onClick={handleDownload} disabled={downloading}>
+          {downloading ? "Preparing CSV…" : "Download CSV"}
+        </button>
+      </div>
+      {downloadError && <p className="action-error">Download failed: {downloadError}</p>}
 
       {isLoading && <p>Loading…</p>}
       {isError && <p className="action-error">Failed to load cost tracker: {String(error)}</p>}
@@ -41,7 +118,11 @@ export function CostTracker() {
       )}
 
       {data && data.summary.length === 0 && (
-        <p className="empty-state">No completed enrichment results yet.</p>
+        <p className="empty-state">
+          {vertical
+            ? `No completed enrichment results yet for ${vertical}.`
+            : "No completed enrichment results yet."}
+        </p>
       )}
 
       {data && data.summary.length > 0 && (
@@ -131,6 +212,11 @@ export function CostTracker() {
                   <td>{row.rows_with_cost ? `$${(row.total_cost / row.rows_with_cost).toFixed(4)}` : "—"}</td>
                 </tr>
               ))}
+              {data.by_channel.length === 0 && (
+                <tr>
+                  <td colSpan={6}>No rows match this filter.</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </>

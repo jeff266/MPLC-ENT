@@ -734,11 +734,22 @@ export interface CostTrackerResponse {
   data_integrity_warnings: string[];
 }
 
-export async function fetchCostTracker(vertical?: string): Promise<CostTrackerResponse> {
+export async function fetchCostTracker(vertical?: string, search?: string): Promise<CostTrackerResponse> {
   const { data } = await client.get<CostTrackerResponse>("/cost-tracker", {
-    params: vertical ? { vertical } : undefined,
+    params: { vertical: vertical || undefined, search: search || undefined },
   });
   return data;
+}
+
+/** Jeff (2026-11-16): "let's add a filtering and export feature to the
+ * cost tracker." Same vertical/search filters as fetchCostTracker --
+ * the download always matches what the "By channel" table shows. */
+export async function downloadCostTrackerCsv(vertical?: string, search?: string): Promise<Blob> {
+  const response = await client.get("/cost-tracker/export.csv", {
+    params: { vertical: vertical || undefined, search: search || undefined },
+    responseType: "blob",
+  });
+  return response.data as Blob;
 }
 
 // ---- Auth ---------------------------------------------------------------

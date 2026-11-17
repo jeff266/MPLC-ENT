@@ -790,26 +790,14 @@ def get_enrichment_job_progress(job_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@app.get("/cost-tracker")
-def get_cost_tracker(vertical: Optional[str] = None, db: Session = Depends(get_db)):
-    """Cumulative, on-demand cost rollup (vertical x channel), plus a
-    standing is_prospect data-integrity check, per claude/Cost_Tracker_
-    Design.md. No separate rollup table or scheduler -- computed fresh
-    from account_enrichment_results every call, per Jeff's 2026-11-14
-    decision. `summary` gives the per-vertical North Star numbers
-    ($/account, $/prospect, $/lead) aggregated across that vertical's
-    channels; `by_channel` is the full breakdown rows from Supabase, plus
-    one locally-computed row for the Clay dedupe "Check with AI" button
-    (2026-11-16, Jeff: "when i click on AI Check are we cost tracking
-    that?") -- that one lives in this app's own SQLite (clay_matches),
-    not Supabase, so a missing/unconfigured Supabase connection no longer
-    hides it: Supabase failures are caught and surfaced as a warning
-    instead of a hard 503, since the Clay AI-check cost is independent of
-    Supabase being configured at all.
-    `data_integrity_warnings` is only non-empty if is_prospect has drifted
-    from lead_status/tier again since the 2026-11-14 backfill, or Supabase
-    itself is unavailable -- silent the rest of the time, so it reads as a
-    real alert, not routine noise."""
+def _compute_cost_tracker_rows(vertical: Optional[str], db: Session) -> tuple[list[dict], list[str]]:
+    """The merged by_channel rows (Supabase vertical-enricher rollup +
+    the local Clay AI-check rollup) and any warnings, before summarizing
+    or filtering. Shared by GET /cost-tracker and GET /cost-tracker/
+    export.csv (2026-11-16, Jeff: "let's add a filtering and export
+    feature to the cost tracker") so both compute from the exact same
+    source -- the CSV always matches what the JSON/UI would show for the
+    same vertical."""
     warnings: list[str] = []
     try:
         rows = supabase_client.get_cost_tracker_rollup(vertical=vertical)
@@ -822,6 +810,21 @@ def get_cost_tracker(vertical: Optional[str] = None, db: Session = Depends(get_d
         if clay_row["rows_with_cost"] > 0:
             rows.append(clay_row)
 
+    warnings += [
+        f"{row['vertical']}/{row['channel'] or '(no channel)'}: "
+        f"{row['is_prospect_mismatches']} rows where is_prospect disagrees with "
+        f"lead_status/tier -- re-run the 2026-11-14 backfill query"
+        for row in rows if row["is_prospect_mismatches"] > 0
+    ]
+    return rows, warnings
+
+
+def _summarize_cost_tracker_rows(rows: list[dict]) -> list[dict]:
+    """Per-vertical North Star rollup ($/account, $/prospect, $/lead)
+    aggregated across all of that vertical's channels -- always computed
+    from every row for the vertical, never narrowed by the `search`
+    filter below (same "chip counts don't move with the filter"
+    convention the Clay batch review table already uses)."""
     summary: dict[str, dict] = {}
     for row in rows:
         v = row["vertical"]
@@ -847,18 +850,92 @@ def get_cost_tracker(vertical: Optional[str] = None, db: Session = Depends(get_d
         s["cost_per_prospect"] = (s["total_cost"] / s["prospect_count"]) if s["prospect_count"] else None
         s["cost_per_lead"] = (s["total_cost"] / lead_count) if lead_count else None
 
-    warnings += [
-        f"{row['vertical']}/{row['channel'] or '(no channel)'}: "
-        f"{row['is_prospect_mismatches']} rows where is_prospect disagrees with "
-        f"lead_status/tier -- re-run the 2026-11-14 backfill query"
-        for row in rows if row["is_prospect_mismatches"] > 0
+    return sorted(summary.values(), key=lambda s: s["vertical"])
+
+
+def _filter_cost_tracker_rows(rows: list[dict], search: Optional[str]) -> list[dict]:
+    """Case-insensitive substring match on vertical or channel -- the
+    "By channel" table's search box, and what the CSV export narrows to
+    when the same `search` param is passed."""
+    if not search or not search.strip():
+        return rows
+    needle = search.strip().lower()
+    return [
+        row for row in rows
+        if needle in (row["vertical"] or "").lower() or needle in (row["channel"] or "").lower()
     ]
 
+
+@app.get("/cost-tracker")
+def get_cost_tracker(
+    vertical: Optional[str] = None,
+    search: Optional[str] = None,
+    db: Session = Depends(get_db),
+):
+    """Cumulative, on-demand cost rollup (vertical x channel), plus a
+    standing is_prospect data-integrity check, per claude/Cost_Tracker_
+    Design.md. No separate rollup table or scheduler -- computed fresh
+    from account_enrichment_results every call, per Jeff's 2026-11-14
+    decision. `summary` gives the per-vertical North Star numbers
+    ($/account, $/prospect, $/lead) aggregated across that vertical's
+    channels (unaffected by `search`); `by_channel` is the full breakdown
+    rows from Supabase, plus one locally-computed row for the Clay dedupe
+    "Check with AI" button (2026-11-16, Jeff: "when i click on AI Check
+    are we cost tracking that?") -- that one lives in this app's own
+    SQLite (clay_matches), not Supabase, so a missing/unconfigured
+    Supabase connection no longer hides it: Supabase failures are caught
+    and surfaced as a warning instead of a hard 503, since the Clay
+    AI-check cost is independent of Supabase being configured at all.
+    `vertical` scopes both `summary` and `by_channel` server-side;
+    `search` (vertical/channel substring match, 2026-11-16: "let's add a
+    filtering and export feature to the cost tracker") narrows only
+    `by_channel` -- GET /cost-tracker/export.csv takes the same two
+    params and filters identically, so the download always matches what
+    the table shows. `data_integrity_warnings` is only non-empty if
+    is_prospect has drifted from lead_status/tier again since the
+    2026-11-14 backfill, or Supabase itself is unavailable -- silent the
+    rest of the time, so it reads as a real alert, not routine noise."""
+    rows, warnings = _compute_cost_tracker_rows(vertical, db)
+    summary = _summarize_cost_tracker_rows(rows)
     return {
-        "summary": sorted(summary.values(), key=lambda s: s["vertical"]),
-        "by_channel": rows,
+        "summary": summary,
+        "by_channel": _filter_cost_tracker_rows(rows, search),
         "data_integrity_warnings": warnings,
     }
+
+
+_COST_TRACKER_EXPORT_FIELDNAMES = [
+    "vertical", "channel", "accounts_processed", "prospect_count", "suspect_count",
+    "rows_with_cost", "total_cost", "cost_per_account", "is_prospect_mismatches",
+]
+
+
+def _cost_tracker_rows_to_csv(rows: list[dict]) -> str:
+    buf = io.StringIO()
+    writer = csv.DictWriter(buf, fieldnames=_COST_TRACKER_EXPORT_FIELDNAMES)
+    writer.writeheader()
+    for row in rows:
+        cost_per_account = (row["total_cost"] / row["rows_with_cost"]) if row["rows_with_cost"] else ""
+        writer.writerow({**row, "cost_per_account": cost_per_account})
+    return buf.getvalue()
+
+
+@app.get("/cost-tracker/export.csv")
+def export_cost_tracker_csv(
+    vertical: Optional[str] = None,
+    search: Optional[str] = None,
+    db: Session = Depends(get_db),
+):
+    """Jeff (2026-11-16): "let's add a filtering and export feature to
+    the cost tracker." Same vertical/search filtering as GET
+    /cost-tracker, applied to the same by_channel rows, so this is
+    exactly the breakdown table the UI has on screen -- never a
+    separately-computed export that could drift from what's displayed."""
+    rows, _ = _compute_cost_tracker_rows(vertical, db)
+    filtered_rows = _filter_cost_tracker_rows(rows, search)
+    csv_text = _cost_tracker_rows_to_csv(filtered_rows)
+    headers = {"Content-Disposition": 'attachment; filename="cost_tracker.csv"'}
+    return StreamingResponse(io.StringIO(csv_text), media_type="text/csv", headers=headers)
 
 
 # ---------------------------------------------------------------------------
