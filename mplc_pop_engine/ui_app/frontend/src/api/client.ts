@@ -238,6 +238,71 @@ export async function runClayDedupe(
   return data;
 }
 
+// ---- Clay dedupe batch review table -------------------------------------
+// Jeff (2026-11-16): "show a table of the account and the possible
+// matches. also call out which ones are net new. then select rows which
+// can then be exported back out as a CSV file." Scoped to one run
+// (batch_id) -- the classification_counts bullet list above tells you
+// totals, this is every row from that run, side by side.
+
+export interface ClayBatchRow {
+  id: number;
+  clay_company_name: string | null;
+  clay_website: string | null;
+  classification: string;
+  match_method: string | null;
+  match_confidence: string | null;
+  matched_account_id: string | null;
+  matched_account_name: string | null;
+  num_candidates: number;
+}
+
+export interface ClayBatchRowsResult {
+  total_rows: number;
+  classification_counts: Record<string, number>;
+  page: number;
+  page_size: number;
+  rows: ClayBatchRow[];
+}
+
+export interface ClayBatchRowsQuery {
+  search?: string;
+  classification?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export async function fetchClayBatchRows(
+  batchId: string,
+  q: ClayBatchRowsQuery = {},
+): Promise<ClayBatchRowsResult> {
+  const { data } = await client.get<ClayBatchRowsResult>(`/clay-dedupe/batch/${batchId}/rows`, {
+    params: {
+      search: q.search || undefined,
+      classification: q.classification || undefined,
+      page: q.page ?? 1,
+      page_size: q.pageSize ?? 50,
+    },
+  });
+  return data;
+}
+
+export async function downloadClayBatchCsv(batchId: string): Promise<Blob> {
+  const response = await client.get(`/clay-dedupe/batch/${batchId}/export.csv`, {
+    responseType: "blob",
+  });
+  return response.data as Blob;
+}
+
+export async function downloadSelectedClayRowsCsv(batchId: string, ids: number[]): Promise<Blob> {
+  const response = await client.post(
+    `/clay-dedupe/batch/${batchId}/export-selected.csv`,
+    { ids },
+    { responseType: "blob" },
+  );
+  return response.data as Blob;
+}
+
 // ---- Internal Salesforce duplicate/sibling detection -------------------
 // Jeff (2026-11-14): accounts already loaded into this app with the same
 // name or website, compared against each other (not against an external

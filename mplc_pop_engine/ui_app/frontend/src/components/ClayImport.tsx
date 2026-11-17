@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ClayColumnMapping, ClayImportResult } from "../api/client";
 import { detectClayColumns, runClayDedupe } from "../api/client";
+import { ClayBatchReview } from "./ClayBatchReview";
 
 const MAPPING_FIELDS: { key: keyof ClayColumnMapping; label: string; required: boolean }[] = [
   { key: "company_name", label: "Company name", required: true },
@@ -27,6 +28,7 @@ const MAPPING_FIELDS: { key: keyof ClayColumnMapping; label: string; required: b
  * for entity attribution elsewhere in this pipeline: a silently wrong
  * mapping is worse than one flagged for a human to fix). */
 export function ClayImport() {
+  const queryClient = useQueryClient();
   const [file, setFile] = useState<File | null>(null);
   const [mapping, setMapping] = useState<Partial<ClayColumnMapping> | null>(null);
   const [columns, setColumns] = useState<string[]>([]);
@@ -50,7 +52,16 @@ export function ClayImport() {
       if (!file || !mapping) throw new Error("Pick a file and confirm the column mapping first");
       return runClayDedupe(file, mapping);
     },
-    onSuccess: (data) => setResult(data),
+    onSuccess: (data) => {
+      setResult(data);
+      // The standalone "Clay Ambiguous" queue below reads across ALL
+      // batches and has its own independent query -- without this it
+      // keeps showing whatever it last fetched (possibly "nothing needs
+      // review") even right after a run that found rows needing review,
+      // since nothing was otherwise telling it the data underneath it
+      // had changed.
+      queryClient.invalidateQueries({ queryKey: ["clay-ambiguous"] });
+    },
   });
 
   function handleFileChange(f: File | null) {
@@ -186,15 +197,15 @@ export function ClayImport() {
           {result.ambiguous_count > 0 && (
             <p>
               {result.ambiguous_count.toLocaleString()} row(s) matched more than one
-              Salesforce account — see the Clay Ambiguous queue below to resolve them.
+              Salesforce account — filter the table below to resolve them.
             </p>
           )}
           {result.brand_match_count > 0 && (
             <p>
               {result.brand_match_count.toLocaleString()} row(s) didn't match exactly but share
               a brand with a Salesforce account (e.g. "Cortland Development, LLC" vs.
-              Salesforce's "Cortland Partners, LLC") — flagged POSSIBLE_MATCH_BRAND, see the Clay
-              Ambiguous queue below to confirm or reject each one. These are never auto-matched.
+              Salesforce's "Cortland Partners, LLC") — flagged POSSIBLE_MATCH_BRAND in the table
+              below to confirm or reject each one. These are never auto-matched.
             </p>
           )}
           {!result.eligibility_data_available && (
@@ -204,6 +215,8 @@ export function ClayImport() {
               to populate that.
             </p>
           )}
+
+          <ClayBatchReview batchId={result.batch_id} />
         </div>
       )}
     </div>

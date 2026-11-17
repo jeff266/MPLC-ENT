@@ -296,3 +296,108 @@ def clay_ambiguous_queue(session: Session, batch_id: Optional[str] = None,
             for r in rows
         ],
     }
+
+
+def clay_batch_rows(
+    session: Session,
+    batch_id: str,
+    search: Optional[str] = None,
+    classification: Optional[str] = None,
+    page: int = 1,
+    page_size: int = 50,
+):
+    """Every row from one Clay dedupe run, not just the ambiguous/brand
+    subset clay_ambiguous_queue() filters to. Jeff (2026-11-16): "show a
+    table of the account and the possible matches... call out which ones
+    are net new" -- the classification bullet list ClayImport renders
+    today tells you COUNTS but not which specific rows are NET_NEW vs. a
+    brand match vs. an exact one, and there was no single place to see
+    every row from a run side by side. This is that table's backend,
+    same paginated/searchable/filterable shape as duplicate_detection.
+    query_rows() in the Duplicates tab.
+
+    classification_counts covers the WHOLE batch (unaffected by search/
+    classification filters) so the UI's filter chips can show accurate
+    counts even while a filter is narrowing what's actually displayed."""
+    base_conditions = [models.ClayMatch.batch_id == batch_id]
+    base_query = select(models.ClayMatch).where(and_(*base_conditions))
+
+    total_in_batch = session.execute(
+        select(func.count()).select_from(base_query.subquery())
+    ).scalar_one()
+    if total_in_batch == 0:
+        return None  # caller turns this into a 404 -- batch_id doesn't exist
+
+    classification_counts = dict(
+        session.execute(
+            select(models.ClayMatch.classification, func.count())
+            .where(and_(*base_conditions))
+            .group_by(models.ClayMatch.classification)
+        ).all()
+    )
+
+    conditions = list(base_conditions)
+    if classification:
+        conditions.append(models.ClayMatch.classification == classification)
+    if search and search.strip():
+        needle = f"%{search.strip().lower()}%"
+        conditions.append(
+            func.lower(func.coalesce(models.ClayMatch.clay_company_name, ""))
+            .like(needle)
+            | func.lower(func.coalesce(models.ClayMatch.clay_website, ""))
+            .like(needle)
+            | func.lower(func.coalesce(models.ClayMatch.matched_account_name, ""))
+            .like(needle)
+        )
+
+    filtered_query = select(models.ClayMatch).where(and_(*conditions))
+    total_rows = session.execute(
+        select(func.count()).select_from(filtered_query.subquery())
+    ).scalar_one()
+    page = max(page, 1)
+    page_size = max(min(page_size, 500), 1)
+    rows = session.execute(
+        filtered_query.order_by(models.ClayMatch.id)
+        .offset((page - 1) * page_size).limit(page_size)
+    ).scalars().all()
+
+    return {
+        "total_rows": total_rows,
+        "classification_counts": classification_counts,
+        "page": page,
+        "page_size": page_size,
+        "rows": [
+            {
+                "id": r.id, "clay_company_name": r.clay_company_name,
+                "clay_website": r.clay_website, "classification": r.classification,
+                "match_method": r.match_method, "match_confidence": r.match_confidence,
+                "matched_account_id": r.matched_account_id,
+                "matched_account_name": r.matched_account_name,
+                "num_candidates": r.num_candidates,
+            }
+            for r in rows
+        ],
+    }
+
+
+def clay_batch_rows_by_ids(session: Session, batch_id: str, ids: list[int]):
+    """The exact rows (by ClayMatch.id) to export -- backs "export
+    selected" so the export reflects exactly what was checked, not a
+    filter re-applied (a filter can produce a different row set if the
+    underlying data changed between viewing and exporting)."""
+    rows = session.execute(
+        select(models.ClayMatch).where(
+            and_(models.ClayMatch.batch_id == batch_id, models.ClayMatch.id.in_(ids))
+        ).order_by(models.ClayMatch.id)
+    ).scalars().all()
+    return [
+        {
+            "id": r.id, "clay_company_name": r.clay_company_name,
+            "clay_website": r.clay_website, "classification": r.classification,
+            "match_method": r.match_method, "match_confidence": r.match_confidence,
+            "matched_account_id": r.matched_account_id,
+            "matched_account_name": r.matched_account_name,
+            "num_candidates": r.num_candidates,
+        }
+        for r in rows
+    ]

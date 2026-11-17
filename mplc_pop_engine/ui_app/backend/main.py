@@ -416,6 +416,76 @@ async def clay_run_dedupe(
         raise HTTPException(status_code=400, detail=str(e))
 
 
+# Jeff (2026-11-16): "show a table of the account and the possible
+# matches. also call out which ones are net new. then select rows which
+# can then be exported back out as a CSV file." The classification
+# bullet list above tells you counts, not which specific rows -- this is
+# that per-row table, scoped to one run (batch_id), same paginated/
+# searchable/filterable/select-and-export shape the Duplicates tab
+# already uses.
+@app.get("/clay-dedupe/batch/{batch_id}/rows")
+def get_clay_batch_rows(
+    batch_id: str,
+    search: Optional[str] = None,
+    classification: Optional[str] = None,
+    page: int = 1,
+    page_size: int = 50,
+    db: Session = Depends(get_db),
+):
+    result = queries.clay_batch_rows(
+        db, batch_id, search=search, classification=classification,
+        page=page, page_size=page_size,
+    )
+    if result is None:
+        raise HTTPException(status_code=404, detail=f"No Clay dedupe batch found with id {batch_id!r}.")
+    return result
+
+
+_CLAY_EXPORT_FIELDNAMES = [
+    "id", "clay_company_name", "clay_website", "classification", "match_method",
+    "match_confidence", "matched_account_id", "matched_account_name", "num_candidates",
+]
+
+
+def _clay_rows_to_csv(rows: list[dict]) -> str:
+    buf = io.StringIO()
+    writer = csv.DictWriter(buf, fieldnames=_CLAY_EXPORT_FIELDNAMES)
+    writer.writeheader()
+    for row in rows:
+        writer.writerow(row)
+    return buf.getvalue()
+
+
+@app.get("/clay-dedupe/batch/{batch_id}/export.csv")
+def export_clay_batch_csv(batch_id: str, db: Session = Depends(get_db)):
+    result = queries.clay_batch_rows(db, batch_id, page=1, page_size=1_000_000)
+    if result is None:
+        raise HTTPException(status_code=404, detail=f"No Clay dedupe batch found with id {batch_id!r}.")
+    buf = io.StringIO(_clay_rows_to_csv(result["rows"]))
+    headers = {
+        "Content-Disposition": f'attachment; filename="clay_dedupe_{batch_id}.csv"',
+    }
+    return StreamingResponse(buf, media_type="text/csv", headers=headers)
+
+
+class ExportSelectedClayRowsRequest(BaseModel):
+    ids: list[int]
+
+
+@app.post("/clay-dedupe/batch/{batch_id}/export-selected.csv")
+def export_clay_selected_csv(
+    batch_id: str, req: ExportSelectedClayRowsRequest, db: Session = Depends(get_db)
+):
+    if not req.ids:
+        raise HTTPException(status_code=400, detail="No row ids provided to export.")
+    rows = queries.clay_batch_rows_by_ids(db, batch_id, req.ids)
+    buf = io.StringIO(_clay_rows_to_csv(rows))
+    headers = {
+        "Content-Disposition": f'attachment; filename="clay_dedupe_{batch_id}_selected.csv"',
+    }
+    return StreamingResponse(buf, media_type="text/csv", headers=headers)
+
+
 # ---------------------------------------------------------------------------
 # Internal Salesforce duplicate/sibling detection — Jeff (2026-11-14):
 # "there's quite a few accounts with exact same names or website and
