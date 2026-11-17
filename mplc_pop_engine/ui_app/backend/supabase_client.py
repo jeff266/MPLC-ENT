@@ -223,6 +223,66 @@ def get_cost_tracker_rollup(vertical: Optional[str] = None) -> list[dict]:
     return rows
 
 
+def get_cost_tracker_by_tool_rollup(vertical: Optional[str] = None) -> list[dict]:
+    """Cumulative, all-time cost rollup by vertical x TOOL (serper /
+    rapidapi / anthropic_claude / usaspending_api / normalization_api),
+    computed on-demand straight off account_enrichment_results, same
+    pattern and same "no separate rollup table" principle as
+    get_cost_tracker_rollup (vertical x channel) above.
+
+    Jeff (2026-11-16): "In the cost tracker do we have a breakdown of
+    spend by tool used" -- the enrichers only started persisting a
+    `cost_breakdown` JSONB object (one key per paid tool, summing to the
+    row's flat `cost`) alongside that flat `cost` as of this change;
+    rows written before this shipped have no `cost_breakdown` key at
+    all. Those legacy rows are NOT dropped (that would silently
+    understate historical spend and make this total disagree with
+    get_cost_tracker_rollup's by-channel total for the same scope) --
+    any such row with a nonzero `cost` is bucketed under the tool key
+    "unspecified_legacy" instead, so sum(by_tool total_cost) always
+    equals sum(by_channel total_cost) for the same vertical filter.
+    A $0 row (free channel, e.g. state_procurement) contributes nothing
+    to either side either way, so it's excluded from both branches below.
+
+    jsonb_each_text, not jsonb_each, because cost_breakdown's values are
+    always plain numbers -- _text gives back the number's text form
+    directly castable to numeric, with no jsonb-type dance."""
+    with _connection() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute(
+                """
+                WITH exploded AS (
+                    SELECT vertical, kv.key AS tool, (kv.value)::numeric AS amount
+                    FROM account_enrichment_results,
+                         jsonb_each_text(enrichment_result->'cost_breakdown') AS kv
+                    WHERE status = 'completed'
+                      AND enrichment_result ? 'cost_breakdown'
+                      AND (%s IS NULL OR vertical = %s)
+                    UNION ALL
+                    SELECT vertical, 'unspecified_legacy' AS tool,
+                           (enrichment_result->>'cost')::numeric AS amount
+                    FROM account_enrichment_results
+                    WHERE status = 'completed'
+                      AND NOT (enrichment_result ? 'cost_breakdown')
+                      AND enrichment_result ? 'cost'
+                      AND (enrichment_result->>'cost')::numeric > 0
+                      AND (%s IS NULL OR vertical = %s)
+                )
+                SELECT vertical, tool, COUNT(*) AS rows_with_cost, SUM(amount) AS total_cost
+                FROM exploded
+                GROUP BY vertical, tool
+                ORDER BY vertical, tool
+                """,
+                (vertical, vertical, vertical, vertical),
+            )
+            rows = [dict(row) for row in cur.fetchall()]
+
+    for row in rows:
+        row["total_cost"] = float(row["total_cost"])
+
+    return rows
+
+
 def get_latest_heartbeat(batch_file: str) -> Optional[dict]:
     """Most recent worker_heartbeat row for this exact batch_file path —
     batch files are unique per job (see enrichment.py's dispatch_job), so

@@ -68,6 +68,14 @@ ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 SERPER_COST_PER_CALL = 0.001
 
 
+def _add_cost(breakdown: dict, key: str, amount: float) -> None:
+    """Accumulate `amount` into breakdown[key], creating the key if needed.
+    No-ops on a zero/falsy amount so callers don't end up with spurious
+    zero-value buckets in the returned cost_breakdown dict."""
+    if amount:
+        breakdown[key] = breakdown.get(key, 0.0) + amount
+
+
 class CorporateEnricher:
     """Corporate PoP detection via image search + VLM."""
 
@@ -746,6 +754,7 @@ Answer ONLY with valid JSON:
         """
 
         total_cost = 0.0
+        cost_breakdown: Dict[str, float] = {}
 
         # Channel 0: Website images (generic, free, entity-certain) -- 2026-11-13.
         # Tried before the paid Serper search per the free-before-paid waterfall
@@ -762,7 +771,13 @@ Answer ONLY with valid JSON:
                 website_url=official_website,
                 temp_dir=temp_dir,
             )
-            total_cost += image_result.get('cost', 0.0)
+            _channel0_cost = image_result.get('cost', 0.0)
+            total_cost += _channel0_cost
+            # All cost from this channel is VLM (Anthropic) spend: the website
+            # crawl/image-download itself is free, confirmed by reading
+            # website_image_channel.py -- its 'cost' field is always
+            # images_analyzed * flat-VLM-rate, with no Serper billing inside it.
+            _add_cost(cost_breakdown, "anthropic_claude", _channel0_cost)
 
             # NOTE: search_evidence() returns 'tier': 'PROSPECT' on success, never
             # a 'lead_status' key -- confirmed 2026-11-13 after finding mdu_unified.py
@@ -780,6 +795,7 @@ Answer ONLY with valid JSON:
                     'tv_powered_on': evidence.vlm_result.get('tv_powered_on', False),
                     'reasoning': evidence.vlm_result.get('reasoning', ''),
                     'cost': total_cost,
+                    **({'cost_breakdown': cost_breakdown} if cost_breakdown else {}),
                     'details': {
                         'device_type': evidence.vlm_result.get('device_type', 'unknown'),
                         'yolo_confidence': evidence.yolo_confidence,
@@ -797,12 +813,14 @@ Answer ONLY with valid JSON:
                 'evidence_url': '',
                 'confidence': 'none',
                 'cost': total_cost,
+                **({'cost_breakdown': cost_breakdown} if cost_breakdown else {}),
                 'details': {'reason': 'Paid image search disabled for this run (enable_image_search=False)'}
             }
 
         print(f"  Searching images for {company_name} ({operating_market})...")
         images, search_cost = self.search_corporate_images(company_name, operating_market)
         total_cost += search_cost  # 2026-11-14 fix: this call was previously unpriced
+        _add_cost(cost_breakdown, "serper", search_cost)
 
         if not images:
             return {
@@ -811,6 +829,7 @@ Answer ONLY with valid JSON:
                 'evidence_url': '',
                 'confidence': 'none',
                 'cost': total_cost,
+                **({'cost_breakdown': cost_breakdown} if cost_breakdown else {}),
                 'details': {'reason': 'No corporate office images found'}
             }
 
@@ -834,6 +853,10 @@ Answer ONLY with valid JSON:
             )
 
             total_cost += validation_cost
+            # is_domain_valid()'s cost is always from validate_with_sonnet(), a
+            # Claude Sonnet API call (Layer 3 news-image check or Layer 4
+            # domain check) -- confirmed by reading both functions.
+            _add_cost(cost_breakdown, "anthropic_claude", validation_cost)
 
             if not is_valid_domain:
                 print(f"rejected ({domain_reason})")
@@ -867,7 +890,11 @@ Answer ONLY with valid JSON:
                 continue
 
             images_analyzed += 1
-            total_cost += analysis.get('cost', 0.0)
+            _analysis_cost = analysis.get('cost', 0.0)
+            total_cost += _analysis_cost
+            # analyze_image_vlm()'s cost is computed from the Claude Sonnet
+            # VLM call's token usage -- Anthropic spend.
+            _add_cost(cost_breakdown, "anthropic_claude", _analysis_cost)
 
             # Check for valid TV evidence
             if analysis['tv_detected'] and \
@@ -890,6 +917,7 @@ Answer ONLY with valid JSON:
                     'tv_powered_on': analysis.get('tv_powered_on', False),
                     'reasoning': analysis.get('reasoning', ''),
                     'cost': total_cost,
+                    **({'cost_breakdown': cost_breakdown} if cost_breakdown else {}),
                     'details': {
                         'image': img,
                         'vlm_analysis': analysis,
@@ -907,6 +935,7 @@ Answer ONLY with valid JSON:
             'evidence_url': '',
             'confidence': 'none',
             'cost': total_cost,
+            **({'cost_breakdown': cost_breakdown} if cost_breakdown else {}),
             'details': {
                 'reason': f'No TV evidence found',
                 'images_found': len(images),

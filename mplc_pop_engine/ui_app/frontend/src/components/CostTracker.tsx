@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { downloadBlob, downloadCostTrackerCsv, fetchCostTracker } from "../api/client";
+import {
+  downloadBlob,
+  downloadCostTrackerByToolCsv,
+  downloadCostTrackerCsv,
+  fetchCostTracker,
+  fetchCostTrackerByTool,
+} from "../api/client";
 
 /** Cost Tracker tab. Per claude/Cost_Tracker_Design.md and Jeff's
  * 2026-11-14 decisions: on-demand (no scheduler, no separate rollup
@@ -20,7 +26,25 @@ import { downloadBlob, downloadCostTrackerCsv, fetchCostTracker } from "../api/c
  * narrows by_channel, same "chips/counts don't move with the filter"
  * convention the Clay batch review table already uses). Download CSV
  * hits /cost-tracker/export.csv with the exact same two params, so the
- * file always matches what's on screen. */
+ * file always matches what's on screen.
+ *
+ * Jeff (2026-11-16, same day): "In the cost tracker do we have a
+ * breakdown of spend by tool used" -- added a second "By tool" section
+ * below, sharing the SAME vertical/search filters (one filter row drives
+ * both tables) rather than a separate control set, with its own CSV
+ * download. "unspecified_legacy" is real spend from rows written before
+ * the enrichers started persisting cost_breakdown -- shown plainly
+ * rather than hidden, so this total always reconciles with the
+ * by-channel total above for the same vertical. */
+const TOOL_LABELS: Record<string, string> = {
+  serper: "Serper (search)",
+  rapidapi: "RapidAPI (video download)",
+  anthropic_claude: "Anthropic Claude (VLM / verification)",
+  usaspending_api: "USAspending.gov (federal contracts)",
+  normalization_api: "Normalization API",
+  unspecified_legacy: "Unspecified (pre-dates tool tracking)",
+};
+
 export function CostTracker() {
   const [vertical, setVertical] = useState("");
   const [searchInput, setSearchInput] = useState("");
@@ -58,6 +82,28 @@ export function CostTracker() {
       setDownloadError(String(e));
     } finally {
       setDownloading(false);
+    }
+  }
+
+  const byToolQuery = useQuery({
+    queryKey: ["cost-tracker-by-tool", vertical, search],
+    queryFn: () => fetchCostTrackerByTool(vertical || undefined, search || undefined),
+    placeholderData: (prev) => prev,
+  });
+
+  const [downloadingByTool, setDownloadingByTool] = useState(false);
+  const [downloadByToolError, setDownloadByToolError] = useState<string | null>(null);
+
+  async function handleDownloadByTool() {
+    setDownloadingByTool(true);
+    setDownloadByToolError(null);
+    try {
+      const blob = await downloadCostTrackerByToolCsv(vertical || undefined, search || undefined);
+      downloadBlob(blob, "cost_tracker_by_tool.csv");
+    } catch (e) {
+      setDownloadByToolError(String(e));
+    } finally {
+      setDownloadingByTool(false);
     }
   }
 
@@ -219,6 +265,75 @@ export function CostTracker() {
               )}
             </tbody>
           </table>
+
+          <div className="clay-review-toolbar">
+            <h3 style={{ margin: 0 }}>By tool</h3>
+            <button type="button" onClick={handleDownloadByTool} disabled={downloadingByTool}>
+              {downloadingByTool ? "Preparing CSV…" : "Download CSV"}
+            </button>
+          </div>
+          {downloadByToolError && <p className="action-error">Download failed: {downloadByToolError}</p>}
+
+          {byToolQuery.isLoading && <p>Loading…</p>}
+          {byToolQuery.isError && (
+            <p className="action-error">Failed to load tool breakdown: {String(byToolQuery.error)}</p>
+          )}
+          {byToolQuery.data && (
+            <>
+              <table className="accounts-table">
+                <thead>
+                  <tr>
+                    <th>Tool</th>
+                    <th>Total cost</th>
+                    <th>% of spend</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(() => {
+                    const grandTotal = byToolQuery.data.by_tool.reduce((sum, t) => sum + t.total_cost, 0);
+                    return byToolQuery.data.by_tool.map((t) => (
+                      <tr key={t.tool}>
+                        <td>{TOOL_LABELS[t.tool] ?? t.tool}</td>
+                        <td>${t.total_cost.toFixed(4)}</td>
+                        <td>{grandTotal ? `${((t.total_cost / grandTotal) * 100).toFixed(1)}%` : "—"}</td>
+                      </tr>
+                    ));
+                  })()}
+                  {byToolQuery.data.by_tool.length === 0 && (
+                    <tr>
+                      <td colSpan={3}>No spend recorded yet.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+
+              <table className="accounts-table">
+                <thead>
+                  <tr>
+                    <th>Vertical</th>
+                    <th>Tool</th>
+                    <th>Total cost</th>
+                    <th>$ / row</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {byToolQuery.data.by_tool_and_vertical.map((row) => (
+                    <tr key={`${row.vertical}-${row.tool}`}>
+                      <td>{row.vertical}</td>
+                      <td>{TOOL_LABELS[row.tool] ?? row.tool}</td>
+                      <td>${row.total_cost.toFixed(4)}</td>
+                      <td>{row.rows_with_cost ? `$${(row.total_cost / row.rows_with_cost).toFixed(4)}` : "—"}</td>
+                    </tr>
+                  ))}
+                  {byToolQuery.data.by_tool_and_vertical.length === 0 && (
+                    <tr>
+                      <td colSpan={4}>No rows match this filter.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </>
+          )}
         </>
       )}
     </div>

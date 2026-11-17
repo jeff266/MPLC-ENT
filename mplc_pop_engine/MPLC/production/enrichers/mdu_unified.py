@@ -105,6 +105,30 @@ SERPER_COST_PER_CALL = 0.001
 RAPIDAPI_COST_PER_VIDEO = 0.0002
 
 
+def _add_cost(breakdown: Dict[str, float], key: str, amount: float) -> None:
+    """
+    Accumulate `amount` into breakdown[key], in place.
+
+    Added 2026-11-16 alongside the 'cost_breakdown' field so every paid-tool
+    charge that already feeds a flat 'cost'/'total_cost' accumulator also
+    lands under its tool bucket (serper / rapidapi / anthropic_claude). A
+    zero-cost charge is skipped so free channels/paths never gain an
+    empty-valued bucket -- this is what lets 'cost_breakdown' stay omitted
+    entirely (rather than set to {}) on a free path, per the "flat 'cost':
+    0.0 needs no breakdown" rule.
+    """
+    if amount:
+        breakdown[key] = breakdown.get(key, 0.0) + amount
+
+
+def _merge_cost_breakdown(target: Dict[str, float], source: Optional[Dict[str, float]]) -> None:
+    """Add every entry of `source` into `target`, in place (no-op if source is falsy)."""
+    if not source:
+        return
+    for key, amount in source.items():
+        _add_cost(target, key, amount)
+
+
 class MDUEnricherUnified:
     """MDU PoP detection with video processing via RapidAPI."""
 
@@ -577,6 +601,7 @@ Answer ONLY with valid JSON:
             cost = (input_tokens / 1_000_000 * 3.0) + (output_tokens / 1_000_000 * 15.0)
 
             result['cost'] = cost
+            result['cost_breakdown'] = {'anthropic_claude': cost}
             return result
 
         except Exception as e:
@@ -668,6 +693,7 @@ Answer ONLY with valid JSON:
         # was invoked, so this is the first point we can attribute its cost.
         # Previously this cost was never tracked at all (2026-11-14 fix).
         total_cost = SERPER_COST_PER_CALL
+        cost_breakdown: Dict[str, float] = {'serper': SERPER_COST_PER_CALL}
         rejection_reasons = []  # Track why videos were rejected
 
         for i, video in enumerate(videos[:3], 1):  # Process up to 3 videos
@@ -694,6 +720,7 @@ Answer ONLY with valid JSON:
             # previously this attempt was entirely unpriced).
             video_path, error = self.download_video(video_url, temp_dir)
             total_cost += RAPIDAPI_COST_PER_VIDEO
+            _add_cost(cost_breakdown, 'rapidapi', RAPIDAPI_COST_PER_VIDEO)
             if error:
                 print(f"      Failed: {error}")
                 continue
@@ -760,6 +787,7 @@ Answer ONLY with valid JSON:
 
                 print(f"      ✅ VLM confirmed PROSPECT: {vlm_result.get('tv_location', '')} - {vlm_result.get('confidence', '')} confidence")
 
+                _add_cost(cost_breakdown, 'anthropic_claude', vlm_result.get('cost', 0.0))
                 return {
                     'lead_status': 'qualified',
                     'channel': 'youtube_video_yolo',
@@ -770,7 +798,8 @@ Answer ONLY with valid JSON:
                     'tv_powered_on': vlm_result.get('tv_powered_on', False),
                     'yolo_confidence': best_frame['confidence'],
                     'reasoning': vlm_result.get('reasoning', ''),
-                    'cost': vlm_result.get('cost', 0.0) + total_cost
+                    'cost': vlm_result.get('cost', 0.0) + total_cost,
+                    'cost_breakdown': dict(cost_breakdown),
                 }
 
         # If we got here, all videos failed
@@ -780,6 +809,7 @@ Answer ONLY with valid JSON:
                 'lead_status': 'no_evidence',
                 'channel': 'youtube_video_yolo',
                 'cost': total_cost,
+                'cost_breakdown': dict(cost_breakdown),
                 'rejection_reasons': rejection_reasons,
                 'reason': f"All videos rejected: {', '.join(rejection_reasons[:2])}"  # First 2 reasons
             }
@@ -793,6 +823,7 @@ Answer ONLY with valid JSON:
             'lead_status': 'no_evidence',
             'channel': 'youtube_video_yolo',
             'cost': total_cost,
+            'cost_breakdown': dict(cost_breakdown),
             'reason': 'No TV evidence after processing all candidate videos',
         }
 
@@ -1066,6 +1097,7 @@ Answer ONLY with valid JSON:
             cost = (input_tokens / 1_000_000 * 3.0) + (output_tokens / 1_000_000 * 15.0)
 
             result['cost'] = cost
+            result['cost_breakdown'] = {'anthropic_claude': cost}
             result['yolo_confidence'] = yolo_confidence
             return result
 
@@ -1135,6 +1167,7 @@ Answer ONLY with valid JSON:
 
                 print(f"      ✅ VLM confirmed PROSPECT: {vlm_result.get('tv_location', '')} - {device_type} - {vlm_result.get('confidence', '')} confidence")
 
+                image_cost = vlm_result.get('cost', 0.0)
                 return {
                     'lead_status': 'qualified',
                     'channel': 'website_images',
@@ -1146,7 +1179,8 @@ Answer ONLY with valid JSON:
                     'tv_powered_on': vlm_result.get('tv_powered_on', False),
                     'yolo_confidence': detection['confidence'],
                     'reasoning': vlm_result.get('reasoning', ''),
-                    'cost': vlm_result.get('cost', 0.0)
+                    'cost': image_cost,
+                    **({'cost_breakdown': {'anthropic_claude': image_cost}} if image_cost else {}),
                 }
 
             # VLM rejected
@@ -1188,6 +1222,7 @@ Answer ONLY with valid JSON:
             print(f"  ❌ WARNING: ANTHROPIC_API_KEY is empty or not loaded!")
 
         total_cost = 0.0
+        cost_breakdown: Dict[str, float] = {}
         temp_dir = Path("/tmp/mdu_enrichment") / property_name.replace(" ", "_").replace("/", "_")
         temp_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1202,6 +1237,7 @@ Answer ONLY with valid JSON:
                 )
 
                 total_cost += image_result.get('cost', 0.0)
+                _add_cost(cost_breakdown, 'anthropic_claude', image_result.get('cost', 0.0))
 
                 # FIX (2026-11-13): search_evidence() returns 'tier': 'PROSPECT' on
                 # success — it never sets a 'lead_status' key. The old check
@@ -1224,6 +1260,7 @@ Answer ONLY with valid JSON:
                         'tv_powered_on': evidence.vlm_result.get('tv_powered_on', False),
                         'cost': total_cost,
                         'source_method': evidence.source_method,
+                        **({'cost_breakdown': dict(cost_breakdown)} if cost_breakdown else {}),
                     }
                 else:
                     print(f"    Image channel: {image_result.get('rejection_reason', 'No images found')} ({image_result.get('images_found', 0)} images, {image_result.get('images_analyzed', 0)} analyzed)")
@@ -1234,6 +1271,7 @@ Answer ONLY with valid JSON:
                 text_result = self.text_channel.search_amenities(property_name, website_url)
 
                 total_cost += text_result.get('cost', 0.0)
+                _add_cost(cost_breakdown, 'anthropic_claude', text_result.get('cost', 0.0))
 
                 if text_result.get('found'):
                     evidence = text_result['evidence']
@@ -1247,7 +1285,8 @@ Answer ONLY with valid JSON:
                         'tv_powered_on': True,  # Assume true from text evidence
                         'yolo_confidence': 0.0,  # N/A for text
                         'reasoning': evidence.get('EvidenceQuote', ''),
-                        'cost': total_cost
+                        'cost': total_cost,
+                        **({'cost_breakdown': dict(cost_breakdown)} if cost_breakdown else {}),
                     }
 
             # Channel 3: YouTube property tours (paid downloads - last resort)
@@ -1264,10 +1303,14 @@ Answer ONLY with valid JSON:
 
                 if result and result.get('lead_status') == 'qualified':
                     result['cost'] += total_cost
+                    _merge_cost_breakdown(cost_breakdown, result.get('cost_breakdown'))
+                    if cost_breakdown:
+                        result['cost_breakdown'] = dict(cost_breakdown)
                     return result
                 elif result and result.get('lead_status') == 'no_evidence':
                     # Video channel found videos but all rejected (entity mismatch)
                     total_cost += result.get('cost', 0.0)
+                    _merge_cost_breakdown(cost_breakdown, result.get('cost_breakdown'))
                     print(f"    Video channel: {result.get('reason', 'All videos rejected')}")
 
             # No TV evidence found in any channel
@@ -1277,7 +1320,8 @@ Answer ONLY with valid JSON:
                 'evidence_url': '',
                 'confidence': 'none',
                 'cost': total_cost,
-                'reason': 'No TV evidence found in available channels'
+                'reason': 'No TV evidence found in available channels',
+                **({'cost_breakdown': dict(cost_breakdown)} if cost_breakdown else {}),
             }
 
         finally:

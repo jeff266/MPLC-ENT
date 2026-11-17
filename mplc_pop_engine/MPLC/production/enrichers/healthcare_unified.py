@@ -110,6 +110,31 @@ AV_KEYWORDS = [
 ]
 
 
+# Cost-breakdown instrumentation (2026-11-16, Jeff: "In the cost tracker do we
+# have a breakdown of spend by tool used"). Every method that accumulates a
+# 'cost'/'total_cost' total also builds a parallel cost_breakdown dict using
+# these two helpers, so that sum(cost_breakdown.values()) always equals the
+# matching 'cost' field. Bucket keys are fixed across all three enricher
+# files (healthcare/corporate/mdu) so the backend rollup can group on them
+# consistently: serper, rapidapi, anthropic_claude, usaspending_api,
+# normalization_api.
+def _add_cost(breakdown: Dict[str, float], key: str, amount: float) -> None:
+    """Accumulate `amount` into breakdown[key], creating the key if absent.
+    No-op for a zero/falsy amount so breakdowns don't collect no-op entries."""
+    if amount:
+        breakdown[key] = breakdown.get(key, 0.0) + amount
+
+
+def _merge_breakdowns(base: Dict[str, float], other: Dict[str, float]) -> Dict[str, float]:
+    """Return a new breakdown dict combining base and other (summed per key).
+    Used when one method's result (with its own cost_breakdown) is merged
+    into another's, so the inner breakdown is preserved rather than dropped."""
+    merged = dict(base)
+    for key, amount in other.items():
+        _add_cost(merged, key, amount)
+    return merged
+
+
 class HealthcareEnricherUnified:
     """Unified healthcare PoP detection across 7 channels."""
 
@@ -762,6 +787,8 @@ Answer ONLY with valid JSON:
         # below calls Serper (not RapidAPI), and the real Serper cost is
         # $0.001/call on the current plan, not $0.003.
         total_cost = SERPER_COST_PER_CALL
+        cost_breakdown: Dict[str, float] = {}
+        _add_cost(cost_breakdown, 'serper', SERPER_COST_PER_CALL)
 
         with tempfile.TemporaryDirectory() as tmpdir:
             tmpdir_path = Path(tmpdir)
@@ -774,6 +801,7 @@ Answer ONLY with valid JSON:
                     'lead_status': 'no_evidence',
                     'channel': 'none',
                     'cost': total_cost,
+                    'cost_breakdown': cost_breakdown,
                     'reason': 'No facility tour videos found'
                 }
 
@@ -785,6 +813,7 @@ Answer ONLY with valid JSON:
                 # 2026-11-14 fix, previously unpriced entirely)
                 video_path, error = self.download_video(video['url'], tmpdir_path)
                 total_cost += RAPIDAPI_COST_PER_VIDEO
+                _add_cost(cost_breakdown, 'rapidapi', RAPIDAPI_COST_PER_VIDEO)
                 if not video_path:
                     print(f"      Failed: {error}")
                     continue
@@ -813,6 +842,7 @@ Answer ONLY with valid JSON:
                         continue
 
                     total_cost += analysis.get('cost', 0.0)
+                    _add_cost(cost_breakdown, 'anthropic_claude', analysis.get('cost', 0.0))
 
                     # Check for valid TV evidence
                     if analysis['tv_detected'] and \
@@ -840,13 +870,15 @@ Answer ONLY with valid JSON:
                             'tv_powered_on': analysis.get('tv_powered_on', False),
                             'reasoning': analysis.get('reasoning', ''),
                             'yolo_confidence': detection['confidence'],
-                            'cost': total_cost
+                            'cost': total_cost,
+                            'cost_breakdown': cost_breakdown
                         }
 
             return {
                 'lead_status': 'no_evidence',
                 'channel': 'youtube_video_yolo',
                 'cost': total_cost,
+                'cost_breakdown': cost_breakdown,
                 'reason': f'No TV evidence in {len(videos)} videos'
             }
 
@@ -1214,6 +1246,8 @@ Answer ONLY with valid JSON:
     def search_and_analyze_images(self, hospital_name: str, state: str = "", operating_market: str = "United States") -> Dict:
         """Process image channel: search + domain validation + VLM."""
         total_cost = SERPER_COST_PER_CALL
+        cost_breakdown: Dict[str, float] = {}
+        _add_cost(cost_breakdown, 'serper', SERPER_COST_PER_CALL)
 
         # Search for hospital images
         images = self.search_hospital_images(hospital_name, state)
@@ -1223,6 +1257,7 @@ Answer ONLY with valid JSON:
                 'lead_status': 'no_evidence',
                 'channel': 'none',
                 'cost': total_cost,
+                'cost_breakdown': cost_breakdown,
                 'reason': 'No hospital images found'
             }
 
@@ -1265,6 +1300,7 @@ Answer ONLY with valid JSON:
                 continue
 
             total_cost += analysis.get('cost', 0.0)
+            _add_cost(cost_breakdown, 'anthropic_claude', analysis.get('cost', 0.0))
 
             # Check for valid TV evidence
             if analysis.get('tv_detected') and \
@@ -1281,13 +1317,15 @@ Answer ONLY with valid JSON:
                     'confidence': analysis.get('confidence', 'low'),
                     'tv_powered_on': analysis.get('tv_powered_on', False),
                     'reasoning': analysis.get('reasoning', ''),
-                    'cost': total_cost
+                    'cost': total_cost,
+                    'cost_breakdown': cost_breakdown
                 }
 
         return {
             'lead_status': 'no_evidence',
             'channel': 'hospital_image_search',
             'cost': total_cost,
+            'cost_breakdown': cost_breakdown,
             'reason': f'No TV evidence in {images_analyzed} images analyzed ({images_failed} filtered)'
         }
 
@@ -1445,6 +1483,8 @@ Answer ONLY with valid JSON:
             )
 
             cost = SERPER_COST_PER_CALL
+            cost_breakdown: Dict[str, float] = {}
+            _add_cost(cost_breakdown, 'serper', cost)
 
             if response.status_code != 200:
                 print(f"      Serper API error {response.status_code}: {response.text[:100]}")
@@ -1452,6 +1492,7 @@ Answer ONLY with valid JSON:
                     'lead_status': 'no_evidence',
                     'channel': 'senior_activity_reviews',
                     'cost': cost,
+                    'cost_breakdown': cost_breakdown,
                     'reason': f'Serper API error: {response.status_code}',
                     'qualifying_path': 'senior_activity'
                 }
@@ -1511,6 +1552,7 @@ Answer ONLY with valid JSON:
                     'confidence': 'high' if len(matches) >= 2 else 'medium',
                     'reasoning': f'Reviews mention TV entertainment activities: {", ".join(matches[:3])}',
                     'cost': cost,
+                    'cost_breakdown': cost_breakdown,
                     'qualifying_path': 'senior_activity'
                 }
             else:
@@ -1518,6 +1560,7 @@ Answer ONLY with valid JSON:
                     'lead_status': 'no_evidence',
                     'channel': 'senior_activity_reviews',
                     'cost': cost,
+                    'cost_breakdown': cost_breakdown,
                     'reason': 'No TV entertainment mentions found in reviews',
                     'qualifying_path': 'senior_activity'
                 }
@@ -1528,6 +1571,7 @@ Answer ONLY with valid JSON:
                 'lead_status': 'no_evidence',
                 'channel': 'senior_activity_reviews',
                 'cost': SERPER_COST_PER_CALL,
+                'cost_breakdown': {'serper': SERPER_COST_PER_CALL},
                 'reason': f'Search error: {str(e)[:100]}',
                 'qualifying_path': 'senior_activity'
             }
@@ -1690,6 +1734,8 @@ Return JSON:
         - qualifying_path: 'senior_activity' (for reporting)
         """
         total_cost = SERPER_COST_PER_CALL
+        cost_breakdown: Dict[str, float] = {}
+        _add_cost(cost_breakdown, 'serper', SERPER_COST_PER_CALL)
 
         # Search for senior activity images
         images = self.search_senior_activity_images(facility_name, state)
@@ -1699,6 +1745,7 @@ Return JSON:
                 'lead_status': 'no_evidence',
                 'channel': 'senior_activity_area',
                 'cost': total_cost,
+                'cost_breakdown': cost_breakdown,
                 'reason': 'No senior activity images found',
                 'qualifying_path': 'senior_activity'
             }
@@ -1737,6 +1784,7 @@ Return JSON:
                 continue
 
             total_cost += analysis.get('cost', 0.0)
+            _add_cost(cost_breakdown, 'anthropic_claude', analysis.get('cost', 0.0))
 
             # Check if senior activity area confirmed
             if analysis.get('is_senior_activity_area') and \
@@ -1753,6 +1801,7 @@ Return JSON:
                     'confidence': analysis.get('confidence', 'low'),
                     'reasoning': analysis.get('reasoning', ''),
                     'cost': total_cost,
+                    'cost_breakdown': cost_breakdown,
                     'qualifying_path': 'senior_activity'
                 }
 
@@ -1760,6 +1809,7 @@ Return JSON:
             'lead_status': 'no_evidence',
             'channel': 'senior_activity_area',
             'cost': total_cost,
+            'cost_breakdown': cost_breakdown,
             'reason': f'No qualifying senior activity areas in {images_analyzed} images analyzed ({images_entity_rejected} entity mismatches filtered)',
             'qualifying_path': 'senior_activity'
         }
@@ -1927,6 +1977,8 @@ Answer ONLY with valid JSON:
         - qualifying_path: 'pediatric_area' (for reporting)
         """
         total_cost = SERPER_COST_PER_CALL
+        cost_breakdown: Dict[str, float] = {}
+        _add_cost(cost_breakdown, 'serper', SERPER_COST_PER_CALL)
 
         # Search for pediatric images
         images = self.search_pediatric_images(facility_name, state)
@@ -1936,6 +1988,7 @@ Answer ONLY with valid JSON:
                 'lead_status': 'no_evidence',
                 'channel': 'pediatric_waiting_area',
                 'cost': total_cost,
+                'cost_breakdown': cost_breakdown,
                 'reason': 'No pediatric images found',
                 'qualifying_path': 'pediatric_area'
             }
@@ -1977,6 +2030,7 @@ Answer ONLY with valid JSON:
                 continue
 
             total_cost += analysis.get('cost', 0.0)
+            _add_cost(cost_breakdown, 'anthropic_claude', analysis.get('cost', 0.0))
 
             # Check if pediatric waiting area confirmed
             if analysis.get('is_pediatric_waiting_area') and \
@@ -1992,6 +2046,7 @@ Answer ONLY with valid JSON:
                     'confidence': analysis.get('confidence', 'low'),
                     'reasoning': analysis.get('reasoning', ''),
                     'cost': total_cost,
+                    'cost_breakdown': cost_breakdown,
                     'qualifying_path': 'pediatric_area'  # For reporting
                 }
 
@@ -1999,6 +2054,7 @@ Answer ONLY with valid JSON:
             'lead_status': 'no_evidence',
             'channel': 'pediatric_waiting_area',
             'cost': total_cost,
+            'cost_breakdown': cost_breakdown,
             'reason': f'No qualifying pediatric waiting areas in {images_analyzed} images analyzed ({images_entity_rejected} entity mismatches filtered)',
             'qualifying_path': 'pediatric_area'
         }
@@ -2057,7 +2113,11 @@ Answer ONLY with valid JSON:
                 'secondary_reasoning': path_b_result.get('reasoning', ''),
                 'secondary_channel': path_b_result.get('channel', ''),
                 'secondary_confidence': path_b_result.get('confidence', ''),
-                'cost': tv_result.get('cost', 0) + path_b_result.get('cost', 0)
+                'cost': tv_result.get('cost', 0) + path_b_result.get('cost', 0),
+                'cost_breakdown': _merge_breakdowns(
+                    tv_result.get('cost_breakdown', {}),
+                    path_b_result.get('cost_breakdown', {})
+                )
             }
         elif tv_qualified:
             # TV detection only
@@ -2072,6 +2132,10 @@ Answer ONLY with valid JSON:
                 'lead_status': 'no_evidence',
                 'channel': 'none',
                 'cost': tv_result.get('cost', 0) + path_b_result.get('cost', 0),
+                'cost_breakdown': _merge_breakdowns(
+                    tv_result.get('cost_breakdown', {}),
+                    path_b_result.get('cost_breakdown', {})
+                ),
                 'vertical': 'healthcare',
                 'reason': f"TV detection: {tv_result.get('reason', 'No evidence')}; {path_b_name}: {path_b_result.get('reason', 'No evidence')}"
             }
@@ -2092,6 +2156,7 @@ Answer ONLY with valid JSON:
         Returns evidence-compliant dict with tier, channel, cost, etc.
         """
         total_cost = 0.0
+        cost_breakdown: Dict[str, float] = {}
         processing_log = []
 
         # Use search_name for YouTube if provided, otherwise use facility_name
@@ -2133,6 +2198,7 @@ Answer ONLY with valid JSON:
             try:
                 result = self.search_federal_contracts(facility_name, state)
                 total_cost += 0.001
+                _add_cost(cost_breakdown, 'usaspending_api', 0.001)
 
                 if result:
                     processing_log.append("Stage 2B: PROSPECT (federal contracts)")
@@ -2146,6 +2212,7 @@ Answer ONLY with valid JSON:
                         'confidence': 'high',
                         'vlm_confidence': 'high',
                         'cost': total_cost,
+                        'cost_breakdown': cost_breakdown,
                         'vertical': 'healthcare',
                         'processing_log': processing_log
                     }
@@ -2155,6 +2222,7 @@ Answer ONLY with valid JSON:
             except Exception as e:
                 processing_log.append(f"Stage 2B: Error - {str(e)[:50]}")
                 total_cost += 0.001  # Still count API call
+                _add_cost(cost_breakdown, 'usaspending_api', 0.001)
 
             # Stage 2C: Website images (generic, free, entity-certain) -- 2026-11-13.
             # Placed before the paid YouTube/image-search stages per the
@@ -2173,6 +2241,12 @@ Answer ONLY with valid JSON:
                         temp_dir=temp_dir,
                     )
                     total_cost += image_result.get('cost', 0.0)
+                    # website_image_channel's cost is purely an approximated
+                    # VLM cost (images_analyzed * flat rate, no Serper call --
+                    # it crawls the account's own site directly) -- see
+                    # WebsiteImageEvidenceChannel.search_evidence(), so the
+                    # whole of it buckets under anthropic_claude.
+                    _add_cost(cost_breakdown, 'anthropic_claude', image_result.get('cost', 0.0))
 
                     # NOTE: search_evidence() returns 'tier': 'PROSPECT' on success,
                     # never a 'lead_status' key -- confirmed 2026-11-13 after finding
@@ -2192,6 +2266,7 @@ Answer ONLY with valid JSON:
                             'tv_powered_on': evidence.vlm_result.get('tv_powered_on', False),
                             'reasoning': evidence.vlm_result.get('reasoning', ''),
                             'cost': total_cost,
+                            'cost_breakdown': cost_breakdown,
                             'vertical': 'healthcare',
                             'processing_log': processing_log,
                         }
@@ -2211,6 +2286,10 @@ Answer ONLY with valid JSON:
                     # Use search_name for YouTube queries (cleaner, better matches)
                     video_result = self.search_and_analyze_videos(search_name, city, state)
                     total_cost += video_result.get('cost', 0.0)
+                    # search_and_analyze_videos() already built its own
+                    # serper/rapidapi/anthropic_claude breakdown for this
+                    # call -- merge it in rather than re-bucketing the total.
+                    cost_breakdown = _merge_breakdowns(cost_breakdown, video_result.get('cost_breakdown', {}))
 
                     # FIX (2026-11-13): search_and_analyze_videos() only ever sets
                     # 'lead_status' (never 'tier') -- the old `video_result['tier']`
@@ -2219,7 +2298,7 @@ Answer ONLY with valid JSON:
                     # Stage 3 could never return a PROSPECT in production until now.
                     if video_result.get('lead_status') == 'qualified':
                         processing_log.append("Stage 3: PROSPECT (video)")
-                        return {**video_result, 'cost': total_cost, 'processing_log': processing_log, 'vertical': 'healthcare'}
+                        return {**video_result, 'cost': total_cost, 'cost_breakdown': cost_breakdown, 'processing_log': processing_log, 'vertical': 'healthcare'}
                     else:
                         processing_log.append(f"Stage 3: {video_result.get('reason', 'No evidence')}")
 
@@ -2233,12 +2312,16 @@ Answer ONLY with valid JSON:
                 try:
                     image_result = self.search_and_analyze_images(facility_name, state=state, operating_market="United States")
                     total_cost += image_result.get('cost', 0.0)
+                    # search_and_analyze_images() already built its own
+                    # serper/anthropic_claude breakdown for this call -- merge
+                    # it in rather than re-bucketing the total.
+                    cost_breakdown = _merge_breakdowns(cost_breakdown, image_result.get('cost_breakdown', {}))
 
                     # FIX (2026-11-13): same bug as Stage 3 above -- search_and_
                     # analyze_images() only ever sets 'lead_status', never 'tier'.
                     if image_result.get('lead_status') == 'qualified':
                         processing_log.append("Stage 4: PROSPECT (hospital images)")
-                        return {**image_result, 'cost': total_cost, 'processing_log': processing_log, 'vertical': 'healthcare'}
+                        return {**image_result, 'cost': total_cost, 'cost_breakdown': cost_breakdown, 'processing_log': processing_log, 'vertical': 'healthcare'}
                     else:
                         processing_log.append(f"Stage 4: {image_result.get('reason', 'No evidence')}")
 
@@ -2257,6 +2340,7 @@ Answer ONLY with valid JSON:
                 'evidence_url': '',
                 'confidence': 'none',
                 'cost': total_cost,
+                'cost_breakdown': cost_breakdown,
                 'vertical': 'healthcare',
                 'processing_log': processing_log,
                 'reason': 'No evidence found across all channels'
@@ -2268,6 +2352,7 @@ Answer ONLY with valid JSON:
                 'lead_status': 'no_evidence',
                 'channel': 'error',
                 'cost': total_cost,
+                'cost_breakdown': cost_breakdown,
                 'vertical': 'healthcare',
                 'error': str(e)[:200],
                 'processing_log': processing_log
@@ -2417,5 +2502,11 @@ def process_account(record: Dict) -> Dict:
     # Add normalization cost if present
     if 'normalization_cost' in record:
         result['cost'] = result.get('cost', 0.0) + record['normalization_cost']
+        # Pre-computed upstream (public/private detection normalizer), not
+        # part of enrich_facility_dual_path's own breakdown -- merge it into
+        # whatever breakdown that call already returned under its own bucket.
+        breakdown = dict(result.get('cost_breakdown', {}))
+        _add_cost(breakdown, 'normalization_api', record['normalization_cost'])
+        result['cost_breakdown'] = breakdown
 
     return {**record, **result}

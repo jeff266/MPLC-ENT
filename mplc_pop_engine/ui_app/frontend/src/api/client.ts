@@ -752,6 +752,50 @@ export async function downloadCostTrackerCsv(vertical?: string, search?: string)
   return response.data as Blob;
 }
 
+// ---- Cost Tracker: by tool (2026-11-16) ----------------------------------
+// Jeff: "In the cost tracker do we have a breakdown of spend by tool
+// used" -- the per-tool split (serper / rapidapi / anthropic_claude /
+// usaspending_api / normalization_api, plus "unspecified_legacy" for
+// rows written before this shipped) alongside the existing by-channel
+// view.
+
+export interface CostTrackerToolSummary {
+  tool: string;
+  rows_with_cost: number;
+  total_cost: number;
+}
+
+export interface CostTrackerToolRow {
+  vertical: string;
+  tool: string;
+  rows_with_cost: number;
+  total_cost: number;
+}
+
+export interface CostTrackerByToolResponse {
+  by_tool: CostTrackerToolSummary[];
+  by_tool_and_vertical: CostTrackerToolRow[];
+  data_integrity_warnings: string[];
+}
+
+export async function fetchCostTrackerByTool(
+  vertical?: string,
+  search?: string,
+): Promise<CostTrackerByToolResponse> {
+  const { data } = await client.get<CostTrackerByToolResponse>("/cost-tracker/by-tool", {
+    params: { vertical: vertical || undefined, search: search || undefined },
+  });
+  return data;
+}
+
+export async function downloadCostTrackerByToolCsv(vertical?: string, search?: string): Promise<Blob> {
+  const response = await client.get("/cost-tracker/by-tool/export.csv", {
+    params: { vertical: vertical || undefined, search: search || undefined },
+    responseType: "blob",
+  });
+  return response.data as Blob;
+}
+
 // ---- Auth ---------------------------------------------------------------
 
 export interface TokenResponse {

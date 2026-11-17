@@ -938,6 +938,109 @@ def export_cost_tracker_csv(
     return StreamingResponse(io.StringIO(csv_text), media_type="text/csv", headers=headers)
 
 
+def _compute_cost_tracker_by_tool_rows(vertical: Optional[str], db: Session) -> tuple[list[dict], list[str]]:
+    """The by-(vertical, tool) rows (Supabase vertical-enricher rollup +
+    the local Clay AI-check rollup, both restated by tool instead of by
+    channel), plus any warnings. Same split-into-a-shared-helper pattern
+    as _compute_cost_tracker_rows, for the same reason: GET
+    /cost-tracker/by-tool and GET /cost-tracker/by-tool/export.csv must
+    compute from the identical source (2026-11-16, Jeff: "do we have a
+    breakdown of spend by tool used")."""
+    warnings: list[str] = []
+    try:
+        rows = supabase_client.get_cost_tracker_by_tool_rollup(vertical=vertical)
+    except supabase_client.SupabaseUnavailable as e:
+        rows = []
+        warnings.append(f"Vertical enrichment cost rollup unavailable: {e}")
+
+    if vertical is None or vertical == "clay_brand_verification":
+        rows.extend(queries.clay_ai_tool_cost_rollup(db))
+
+    return rows, warnings
+
+
+def _filter_cost_tracker_tool_rows(rows: list[dict], search: Optional[str]) -> list[dict]:
+    """Case-insensitive substring match on vertical or tool."""
+    if not search or not search.strip():
+        return rows
+    needle = search.strip().lower()
+    return [
+        row for row in rows
+        if needle in (row["vertical"] or "").lower() or needle in (row["tool"] or "").lower()
+    ]
+
+
+@app.get("/cost-tracker/by-tool")
+def get_cost_tracker_by_tool(
+    vertical: Optional[str] = None,
+    search: Optional[str] = None,
+    db: Session = Depends(get_db),
+):
+    """Jeff (2026-11-16): "In the cost tracker do we have a breakdown of
+    spend by tool used" -- this is that breakdown. The enrichers persist
+    a `cost_breakdown` object (per-tool shares of each row's flat `cost`)
+    alongside `cost` as of this change; rows written before this shipped
+    have no such field and are bucketed as "unspecified_legacy" rather
+    than silently dropped, so this endpoint's totals always reconcile
+    with GET /cost-tracker's by-channel totals for the same vertical.
+
+    `by_tool` sums across ALL verticals in scope (scoped by `vertical` if
+    given, never narrowed by `search`) -- the "which vendor are we
+    actually paying" view, sorted by spend descending. `by_tool_and_
+    vertical` is the finer (vertical, tool) grain, narrowed by `search`
+    (vertical/tool substring) -- what GET /cost-tracker/by-tool/
+    export.csv (same two params) downloads exactly."""
+    rows, warnings = _compute_cost_tracker_by_tool_rows(vertical, db)
+
+    by_tool: dict[str, dict] = {}
+    for row in rows:
+        t = by_tool.setdefault(row["tool"], {"tool": row["tool"], "rows_with_cost": 0, "total_cost": 0.0})
+        t["rows_with_cost"] += row["rows_with_cost"]
+        t["total_cost"] += row["total_cost"]
+    by_tool_list = sorted(by_tool.values(), key=lambda t: t["total_cost"], reverse=True)
+
+    return {
+        "by_tool": by_tool_list,
+        "by_tool_and_vertical": sorted(
+            _filter_cost_tracker_tool_rows(rows, search),
+            key=lambda r: (r["vertical"], r["tool"]),
+        ),
+        "data_integrity_warnings": warnings,
+    }
+
+
+_COST_TRACKER_TOOL_EXPORT_FIELDNAMES = ["vertical", "tool", "rows_with_cost", "total_cost", "cost_per_row"]
+
+
+def _cost_tracker_tool_rows_to_csv(rows: list[dict]) -> str:
+    buf = io.StringIO()
+    writer = csv.DictWriter(buf, fieldnames=_COST_TRACKER_TOOL_EXPORT_FIELDNAMES)
+    writer.writeheader()
+    for row in rows:
+        cost_per_row = (row["total_cost"] / row["rows_with_cost"]) if row["rows_with_cost"] else ""
+        writer.writerow({**row, "cost_per_row": cost_per_row})
+    return buf.getvalue()
+
+
+@app.get("/cost-tracker/by-tool/export.csv")
+def export_cost_tracker_by_tool_csv(
+    vertical: Optional[str] = None,
+    search: Optional[str] = None,
+    db: Session = Depends(get_db),
+):
+    """Same vertical/search filtering as GET /cost-tracker/by-tool,
+    applied to the same by_tool_and_vertical rows -- the download always
+    matches what the "By tool" table has on screen."""
+    rows, _ = _compute_cost_tracker_by_tool_rows(vertical, db)
+    filtered_rows = sorted(
+        _filter_cost_tracker_tool_rows(rows, search),
+        key=lambda r: (r["vertical"], r["tool"]),
+    )
+    csv_text = _cost_tracker_tool_rows_to_csv(filtered_rows)
+    headers = {"Content-Disposition": 'attachment; filename="cost_tracker_by_tool.csv"'}
+    return StreamingResponse(io.StringIO(csv_text), media_type="text/csv", headers=headers)
+
+
 # ---------------------------------------------------------------------------
 # Settings (added 2026-11-14) -- store the production path's API keys /
 # connection strings in .env and verify each one against a real provider

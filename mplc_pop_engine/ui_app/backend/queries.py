@@ -441,3 +441,23 @@ def clay_ai_verification_cost_rollup(session: Session) -> dict:
         "total_cost": float(total_cost or 0.0),
         "is_prospect_mismatches": 0,
     }
+
+
+def clay_ai_tool_cost_rollup(session: Session) -> list[dict]:
+    """The Clay AI-check spend restated by TOOL instead of by channel
+    (2026-11-16, Jeff: "do we have a breakdown of spend by tool used").
+    Trivial here -- the "Check with AI" button only ever calls one tool
+    (Claude Sonnet 4.5), so this is the same total as
+    clay_ai_verification_cost_rollup, just relabeled onto the
+    "anthropic_claude" bucket so it merges cleanly with the vertical
+    enrichers' by-tool rollup (which also uses that exact bucket name
+    for their own Claude VLM calls)."""
+    channel_row = clay_ai_verification_cost_rollup(session)
+    if channel_row["rows_with_cost"] == 0:
+        return []
+    return [{
+        "vertical": "clay_brand_verification",
+        "tool": "anthropic_claude",
+        "rows_with_cost": channel_row["rows_with_cost"],
+        "total_cost": channel_row["total_cost"],
+    }]
