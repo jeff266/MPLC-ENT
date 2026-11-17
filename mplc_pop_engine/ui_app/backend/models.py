@@ -227,6 +227,12 @@ class ClayMatch(Base):
     ai_verdict: Mapped[Optional[str]] = mapped_column(String(20))          # same / different / uncertain
     ai_reasoning: Mapped[Optional[str]] = mapped_column(String(2000))
     ai_verified_at: Mapped[Optional[datetime]] = mapped_column(DateTime)
+    # Real spend for that one AI Check click (2026-11-16, Jeff: "when i
+    # click on AI Check are we cost tracking that?" -- it wasn't, until
+    # this). Computed from the Anthropic response's own token usage in
+    # brand_verify.py, not estimated; 0.0 when no API call was actually
+    # made (e.g. both homepage fetches failed first).
+    ai_check_cost: Mapped[Optional[float]] = mapped_column(Float)
 
 
 class Action(Base):

@@ -70,6 +70,7 @@ def verify_row(db: Session, batch_id: str, row_id: int) -> dict:
     row.ai_verdict = result["verdict"]
     row.ai_reasoning = result["reasoning"]
     row.ai_verified_at = datetime.utcnow()
+    row.ai_check_cost = result.get("cost", 0.0)
     db.commit()
 
     return {
@@ -77,5 +78,6 @@ def verify_row(db: Session, batch_id: str, row_id: int) -> dict:
         "ai_verdict": row.ai_verdict,
         "ai_reasoning": row.ai_reasoning,
         "ai_verified_at": row.ai_verified_at.isoformat(),
+        "ai_check_cost": row.ai_check_cost,
         "fetch_errors": result.get("fetch_errors") or {},
     }

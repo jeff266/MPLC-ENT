@@ -448,7 +448,7 @@ _CLAY_EXPORT_FIELDNAMES = [
     # AI brand-verification (2026-11-16) -- added once queries.py started
     # returning these on every Clay row dict; DictWriter raises on any dict
     # key not in fieldnames, so this list has to track that shape exactly.
-    "ai_verdict", "ai_reasoning", "ai_verified_at",
+    "ai_verdict", "ai_reasoning", "ai_verified_at", "ai_check_cost",
 ]
 
 
@@ -791,21 +791,36 @@ def get_enrichment_job_progress(job_id: str, db: Session = Depends(get_db)):
 
 
 @app.get("/cost-tracker")
-def get_cost_tracker(vertical: Optional[str] = None):
+def get_cost_tracker(vertical: Optional[str] = None, db: Session = Depends(get_db)):
     """Cumulative, on-demand cost rollup (vertical x channel), plus a
     standing is_prospect data-integrity check, per claude/Cost_Tracker_
     Design.md. No separate rollup table or scheduler -- computed fresh
     from account_enrichment_results every call, per Jeff's 2026-11-14
     decision. `summary` gives the per-vertical North Star numbers
     ($/account, $/prospect, $/lead) aggregated across that vertical's
-    channels; `by_channel` is the full breakdown rows from Supabase.
+    channels; `by_channel` is the full breakdown rows from Supabase, plus
+    one locally-computed row for the Clay dedupe "Check with AI" button
+    (2026-11-16, Jeff: "when i click on AI Check are we cost tracking
+    that?") -- that one lives in this app's own SQLite (clay_matches),
+    not Supabase, so a missing/unconfigured Supabase connection no longer
+    hides it: Supabase failures are caught and surfaced as a warning
+    instead of a hard 503, since the Clay AI-check cost is independent of
+    Supabase being configured at all.
     `data_integrity_warnings` is only non-empty if is_prospect has drifted
-    from lead_status/tier again since the 2026-11-14 backfill -- silent
-    the rest of the time, so it reads as a real alert, not routine noise."""
+    from lead_status/tier again since the 2026-11-14 backfill, or Supabase
+    itself is unavailable -- silent the rest of the time, so it reads as a
+    real alert, not routine noise."""
+    warnings: list[str] = []
     try:
         rows = supabase_client.get_cost_tracker_rollup(vertical=vertical)
     except supabase_client.SupabaseUnavailable as e:
-        raise HTTPException(status_code=503, detail=str(e))
+        rows = []
+        warnings.append(f"Vertical enrichment cost rollup unavailable: {e}")
+
+    if vertical is None or vertical == "clay_brand_verification":
+        clay_row = queries.clay_ai_verification_cost_rollup(db)
+        if clay_row["rows_with_cost"] > 0:
+            rows.append(clay_row)
 
     summary: dict[str, dict] = {}
     for row in rows:
@@ -832,7 +847,7 @@ def get_cost_tracker(vertical: Optional[str] = None):
         s["cost_per_prospect"] = (s["total_cost"] / s["prospect_count"]) if s["prospect_count"] else None
         s["cost_per_lead"] = (s["total_cost"] / lead_count) if lead_count else None
 
-    warnings = [
+    warnings += [
         f"{row['vertical']}/{row['channel'] or '(no channel)'}: "
         f"{row['is_prospect_mismatches']} rows where is_prospect disagrees with "
         f"lead_status/tier -- re-run the 2026-11-14 backfill query"

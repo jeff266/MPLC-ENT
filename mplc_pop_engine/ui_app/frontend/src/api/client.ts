@@ -167,6 +167,7 @@ export interface ClayMatchRow {
   ai_verdict: string | null; // "same" | "different" | "uncertain" | null (never verified)
   ai_reasoning: string | null;
   ai_verified_at: string | null;
+  ai_check_cost: number | null;
 }
 
 export interface ClayAmbiguousPage {
@@ -261,6 +262,7 @@ export interface ClayBatchRow {
   ai_verdict: string | null; // "same" | "different" | "uncertain" | null (never verified)
   ai_reasoning: string | null;
   ai_verified_at: string | null;
+  ai_check_cost: number | null;
 }
 
 export interface ClayBatchRowsResult {
@@ -321,6 +323,7 @@ export interface VerifyClayBrandMatchResult {
   ai_verdict: string; // "same" | "different" | "uncertain"
   ai_reasoning: string;
   ai_verified_at: string;
+  ai_check_cost: number;
   fetch_errors: Record<string, string>;
 }
 

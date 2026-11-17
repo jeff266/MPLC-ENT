@@ -295,6 +295,7 @@ def clay_ambiguous_queue(session: Session, batch_id: Optional[str] = None,
                 "ai_verdict": r.ai_verdict,
                 "ai_reasoning": r.ai_reasoning,
                 "ai_verified_at": r.ai_verified_at.isoformat() if r.ai_verified_at else None,
+                "ai_check_cost": r.ai_check_cost,
             }
             for r in rows
         ],
@@ -380,6 +381,7 @@ def clay_batch_rows(
                 "ai_verdict": r.ai_verdict,
                 "ai_reasoning": r.ai_reasoning,
                 "ai_verified_at": r.ai_verified_at.isoformat() if r.ai_verified_at else None,
+                "ai_check_cost": r.ai_check_cost,
             }
             for r in rows
         ],
@@ -407,6 +409,35 @@ def clay_batch_rows_by_ids(session: Session, batch_id: str, ids: list[int]):
             "ai_verdict": r.ai_verdict,
             "ai_reasoning": r.ai_reasoning,
             "ai_verified_at": r.ai_verified_at.isoformat() if r.ai_verified_at else None,
+            "ai_check_cost": r.ai_check_cost,
         }
         for r in rows
     ]
+
+
+def clay_ai_verification_cost_rollup(session: Session) -> dict:
+    """Cost rollup for the AI brand-verification "Check with AI" button
+    (2026-11-16, Jeff: "when i click on AI Check are we cost tracking
+    that?" -- it wasn't; this is the fix). Lives in local SQLite
+    (clay_matches), not Supabase like the vertical enrichers' cost rows,
+    so this is computed separately and merged into GET /cost-tracker
+    rather than coming from supabase_client.get_cost_tracker_rollup.
+    Shaped to match CostTrackerChannelRow on the frontend: prospect_count/
+    suspect_count/is_prospect_mismatches don't apply to a same/different/
+    uncertain verdict (it's not a PROSPECT/SUSPECT pipeline), so those are
+    always 0 here rather than forced into a meaning they don't have."""
+    checked = session.execute(
+        select(func.count(), func.coalesce(func.sum(models.ClayMatch.ai_check_cost), 0.0))
+        .where(models.ClayMatch.ai_verified_at.is_not(None))
+    ).one()
+    checked_count, total_cost = checked
+    return {
+        "vertical": "clay_brand_verification",
+        "channel": "ai_verify",
+        "accounts_processed": checked_count,
+        "prospect_count": 0,
+        "suspect_count": 0,
+        "rows_with_cost": checked_count,
+        "total_cost": float(total_cost or 0.0),
+        "is_prospect_mismatches": 0,
+    }

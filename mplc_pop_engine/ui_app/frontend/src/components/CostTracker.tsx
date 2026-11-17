@@ -46,40 +46,67 @@ export function CostTracker() {
 
       {data && data.summary.length > 0 && (
         <>
-          {data.summary.map((s) => (
-            <div key={s.vertical} className="cost-tracker-vertical">
-              <h3>{s.vertical}</h3>
-              <div className="metrics-panel">
-                <div className="metric-tile">
-                  <div className="metric-value">{fmtMoney(s.cost_per_prospect)}</div>
-                  <div className="metric-label">$ / prospect (North Star)</div>
-                </div>
-                <div className="metric-tile">
-                  <div className="metric-value">{fmtMoney(s.cost_per_lead)}</div>
-                  <div className="metric-label">$ / lead (prospect + suspect)</div>
-                </div>
-                <div className="metric-tile">
-                  <div className="metric-value">{fmtMoney(s.cost_per_account)}</div>
-                  <div className="metric-label">$ / account</div>
-                </div>
-                <div className="metric-tile">
-                  <div className="metric-value">${s.total_cost.toFixed(2)}</div>
-                  <div className="metric-label">total spend (cumulative)</div>
-                </div>
-                <div className="metric-tile">
-                  <div className="metric-value">{s.accounts_processed.toLocaleString()}</div>
-                  <div className="metric-label">accounts processed</div>
-                </div>
-                <div className="metric-tile">
-                  <div className="metric-value">
-                    {s.prospect_count.toLocaleString()}
-                    {s.suspect_count > 0 ? ` + ${s.suspect_count.toLocaleString()}` : ""}
+          {data.summary.map((s) =>
+            // clay_brand_verification (Jeff, 2026-11-16: "when i click on
+            // AI Check are we cost tracking that?") isn't a PROSPECT/
+            // SUSPECT pipeline -- it's a same/different/uncertain second
+            // opinion -- so the North Star $/prospect and $/lead tiles
+            // below (and "0 prospects") would be misleading here. Shown
+            // as its own simpler block instead of forcing it into tiles
+            // that don't apply.
+            s.vertical === "clay_brand_verification" ? (
+              <div key={s.vertical} className="cost-tracker-vertical">
+                <h3>Clay dedupe — AI brand verification ("Check with AI")</h3>
+                <div className="metrics-panel">
+                  <div className="metric-tile">
+                    <div className="metric-value">${s.total_cost.toFixed(4)}</div>
+                    <div className="metric-label">total spend (cumulative)</div>
                   </div>
-                  <div className="metric-label">prospects{s.suspect_count > 0 ? " + suspects" : ""}</div>
+                  <div className="metric-tile">
+                    <div className="metric-value">{s.accounts_processed.toLocaleString()}</div>
+                    <div className="metric-label">checks run</div>
+                  </div>
+                  <div className="metric-tile">
+                    <div className="metric-value">{fmtMoney(s.cost_per_account)}</div>
+                    <div className="metric-label">$ / check</div>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ) : (
+              <div key={s.vertical} className="cost-tracker-vertical">
+                <h3>{s.vertical}</h3>
+                <div className="metrics-panel">
+                  <div className="metric-tile">
+                    <div className="metric-value">{fmtMoney(s.cost_per_prospect)}</div>
+                    <div className="metric-label">$ / prospect (North Star)</div>
+                  </div>
+                  <div className="metric-tile">
+                    <div className="metric-value">{fmtMoney(s.cost_per_lead)}</div>
+                    <div className="metric-label">$ / lead (prospect + suspect)</div>
+                  </div>
+                  <div className="metric-tile">
+                    <div className="metric-value">{fmtMoney(s.cost_per_account)}</div>
+                    <div className="metric-label">$ / account</div>
+                  </div>
+                  <div className="metric-tile">
+                    <div className="metric-value">${s.total_cost.toFixed(2)}</div>
+                    <div className="metric-label">total spend (cumulative)</div>
+                  </div>
+                  <div className="metric-tile">
+                    <div className="metric-value">{s.accounts_processed.toLocaleString()}</div>
+                    <div className="metric-label">accounts processed</div>
+                  </div>
+                  <div className="metric-tile">
+                    <div className="metric-value">
+                      {s.prospect_count.toLocaleString()}
+                      {s.suspect_count > 0 ? ` + ${s.suspect_count.toLocaleString()}` : ""}
+                    </div>
+                    <div className="metric-label">prospects{s.suspect_count > 0 ? " + suspects" : ""}</div>
+                  </div>
+                </div>
+              </div>
+            ),
+          )}
 
           <h3>By channel</h3>
           <table className="accounts-table">

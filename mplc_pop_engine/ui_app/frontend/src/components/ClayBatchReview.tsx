@@ -288,6 +288,12 @@ export function ClayBatchReview({ batchId }: { batchId: string }) {
                         >
                           {AI_VERDICT_LABELS[row.ai_verdict] ?? row.ai_verdict}
                         </span>
+                        {row.ai_check_cost != null && (
+                          <span className="field-hint" title="Real cost of this AI check, from the API's own token usage">
+                            {" "}
+                            (${row.ai_check_cost.toFixed(4)})
+                          </span>
+                        )}
                       </div>
                     )}
                     <button

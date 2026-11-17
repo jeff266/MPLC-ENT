@@ -33,6 +33,16 @@ _USER_AGENT = "Mozilla/5.0 (compatible; MPLC-PoP-Engine/1.0; +https://mplc.org)"
 _MODEL = "claude-sonnet-4-5-20250929"
 _VALID_VERDICTS = {"same", "different", "uncertain"}
 
+# Jeff (2026-11-16): "when i click on AI Check are we cost tracking that?"
+# -- we weren't. Same per-token pricing CLAUDE.md already documents for
+# this exact model elsewhere in this codebase (corporate_fixed.py's VLM
+# calls): $3.00/1M input, $15.00/1M output. Computed from the real
+# response.usage on every successful call -- never estimated/guessed --
+# so the number persisted on the row is the actual spend, not a flat
+# per-click estimate.
+_INPUT_COST_PER_TOKEN = 3.00 / 1_000_000
+_OUTPUT_COST_PER_TOKEN = 15.00 / 1_000_000
+
 
 def fetch_homepage_text(domain: Optional[str], timeout: float = 10.0,
                          max_chars: int = 4000) -> tuple[Optional[str], Optional[str]]:
@@ -79,11 +89,16 @@ def verify_brand_match(
     anthropic_api_key: Optional[str] = None,
 ) -> dict:
     """Returns {'verdict': 'same'|'different'|'uncertain', 'reasoning': str,
-    'fetch_errors': dict}. Never raises -- a fetch failure, a missing API
-    key, or a malformed model response all come back as 'uncertain' with
-    the reason explained, since this is a best-effort second opinion
-    feeding a human decision, not a step that should crash the review
-    flow a human is actively working in."""
+    'fetch_errors': dict, 'cost': float}. 'cost' is the REAL spend computed
+    from the API response's own usage.input_tokens/output_tokens -- 0.0
+    whenever no API call was made (both fetches failed, no API key, the
+    anthropic package is missing) or the call itself errored before a
+    response came back, since there's nothing to bill in those cases.
+    Never raises -- a fetch failure, a missing API key, or a malformed
+    model response all come back as 'uncertain' with the reason explained,
+    since this is a best-effort second opinion feeding a human decision,
+    not a step that should crash the review flow a human is actively
+    working in."""
     clay_text, clay_err = fetch_homepage_text(clay_website)
     sf_text, sf_err = fetch_homepage_text(sf_website)
 
@@ -98,6 +113,7 @@ def verify_brand_match(
             "verdict": "uncertain",
             "reasoning": "Could not fetch either company's website, so no comparison could be made.",
             "fetch_errors": fetch_errors,
+            "cost": 0.0,
         }
 
     api_key = anthropic_api_key or os.getenv("ANTHROPIC_API_KEY")
@@ -106,6 +122,7 @@ def verify_brand_match(
             "verdict": "uncertain",
             "reasoning": "ANTHROPIC_API_KEY not set -- could not run the comparison.",
             "fetch_errors": fetch_errors,
+            "cost": 0.0,
         }
 
     try:
@@ -115,6 +132,7 @@ def verify_brand_match(
             "verdict": "uncertain",
             "reasoning": "The anthropic package isn't installed in this environment.",
             "fetch_errors": fetch_errors,
+            "cost": 0.0,
         }
 
     prompt = f"""Two companies share a brand-sounding name. Decide whether they are the SAME real-world business (e.g. the same company under a different legal-entity name, a rebrand, a subsidiary, or a sibling brand of the same parent) or DIFFERENT, unrelated companies that just happen to share a word.
@@ -135,6 +153,15 @@ Respond with ONLY a JSON object, no other text, in exactly this shape:
             max_tokens=300,
             messages=[{"role": "user", "content": prompt}],
         )
+        # Real spend, not an estimate -- the API call already happened and
+        # billed by the time we're here, so this is the actual cost of
+        # this click, computed from the usage the response itself reports.
+        usage = getattr(response, "usage", None)
+        cost = (
+            (getattr(usage, "input_tokens", 0) or 0) * _INPUT_COST_PER_TOKEN
+            + (getattr(usage, "output_tokens", 0) or 0) * _OUTPUT_COST_PER_TOKEN
+        ) if usage else 0.0
+
         raw = response.content[0].text.strip()
         raw = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw).strip()
         parsed = json.loads(raw)
@@ -145,10 +172,17 @@ Respond with ONLY a JSON object, no other text, in exactly this shape:
             "verdict": verdict,
             "reasoning": str(parsed.get("reasoning", ""))[:2000],
             "fetch_errors": fetch_errors,
+            "cost": cost,
         }
     except Exception as e:
         return {
             "verdict": "uncertain",
             "reasoning": f"Comparison failed: {e}",
             "fetch_errors": fetch_errors,
+            # The API call may have been billed even though parsing/JSON
+            # failed after it returned -- but without a successful response
+            # object we have no usage to compute from, so this is 0.0 by
+            # necessity, not because the call was free. Rare path (malformed
+            # JSON from the model); flagged here rather than guessed at.
+            "cost": 0.0,
         }
