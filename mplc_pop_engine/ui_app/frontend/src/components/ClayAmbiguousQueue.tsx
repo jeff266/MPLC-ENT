@@ -5,12 +5,21 @@ import { Pagination } from "./Pagination";
 
 const PAGE_SIZE = 50;
 
-/** Clay-dedupe rows with more than one Salesforce candidate (clay_dedupe.py's
- * "ambiguous" classification) — needs a human pick, since the tool can't
- * safely guess between 2+ equally-plausible matches. Empty today because
- * no Clay batch has been run through the DB-backed path yet (clay_dedupe.py
- * was validated standalone against a 1,758-row export, but hasn't written
- * into clay_matches). That's expected, not a bug. */
+const CLASSIFICATION_LABELS: Record<string, string> = {
+  POSSIBLE_MATCH_BRAND: "Possible match (brand-root fuzzy)",
+};
+
+/** Human-review queue for Clay dedupe rows: either more than one
+ * Salesforce candidate (clay_dedupe.py can't safely guess between 2+
+ * equally-plausible matches), or a brand-root fuzzy hit -- added
+ * 2026-11-16, Jeff: "Exact match is useless for me". Real MDU/real-estate
+ * operators often sit in Salesforce under a different legal-entity name
+ * and domain than a prospect list (e.g. "Cortland Partners, LLC" /
+ * cortland.com in Salesforce vs. "Cortland Development, LLC" /
+ * cortlandpartners.com on a prospect list) -- a brand-root match always
+ * lands here for a human to confirm or reject, even with a single
+ * candidate, since fuzzy matching is never auto-trusted the way an exact
+ * domain/name match is. */
 export function ClayAmbiguousQueue() {
   const [page, setPage] = useState(1);
 
@@ -25,8 +34,8 @@ export function ClayAmbiguousQueue() {
   if (data.rows.length === 0) {
     return (
       <p className="empty-state">
-        No ambiguous Clay matches yet — nothing has been run through the Clay dedupe tool
-        against this database.
+        Nothing needs review right now — no Clay dedupe rows with multiple candidates or a
+        brand-root fuzzy match.
       </p>
     );
   }
@@ -40,6 +49,8 @@ export function ClayAmbiguousQueue() {
             <th>Clay website</th>
             <th>Classification</th>
             <th>Match method</th>
+            <th>Confidence</th>
+            <th>Salesforce candidate</th>
             <th># candidates</th>
           </tr>
         </thead>
@@ -48,8 +59,13 @@ export function ClayAmbiguousQueue() {
             <tr key={row.id}>
               <td>{row.clay_company_name}</td>
               <td>{row.clay_website}</td>
-              <td>{row.classification}</td>
+              <td>{CLASSIFICATION_LABELS[row.classification] ?? row.classification}</td>
               <td>{row.match_method ?? "—"}</td>
+              <td>{row.match_confidence ?? "—"}</td>
+              <td title={row.matched_account_id ?? undefined}>
+                {row.matched_account_name ?? "—"}
+                {row.num_candidates > 1 ? ` (+${row.num_candidates - 1} more)` : ""}
+              </td>
               <td>{row.num_candidates}</td>
             </tr>
           ))}

@@ -258,8 +258,20 @@ def unresolved_queue(session: Session, run_date: Optional[str] = None,
 
 def clay_ambiguous_queue(session: Session, batch_id: Optional[str] = None,
                           page: int = 1, page_size: int = 100):
-    """Clay dedupe rows with >1 Salesforce candidate — needs a human pick."""
-    conditions = [models.ClayMatch.num_candidates > 1]
+    """Human-review queue for Clay dedupe rows: either >1 Salesforce
+    candidate (can't safely auto-pick between equally-plausible matches),
+    or a POSSIBLE_MATCH_BRAND row (clay_dedupe.py's brand-root fuzzy
+    tier, added 2026-11-16 -- Jeff: "Exact match is useless for me").
+    A brand-root hit belongs here even with exactly one candidate, since
+    fuzzy matching is never auto-trusted the way an exact domain/name
+    match is -- same review discipline, just a different reason for
+    needing it. matched_account_id/name included (not just classification/
+    match_method) since a reviewer needs to see WHICH Salesforce account
+    is being proposed as the match, not just that one exists."""
+    conditions = [
+        (models.ClayMatch.num_candidates > 1)
+        | (models.ClayMatch.classification == "POSSIBLE_MATCH_BRAND")
+    ]
     if batch_id:
         conditions.append(models.ClayMatch.batch_id == batch_id)
 
@@ -276,7 +288,10 @@ def clay_ambiguous_queue(session: Session, batch_id: Optional[str] = None,
             {
                 "id": r.id, "clay_company_name": r.clay_company_name,
                 "clay_website": r.clay_website, "classification": r.classification,
-                "match_method": r.match_method, "num_candidates": r.num_candidates,
+                "match_method": r.match_method, "match_confidence": r.match_confidence,
+                "matched_account_id": r.matched_account_id,
+                "matched_account_name": r.matched_account_name,
+                "num_candidates": r.num_candidates,
             }
             for r in rows
         ],

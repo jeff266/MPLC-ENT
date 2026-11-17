@@ -36,23 +36,59 @@ against the real 703,260-account Salesforce universe in account_eligibility.py):
        (confirmed real example: "First Baptist Church" shared by 1,649
        unrelated congregations).
 
-    3. Phone / Address / City / State (optional, disambiguation only) —
+    3. Brand-root fuzzy match (fallback, LOW confidence, flagged for human
+       review -- added 2026-11-16 per Jeff: "Exact match is useless for me").
+       Real-estate/MDU operators routinely show up in Salesforce under a
+       different legal-entity name and a different domain than whatever's
+       on a prospect list -- same brand, different wrapper (confirmed real
+       example: Jeff's own Salesforce has "Cortland Partners, LLC" at
+       cortland.com while his MDU prospect list has "Cortland Development,
+       LLC" at cortlandpartners.com; same for Knightvest
+       Capital/knightvest.com vs. "Knightvest Residential"/
+       knightvestcapital.com in Salesforce). Exact domain/name matching
+       above correctly reports these as NET_NEW -- they're exact mismatches
+       -- but that makes exact-only matching useless for catching real
+       affiliated entities.
+       brand_root() strips common real-estate business-type words
+       (Partners, Capital, Residential, Communities, Management, Group,
+       Development, Living, Homes, ...) off a normalized name and keeps
+       the first remaining token -- "cortland development" and "cortland
+       partners" both reduce to "cortland". Matched the same way domain/
+       name are, with its OWN generic-collision guard (max_brand_group_size,
+       stricter default than domain/name's since a single brand word
+       collides across unrelated companies far more easily than a full
+       name or domain does -- think "United", "American", "First").
+       NEVER auto-classified as MATCHED_* -- this is explicitly the kind of
+       parent-brand-≠-guaranteed-affiliation risk this project's CLAUDE.md
+       already warns about (DSO/multi-location brands, dealership groups),
+       so a brand-root hit always comes back as its own POSSIBLE_MATCH_BRAND
+       classification for a human to confirm or reject, same review
+       discipline as the existing >1-candidate ambiguous queue.
+
+    4. Phone / Address / City / State (optional, disambiguation only) —
        when a domain or name match returns more than one Salesforce
        candidate, these fields (whichever are present) are used to narrow
        to the single best candidate. They are never used as a standalone
        match signal, since Jeff specified them as optional.
 
 OUTPUT per Clay row:
-    NET_NEW              — no Salesforce record found at all
-    MATCHED_PROTECTED    — matched, and that account is currently excluded
-                            per account_eligibility.py's exclusion logic
-                            (requires --eligibility-audit)
-    MATCHED_AVAILABLE    — matched, but that account is not excluded
-    MATCHED_UNKNOWN       — matched, but no --eligibility-audit was supplied
-                            so protected/available status can't be determined
-    plus: match_method (domain/name), match_confidence (high/medium/low),
-    matched_account_id, matched_account_name, num_candidates (>1 means
-    ambiguous — flagged for human review).
+    NET_NEW              — no Salesforce record found at all, not even a
+                            brand-root hint
+    MATCHED_PROTECTED    — exact (domain/name) match, and that account is
+                            currently excluded per account_eligibility.py's
+                            exclusion logic (requires --eligibility-audit)
+    MATCHED_AVAILABLE    — exact match, but that account is not excluded
+    MATCHED_UNKNOWN       — exact match, but no --eligibility-audit was
+                            supplied so protected/available status can't
+                            be determined
+    POSSIBLE_MATCH_BRAND — no exact domain/name match, but a brand-root
+                            fuzzy hit — needs a human to confirm this is
+                            really the same entity before treating it as
+                            matched either way
+    plus: match_method (domain/name/brand_fuzzy), match_confidence
+    (high/medium/low/medium_fuzzy/...), matched_account_id,
+    matched_account_name, num_candidates (>1 means ambiguous — flagged for
+    human review, same as a brand-root hit always is regardless of count).
 """
 
 import sys
@@ -65,6 +101,44 @@ import pandas as pd
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from account_eligibility import norm_domain, norm_name  # noqa: E402
+
+# Business-type words real-estate/MDU operators routinely tack onto a
+# brand name -- stripped off to get the brand itself ("cortland" out of
+# both "Cortland Development" and "Cortland Partners"). norm_name() has
+# already lowercased/stripped punctuation and legal suffixes (LLC/Inc/
+# Corp) before this runs, so these are purely business-TYPE descriptors,
+# not legal-entity suffixes. Deliberately not exhaustive -- the
+# generic-collision guard in SFIndex (max_brand_group_size) is the real
+# backstop against a brand_root that turns out to be too common to be a
+# useful signal, not this list.
+BRAND_DESCRIPTOR_WORDS = {
+    'capital', 'capitals', 'partners', 'partner', 'partnership', 'partnerships',
+    'residential', 'communities', 'community', 'properties', 'property',
+    'management', 'mgmt', 'group', 'groups', 'holdings', 'holding',
+    'ventures', 'venture', 'enterprises', 'enterprise', 'investments',
+    'investment', 'development', 'developments', 'developer', 'developers',
+    'living', 'homes', 'housing', 'realty', 'services', 'advisors',
+    'advisory', 'multifamily', 'apartments', 'apartment', 'careers',
+}
+
+
+def brand_root(name) -> Optional[str]:
+    """The brand itself, with business-type descriptor words stripped off
+    the already-normalized name -- e.g. "Cortland Development, LLC" and
+    "Cortland Partners, LLC" (both real companies, different Salesforce
+    vs. prospect-list legal-entity wrappers for what's plausibly the same
+    real-estate brand) both reduce to "cortland". Falls back to the first
+    token if every token is a descriptor (name is nothing BUT descriptor
+    words) so this never returns a false None for a real name."""
+    normalized = norm_name(name)
+    if not normalized:
+        return None
+    tokens = [t for t in normalized.split(' ') if t]
+    if not tokens:
+        return None
+    core_tokens = [t for t in tokens if t not in BRAND_DESCRIPTOR_WORDS]
+    return core_tokens[0] if core_tokens else tokens[0]
+
 
 # Exact-name candidates, tried first (fast, no false-positive risk).
 # Expanded 2026-11-14 (Jeff: "sometimes the naming of the columns may be
@@ -177,10 +251,12 @@ def _norm_simple(s) -> Optional[str]:
 
 
 class SFIndex:
-    """Domain and name lookup indexes over the Salesforce account universe,
-    with the same generic-collision guard used in account_eligibility.py."""
+    """Domain, name, and brand-root lookup indexes over the Salesforce
+    account universe, with the same generic-collision guard used in
+    account_eligibility.py."""
 
-    def __init__(self, sf_df: pd.DataFrame, max_group_size: int = 50, verbose: bool = True):
+    def __init__(self, sf_df: pd.DataFrame, max_group_size: int = 50,
+                 max_brand_group_size: int = 15, verbose: bool = True):
         id_col = _find_col(sf_df, SF_ACCOUNT_ID_COL_CANDIDATES)
         name_col = _find_col(sf_df, SF_ACCOUNT_NAME_COL_CANDIDATES)
         website_col = _find_col(sf_df, SF_WEBSITE_COL_CANDIDATES)
@@ -207,20 +283,29 @@ class SFIndex:
             'phone': sf_df[phone_col].map(_norm_phone) if phone_col else None,
             'domain': sf_df[website_col].map(norm_domain) if website_col else None,
             'name_norm': sf_df[name_col].map(norm_name),
+            'brand_root': sf_df[name_col].map(brand_root),
         })
 
         records = work.to_dict('records')
 
         self.domain_to_accounts: Dict[str, List[dict]] = defaultdict(list)
         self.name_to_accounts: Dict[str, List[dict]] = defaultdict(list)
+        self.brand_root_to_accounts: Dict[str, List[dict]] = defaultdict(list)
 
         for rec in records:
-            d = rec.pop('domain')
+            # 'domain' is kept in rec (not popped) -- the brand-root fuzzy
+            # tier below needs each candidate's domain to check for
+            # corroboration, something the exact domain/name tiers never
+            # needed to carry downstream.
+            d = rec.get('domain')
             n = rec.pop('name_norm')
+            b = rec.pop('brand_root')
             if d:
                 self.domain_to_accounts[d].append(rec)
             if n:
                 self.name_to_accounts[n].append(rec)
+            if b:
+                self.brand_root_to_accounts[b].append(rec)
 
         self.generic_domains = {
             d for d, accts in self.domain_to_accounts.items() if len(accts) > max_group_size
@@ -228,14 +313,27 @@ class SFIndex:
         self.generic_names = {
             n for n, accts in self.name_to_accounts.items() if len(accts) > max_group_size
         }
+        # Tighter cap than domain/name (max_brand_group_size, default 15 vs.
+        # 50) -- a single brand word ("united", "american", "first")
+        # collides across unrelated companies far more easily than a full
+        # name or domain does, so this fallback tier needs the stricter
+        # guard to stay a useful, low-noise signal rather than flooding
+        # the review queue.
+        self.generic_brand_roots = {
+            b for b, accts in self.brand_root_to_accounts.items()
+            if len(accts) > max_brand_group_size
+        }
 
         if verbose:
             print(f"  SF index: {len(self.domain_to_accounts):,} distinct domains, "
-                  f"{len(self.name_to_accounts):,} distinct normalized names")
+                  f"{len(self.name_to_accounts):,} distinct normalized names, "
+                  f"{len(self.brand_root_to_accounts):,} distinct brand roots")
             print(f"  Generic (>={max_group_size}+1 accounts) domains excluded from matching: "
                   f"{len(self.generic_domains):,}")
             print(f"  Generic (>={max_group_size}+1 accounts) names excluded from matching: "
                   f"{len(self.generic_names):,}")
+            print(f"  Generic (>={max_brand_group_size}+1 accounts) brand roots excluded "
+                  f"from fuzzy matching: {len(self.generic_brand_roots):,}")
 
 
 def _disambiguate(candidates: List[dict], clay_row: dict) -> List[dict]:
@@ -262,6 +360,22 @@ def _disambiguate(candidates: List[dict], clay_row: dict) -> List[dict]:
         if len(narrowed) < len(candidates):
             return narrowed
     return candidates
+
+
+def _domains_share_root(domain: Optional[str], candidate_domain: Optional[str]) -> bool:
+    """Corroboration only (never a standalone trigger) for a brand-root
+    name match: do the two domains' base names (before the TLD) contain
+    one another? E.g. "cortland" (from cortland.com) is a substring of
+    "cortlandpartners" (from cortlandpartners.com). Length-gated at 4
+    characters so a trivial short substring ("a.com" inside "abc.com")
+    can't manufacture a false corroboration."""
+    if not domain or not candidate_domain:
+        return False
+    base1 = domain.split('.')[0]
+    base2 = candidate_domain.split('.')[0]
+    if len(base1) < 4 or len(base2) < 4:
+        return False
+    return base1 in base2 or base2 in base1
 
 
 def match_clay_row(clay_row: dict, idx: SFIndex) -> dict:
@@ -291,9 +405,34 @@ def match_clay_row(clay_row: dict, idx: SFIndex) -> dict:
 
     name_is_generic = bool(name) and name in idx.generic_names
 
+    # 3. Brand-root fuzzy match (last resort, LOW confidence, ALWAYS
+    # flagged for human review regardless of candidate count -- see the
+    # module docstring for the real Cortland/Knightvest examples that
+    # drove this tier. Domain corroboration (two domains sharing a
+    # meaningful substring) is a second independent signal that bumps
+    # confidence up a notch, but a brand-root hit never gets promoted to
+    # a MATCHED_* classification outright the way domain/name matches do.
+    brand = brand_root(clay_row.get('company_name'))
+    if brand and brand not in idx.generic_brand_roots and brand in idx.brand_root_to_accounts:
+        candidates = idx.brand_root_to_accounts[brand]
+        corroborated = [c for c in candidates if _domains_share_root(domain, c.get('domain'))]
+        narrowed = _disambiguate(corroborated if corroborated else candidates, clay_row)
+        if corroborated:
+            confidence = 'medium_fuzzy' if len(narrowed) == 1 else 'medium_fuzzy_ambiguous'
+        else:
+            confidence = 'low' if len(narrowed) == 1 else 'low_ambiguous'
+        return {
+            'match_method': 'brand_fuzzy',
+            'match_confidence': confidence,
+            'candidates': narrowed,
+        }
+
+    brand_is_generic = bool(brand) and brand in idx.generic_brand_roots
+
     return {
         'match_method': 'generic_domain_no_match' if domain_is_generic else (
-            'generic_name_no_match' if name_is_generic else 'none'),
+            'generic_name_no_match' if name_is_generic else (
+                'generic_brand_no_match' if brand_is_generic else 'none')),
         'match_confidence': 'none',
         'candidates': [],
     }
@@ -305,6 +444,7 @@ def run_clay_dedupe_df(
     column_mapping: Optional[Dict[str, Optional[str]]] = None,
     eligibility_map: Optional[Dict[str, bool]] = None,
     max_group_size: int = 50,
+    max_brand_group_size: int = 15,
     verbose: bool = True,
 ) -> pd.DataFrame:
     """DataFrame-native, mapping-aware core (2026-11-14) -- the shared
@@ -338,7 +478,8 @@ def run_clay_dedupe_df(
         print(f"  {len(clay_df):,} export rows loaded (mapping: {mapping})")
         print("Building Salesforce index...")
 
-    idx = SFIndex(sf_df, max_group_size=max_group_size, verbose=verbose)
+    idx = SFIndex(sf_df, max_group_size=max_group_size,
+                  max_brand_group_size=max_brand_group_size, verbose=verbose)
     eligibility_map = eligibility_map or {}
 
     if verbose:
@@ -366,7 +507,15 @@ def run_clay_dedupe_df(
             primary = candidates[0]
             matched_id = primary['account_id']
             matched_name = primary['account_name']
-            if eligibility_map:
+            if m['match_method'] == 'brand_fuzzy':
+                # Never auto-promoted to MATCHED_* -- a brand-root hit is
+                # exactly the parent-brand-≠-guaranteed-affiliation risk
+                # this project's CLAUDE.md already flags (DSO/multi-
+                # location brands, dealership groups). It always needs a
+                # human to confirm the entity before being treated as a
+                # real match either way, regardless of eligibility_map.
+                classification = 'POSSIBLE_MATCH_BRAND'
+            elif eligibility_map:
                 excluded = eligibility_map.get(matched_id)
                 if excluded is None:
                     classification = 'MATCHED_UNKNOWN'
@@ -405,6 +554,7 @@ def run_clay_dedupe(
     all_accounts_path: str,
     eligibility_audit_path: Optional[str] = None,
     max_group_size: int = 50,
+    max_brand_group_size: int = 15,
     output_path: Optional[str] = None,
     verbose: bool = True,
 ) -> pd.DataFrame:
@@ -442,7 +592,8 @@ def run_clay_dedupe(
 
     result_df = run_clay_dedupe_df(
         clay_df, sf_df, eligibility_map=eligibility_map,
-        max_group_size=max_group_size, verbose=verbose,
+        max_group_size=max_group_size, max_brand_group_size=max_brand_group_size,
+        verbose=verbose,
     )
 
     if output_path:
@@ -466,6 +617,10 @@ def main():
                               '(enables MATCHED_PROTECTED vs MATCHED_AVAILABLE classification)')
     parser.add_argument('--max-group-size', type=int, default=50,
                          help='Domain/name groups larger than this are treated as generic, not matched (default 50)')
+    parser.add_argument('--max-brand-group-size', type=int, default=15,
+                         help='Brand-root fuzzy-match groups larger than this are treated as generic, not '
+                              'matched (default 15 -- stricter than --max-group-size since a single brand '
+                              'word collides across unrelated companies more easily than a full name/domain)')
     parser.add_argument('--output', default='clay_dedupe_results.csv', help='Output CSV path')
     parser.add_argument('--quiet', action='store_true')
     args = parser.parse_args()
@@ -475,6 +630,7 @@ def main():
         all_accounts_path=args.all_accounts,
         eligibility_audit_path=args.eligibility_audit,
         max_group_size=args.max_group_size,
+        max_brand_group_size=args.max_brand_group_size,
         output_path=args.output,
         verbose=not args.quiet,
     )

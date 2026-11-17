@@ -160,6 +160,9 @@ export interface ClayMatchRow {
   clay_website: string | null;
   classification: string;
   match_method: string | null;
+  match_confidence: string | null;
+  matched_account_id: string | null;
+  matched_account_name: string | null;
   num_candidates: number;
 }
 
@@ -218,6 +221,7 @@ export interface ClayImportResult {
   rows_processed: number;
   classification_counts: Record<string, number>;
   ambiguous_count: number;
+  brand_match_count: number;
   eligibility_data_available: boolean;
 }
 

@@ -189,6 +189,14 @@ export function ClayImport() {
               Salesforce account — see the Clay Ambiguous queue below to resolve them.
             </p>
           )}
+          {result.brand_match_count > 0 && (
+            <p>
+              {result.brand_match_count.toLocaleString()} row(s) didn't match exactly but share
+              a brand with a Salesforce account (e.g. "Cortland Development, LLC" vs.
+              Salesforce's "Cortland Partners, LLC") — flagged POSSIBLE_MATCH_BRAND, see the Clay
+              Ambiguous queue below to confirm or reject each one. These are never auto-matched.
+            </p>
+          )}
           {!result.eligibility_data_available && (
             <p className="field-hint">
               No eligibility run found yet — matches couldn't be split into

@@ -149,6 +149,7 @@ def run_import(
     file_bytes: bytes,
     column_mapping: Optional[Dict[str, Optional[str]]] = None,
     max_group_size: int = 50,
+    max_brand_group_size: int = 15,
 ) -> dict:
     """Runs the real clay_dedupe.run_clay_dedupe_df() against this app's
     own Salesforce universe + eligibility data, persists every result row
@@ -166,6 +167,7 @@ def run_import(
             column_mapping=column_mapping,
             eligibility_map=eligibility_map,
             max_group_size=max_group_size,
+            max_brand_group_size=max_brand_group_size,
             verbose=False,
         )
     except ValueError as e:
@@ -192,10 +194,17 @@ def run_import(
 
     counts = result_df["classification"].value_counts().to_dict()
     ambiguous_count = int((result_df["num_candidates"] > 1).sum())
+    # Brand-fuzzy hits (Jeff, 2026-11-16: "Exact match is useless for me")
+    # always need a human look, same review discipline as num_candidates>1
+    # above, regardless of how many candidates came back -- surfaced
+    # separately so the UI can point at the review queue even when every
+    # brand hit happened to resolve to exactly one candidate.
+    brand_match_count = int((result_df["classification"] == "POSSIBLE_MATCH_BRAND").sum())
     return {
         "batch_id": batch_id,
         "rows_processed": len(result_df),
         "classification_counts": counts,
         "ambiguous_count": ambiguous_count,
+        "brand_match_count": brand_match_count,
         "eligibility_data_available": bool(eligibility_map),
     }

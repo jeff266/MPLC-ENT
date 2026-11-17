@@ -393,6 +393,7 @@ async def clay_run_dedupe(
     file: UploadFile = File(...),
     column_mapping: Optional[str] = None,  # JSON string, e.g. '{"company_name":"Biz Name","website":"URL"}'
     max_group_size: int = 50,
+    max_brand_group_size: int = 15,
     db: Session = Depends(get_db),
 ):
     import json as _json
@@ -409,6 +410,7 @@ async def clay_run_dedupe(
         return clay_import.run_import(
             db, file.filename, contents,
             column_mapping=mapping, max_group_size=max_group_size,
+            max_brand_group_size=max_brand_group_size,
         )
     except clay_import.ClayImportError as e:
         raise HTTPException(status_code=400, detail=str(e))
