@@ -292,6 +292,9 @@ def clay_ambiguous_queue(session: Session, batch_id: Optional[str] = None,
                 "matched_account_id": r.matched_account_id,
                 "matched_account_name": r.matched_account_name,
                 "num_candidates": r.num_candidates,
+                "ai_verdict": r.ai_verdict,
+                "ai_reasoning": r.ai_reasoning,
+                "ai_verified_at": r.ai_verified_at.isoformat() if r.ai_verified_at else None,
             }
             for r in rows
         ],
@@ -374,6 +377,9 @@ def clay_batch_rows(
                 "matched_account_id": r.matched_account_id,
                 "matched_account_name": r.matched_account_name,
                 "num_candidates": r.num_candidates,
+                "ai_verdict": r.ai_verdict,
+                "ai_reasoning": r.ai_reasoning,
+                "ai_verified_at": r.ai_verified_at.isoformat() if r.ai_verified_at else None,
             }
             for r in rows
         ],
@@ -398,6 +404,9 @@ def clay_batch_rows_by_ids(session: Session, batch_id: str, ids: list[int]):
             "matched_account_id": r.matched_account_id,
             "matched_account_name": r.matched_account_name,
             "num_candidates": r.num_candidates,
+            "ai_verdict": r.ai_verdict,
+            "ai_reasoning": r.ai_reasoning,
+            "ai_verified_at": r.ai_verified_at.isoformat() if r.ai_verified_at else None,
         }
         for r in rows
     ]

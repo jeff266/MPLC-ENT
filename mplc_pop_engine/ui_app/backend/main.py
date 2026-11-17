@@ -41,6 +41,7 @@ from . import models
 from . import queries
 from . import enrichment
 from . import clay_import
+from . import brand_verification
 from . import duplicate_detection
 from . import supabase_client
 from . import auth
@@ -444,6 +445,10 @@ def get_clay_batch_rows(
 _CLAY_EXPORT_FIELDNAMES = [
     "id", "clay_company_name", "clay_website", "classification", "match_method",
     "match_confidence", "matched_account_id", "matched_account_name", "num_candidates",
+    # AI brand-verification (2026-11-16) -- added once queries.py started
+    # returning these on every Clay row dict; DictWriter raises on any dict
+    # key not in fieldnames, so this list has to track that shape exactly.
+    "ai_verdict", "ai_reasoning", "ai_verified_at",
 ]
 
 
@@ -484,6 +489,20 @@ def export_clay_selected_csv(
         "Content-Disposition": f'attachment; filename="clay_dedupe_{batch_id}_selected.csv"',
     }
     return StreamingResponse(buf, media_type="text/csv", headers=headers)
+
+
+# Jeff (2026-11-16), after confirming Cortland/Knightvest/Pantzer brand-
+# fuzzy hits were real Salesforce matches by eye: "is there a way for the
+# low confidence to have claude api open up both websites and do a
+# comparison?" -- fetches both companies' homepages and asks Claude for a
+# same/different/uncertain second opinion, persisted onto the row. Never
+# run automatically; a human requests it per row from the review table.
+@app.post("/clay-dedupe/batch/{batch_id}/rows/{row_id}/verify")
+def verify_clay_brand_match(batch_id: str, row_id: int, db: Session = Depends(get_db)):
+    try:
+        return brand_verification.verify_row(db, batch_id, row_id)
+    except brand_verification.BrandVerificationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 # ---------------------------------------------------------------------------

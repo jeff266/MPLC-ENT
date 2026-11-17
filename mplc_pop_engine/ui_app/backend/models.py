@@ -215,6 +215,19 @@ class ClayMatch(Base):
     num_candidates: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
+    # AI brand-verification (2026-11-16, Jeff: "is there a way for the low
+    # confidence to have claude api open up both websites and do a
+    # comparison?" -- for a POSSIBLE_MATCH_BRAND row, fetches both
+    # companies' homepages and asks Claude whether they're the same
+    # real-world business under different names/domains, or genuinely
+    # different companies that happen to share a brand word. Nullable/
+    # unset until a human actually requests a verification for that row
+    # (never run automatically -- same "never silently trusted" bar as
+    # the brand-fuzzy match itself).
+    ai_verdict: Mapped[Optional[str]] = mapped_column(String(20))          # same / different / uncertain
+    ai_reasoning: Mapped[Optional[str]] = mapped_column(String(2000))
+    ai_verified_at: Mapped[Optional[datetime]] = mapped_column(DateTime)
+
 
 class Action(Base):
     """Audit trail of what a human actually did in the UI (the real

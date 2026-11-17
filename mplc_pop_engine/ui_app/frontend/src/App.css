@@ -842,6 +842,22 @@ tr.row-net-new {
   background: rgba(31, 122, 61, 0.15);
   color: #1f7a3d;
 }
+/* AI brand-verification verdict (Jeff, 2026-11-16): a second opinion on a
+   POSSIBLE_MATCH_BRAND row, never the row's own classification -- kept
+   visually distinct (and smaller) from the status pills above so it never
+   reads as if the AI decided the match. */
+.status-pill-ai-same {
+  background: rgba(31, 122, 61, 0.15);
+  color: #1f7a3d;
+}
+.status-pill-ai-different {
+  background: rgba(178, 45, 45, 0.15);
+  color: #b22d2d;
+}
+.status-pill-ai-uncertain {
+  background: rgba(120, 120, 120, 0.15);
+  color: #666;
+}
 @media (prefers-color-scheme: dark) {
   .status-pill-net-new {
     color: #e8c766;
@@ -851,5 +867,14 @@ tr.row-net-new {
   }
   .status-pill-matched {
     color: #7fd8a0;
+  }
+  .status-pill-ai-same {
+    color: #7fd8a0;
+  }
+  .status-pill-ai-different {
+    color: #e88a8a;
+  }
+  .status-pill-ai-uncertain {
+    color: #aaa;
   }
 }

@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   downloadBlob,
   downloadClayBatchCsv,
   downloadSelectedClayRowsCsv,
   fetchClayBatchRows,
+  verifyClayBrandMatch,
 } from "../api/client";
 
 const CLASSIFICATION_LABELS: Record<string, string> = {
@@ -13,6 +14,18 @@ const CLASSIFICATION_LABELS: Record<string, string> = {
   MATCHED_AVAILABLE: "Matched — available",
   MATCHED_UNKNOWN: "Matched — unknown status",
   POSSIBLE_MATCH_BRAND: "Possible match (brand-root fuzzy)",
+};
+
+// Jeff (2026-11-16), on brand-fuzzy hits he could confirm by eye are real
+// matches under a different domain ("different domains but same company.
+// companies can have multiple domains"): "is there a way for the low
+// confidence to have claude api open up both websites and do a
+// comparison?" -- these labels/colors are just the AI's verdict on that
+// comparison (same/different/uncertain), never the row's classification.
+const AI_VERDICT_LABELS: Record<string, string> = {
+  same: "AI: same company",
+  different: "AI: different companies",
+  uncertain: "AI: uncertain",
 };
 
 const PAGE_SIZE = 50;
@@ -26,6 +39,7 @@ const PAGE_SIZE = 50;
  * string in a column, and row selection -> export-selected, same pattern
  * the Duplicates tab already uses. */
 export function ClayBatchReview({ batchId }: { batchId: string }) {
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
@@ -59,6 +73,29 @@ export function ClayBatchReview({ batchId }: { batchId: string }) {
     queryKey: ["clay-batch-rows", batchId, page, search, classification],
     queryFn: () => fetchClayBatchRows(batchId, { search, classification, page, pageSize: PAGE_SIZE }),
     placeholderData: (prev) => prev,
+  });
+
+  // One row verified at a time, per Jeff's "is there a way for the low
+  // confidence to have claude api open up both websites and do a
+  // comparison?" -- a human asks for this per row, it's never automatic.
+  // Re-fetches this page afterward rather than hand-patching the cache,
+  // since that's the simplest way to pick up the real persisted
+  // ai_verdict/ai_reasoning/ai_verified_at from the backend.
+  const [verifyingRowId, setVerifyingRowId] = useState<number | null>(null);
+  const [verifyError, setVerifyError] = useState<{ id: number; message: string } | null>(null);
+  const verifyMutation = useMutation({
+    mutationFn: (rowId: number) => verifyClayBrandMatch(batchId, rowId),
+    onMutate: (rowId) => {
+      setVerifyingRowId(rowId);
+      setVerifyError(null);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["clay-batch-rows", batchId] });
+    },
+    onError: (e, rowId) => {
+      setVerifyError({ id: rowId, message: String(e) });
+    },
+    onSettled: () => setVerifyingRowId(null),
   });
 
   async function handleDownloadAll() {
@@ -203,6 +240,7 @@ export function ClayBatchReview({ batchId }: { batchId: string }) {
             <th>Matched Salesforce account</th>
             <th>Confidence</th>
             <th># candidates</th>
+            <th>AI verification</th>
           </tr>
         </thead>
         <tbody>
@@ -237,11 +275,43 @@ export function ClayBatchReview({ batchId }: { batchId: string }) {
               </td>
               <td>{row.match_confidence ?? "—"}</td>
               <td>{row.num_candidates}</td>
+              <td>
+                {!row.matched_account_id ? (
+                  "—"
+                ) : (
+                  <>
+                    {row.ai_verdict && (
+                      <div>
+                        <span
+                          className={`status-pill status-pill-ai-${row.ai_verdict}`}
+                          title={row.ai_reasoning ?? undefined}
+                        >
+                          {AI_VERDICT_LABELS[row.ai_verdict] ?? row.ai_verdict}
+                        </span>
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => verifyMutation.mutate(row.id)}
+                      disabled={verifyingRowId === row.id}
+                    >
+                      {verifyingRowId === row.id
+                        ? "Checking…"
+                        : row.ai_verdict
+                          ? "Re-check with AI"
+                          : "Check with AI"}
+                    </button>
+                    {verifyError?.id === row.id && (
+                      <p className="action-error">{verifyError.message}</p>
+                    )}
+                  </>
+                )}
+              </td>
             </tr>
           ))}
           {rows.length === 0 && !rowsQuery.isFetching && (
             <tr>
-              <td colSpan={7}>No rows match this filter.</td>
+              <td colSpan={8}>No rows match this filter.</td>
             </tr>
           )}
         </tbody>

@@ -164,6 +164,9 @@ export interface ClayMatchRow {
   matched_account_id: string | null;
   matched_account_name: string | null;
   num_candidates: number;
+  ai_verdict: string | null; // "same" | "different" | "uncertain" | null (never verified)
+  ai_reasoning: string | null;
+  ai_verified_at: string | null;
 }
 
 export interface ClayAmbiguousPage {
@@ -255,6 +258,9 @@ export interface ClayBatchRow {
   matched_account_id: string | null;
   matched_account_name: string | null;
   num_candidates: number;
+  ai_verdict: string | null; // "same" | "different" | "uncertain" | null (never verified)
+  ai_reasoning: string | null;
+  ai_verified_at: string | null;
 }
 
 export interface ClayBatchRowsResult {
@@ -301,6 +307,31 @@ export async function downloadSelectedClayRowsCsv(batchId: string, ids: number[]
     { responseType: "blob" },
   );
   return response.data as Blob;
+}
+
+// ---- AI brand-match verification ----------------------------------------
+// Jeff (2026-11-16), on Cortland/Knightvest/Pantzer -- brand-fuzzy hits he
+// could confirm by eye are real Salesforce matches under a different
+// domain: "is there a way for the low confidence to have claude api open
+// up both websites and do a comparison?" A human-requested second opinion
+// per row -- never run automatically, never changes `classification`.
+
+export interface VerifyClayBrandMatchResult {
+  id: number;
+  ai_verdict: string; // "same" | "different" | "uncertain"
+  ai_reasoning: string;
+  ai_verified_at: string;
+  fetch_errors: Record<string, string>;
+}
+
+export async function verifyClayBrandMatch(
+  batchId: string,
+  rowId: number,
+): Promise<VerifyClayBrandMatchResult> {
+  const { data } = await client.post<VerifyClayBrandMatchResult>(
+    `/clay-dedupe/batch/${batchId}/rows/${rowId}/verify`,
+  );
+  return data;
 }
 
 // ---- Internal Salesforce duplicate/sibling detection -------------------
