@@ -742,6 +742,70 @@
   margin-top: 0.75rem;
 }
 
+/* ---- Duplicates tab: upload-and-run vs. scan-what's-loaded sections ---- */
+.duplicates-section {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.1rem;
+}
+
+.duplicates-section + .duplicates-section {
+  margin-top: 1.25rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .duplicates-section {
+    border-color: var(--border-dark);
+  }
+}
+
+.duplicates-section-title {
+  margin: 0 0 0.4rem;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.duplicates-section-badge {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+}
+
+.duplicates-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 1.25rem 0;
+  font-size: 0.78rem;
+  opacity: 0.6;
+}
+
+.duplicates-divider::before,
+.duplicates-divider::after {
+  content: "";
+  flex: 1;
+  border-top: 1px solid var(--border);
+}
+
+.duplicates-divider span {
+  padding: 0 0.75rem;
+  white-space: nowrap;
+}
+
+@media (prefers-color-scheme: dark) {
+  .duplicates-divider::before,
+  .duplicates-divider::after {
+    border-color: var(--border-dark);
+  }
+}
+
 /* ---- Clay dedupe batch review table (same shape as the Duplicates
    table above: checkbox column, wide name/website columns, toolbar +
    pagination), plus classification filter chips and a NET_NEW callout

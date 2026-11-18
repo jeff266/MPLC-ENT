@@ -259,7 +259,9 @@ function App() {
           <ClayAmbiguousQueue />
         </>
       )}
-      {tab === "duplicates" && <DuplicatesPanel />}
+      {tab === "duplicates" && (
+        <DuplicatesPanel onPipelineRunComplete={handlePipelineRunComplete} />
+      )}
       {tab === "cost-tracker" && <CostTracker />}
       {tab === "settings" && <Settings />}
     </div>
