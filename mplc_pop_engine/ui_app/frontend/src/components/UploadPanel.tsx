@@ -179,7 +179,7 @@ export function UploadPanel({ autoRunAfterUpload = false, onPipelineComplete }: 
 
       {missingRequired.length > 0 && (
         <p className="upload-missing">
-          Still need: {missingRequired.map((r) => ROLE_LABELS[r] ?? r).join(", ")}
+          ⚠ Still need: {missingRequired.map((r) => ROLE_LABELS[r] ?? r).join(", ")}
         </p>
       )}
       {missingRequired.length === 0 &&

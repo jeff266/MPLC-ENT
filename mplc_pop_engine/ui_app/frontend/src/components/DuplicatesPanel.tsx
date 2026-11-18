@@ -360,25 +360,27 @@ export function DuplicatesPanel({ onPipelineRunComplete }: Props = {}) {
                 </tbody>
               </table>
 
-              <div className="duplicates-pagination">
-                <button
-                  type="button"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page <= 1 || rowsQuery.isFetching}
-                >
-                  ← Previous
-                </button>
-                <span>
-                  Page {page} of {totalPages.toLocaleString()}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page >= totalPages || rowsQuery.isFetching}
-                >
-                  Next →
-                </button>
-              </div>
+              {totalPages > 1 && (
+                <div className="duplicates-pagination">
+                  <button
+                    type="button"
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page <= 1 || rowsQuery.isFetching}
+                  >
+                    ← Previous
+                  </button>
+                  <span>
+                    Page {page} of {totalPages.toLocaleString()}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={page >= totalPages || rowsQuery.isFetching}
+                  >
+                    Next →
+                  </button>
+                </div>
+              )}
             </>
           )}
         </div>
