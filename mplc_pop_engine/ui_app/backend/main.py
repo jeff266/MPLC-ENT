@@ -852,6 +852,7 @@ def get_enrichment_cost_estimate(
     vertical: str,
     account_count: int,
     disabled_channels: Optional[str] = None,
+    db: Session = Depends(get_db),
 ):
     """Pre-dispatch cost preview for Step 2 (Jeff, 2026-11-14: "are we
     showing an estimate of how much each run and total will cost?" --
@@ -860,7 +861,7 @@ def get_enrichment_cost_estimate(
     toggles = [c for c in disabled_channels.split(",") if c] if disabled_channels else None
     try:
         return enrichment.estimate_dispatch_cost(
-            vertical=vertical, account_count=account_count, disabled_channels=toggles,
+            db, vertical=vertical, account_count=account_count, disabled_channels=toggles,
         )
     except enrichment.DispatchError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -1211,7 +1212,7 @@ def check_already_enriched_preview(req: DispatchEnrichmentRequest, db: Session =
     """Lets the Step 2 UI show "X of Y already enriched for this vertical"
     BEFORE the user clicks dispatch — same selection contract as
     /enrichment/dispatch, but read-only, no job created."""
-    if req.vertical not in enrichment.DISPATCHABLE_VERTICALS:
+    if req.vertical not in enrichment._known_verticals(db):
         raise HTTPException(status_code=400, detail=f"Unknown vertical '{req.vertical}'")
     if bool(req.account_ids) == bool(req.filter):
         raise HTTPException(

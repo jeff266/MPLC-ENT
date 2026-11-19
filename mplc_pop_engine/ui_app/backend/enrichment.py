@@ -35,6 +35,7 @@ from sqlalchemy.orm import Session
 from . import models
 from . import queries
 from . import supabase_client
+from . import custom_verticals
 
 # vertical key (unified_worker.py's CLI arg, and what it writes back to
 # Supabase's account_enrichment_results.vertical) -> display label for the
@@ -60,6 +61,31 @@ def _worker_script_path() -> Path:
     if override:
         return Path(override)
     return Path(__file__).resolve().parent.parent.parent / "MPLC" / "production" / "workers" / "unified_worker.py"
+
+
+def _custom_worker_script_path() -> Path:
+    """The Custom Vertical Builder's own worker entry point (2026-11-18)
+    -- run_custom_vertical_worker.py, NOT unified_worker.py. Kept as a
+    separate script/function rather than branching inside
+    unified_worker.py itself, per the explicit "leave the three hardcoded
+    verticals completely untouched" scoping decision
+    (Custom_Vertical_Builder_Design.md §1)."""
+    override = os.getenv("CUSTOM_VERTICAL_WORKER_PATH")
+    if override:
+        return Path(override)
+    return (
+        Path(__file__).resolve().parent.parent.parent / "MPLC" / "verticals" / "custom"
+        / "run_custom_vertical_worker.py"
+    )
+
+
+def _known_verticals(db: Session) -> dict[str, str]:
+    """Hardcoded verticals + whatever custom verticals exist in the DB --
+    the same union main.py's /enrichment/verticals endpoint returns to
+    the Step 2 picker, used here so dispatch/cost-estimate accept exactly
+    what the picker offered rather than silently rejecting a vertical the
+    UI just showed as selectable."""
+    return {**DISPATCHABLE_VERTICALS, **custom_verticals.dispatchable_custom_verticals(db)}
 
 
 class DispatchError(Exception):
@@ -104,6 +130,7 @@ DIRECTIONAL_SAMPLE_THRESHOLD = 20
 
 
 def estimate_dispatch_cost(
+    db: Session,
     vertical: str,
     account_count: int,
     disabled_channels: Optional[list[str]] = None,
@@ -118,11 +145,17 @@ def estimate_dispatch_cost(
     This is Jeff's 2026-11-14 ask: Step 2 commits real account counts and
     real channel toggle choices with no cost preview beforehand today --
     this is what renders that preview in DispatchBar.
+
+    Custom verticals (2026-11-18) are accepted here the same as the
+    hardcoded ones -- they just have no Cost Tracker rollup history yet on
+    a brand-new vertical, which the existing "estimable: False" branch
+    below already handles correctly with no changes needed.
     """
-    if vertical not in DISPATCHABLE_VERTICALS:
+    known = _known_verticals(db)
+    if vertical not in known:
         raise DispatchError(
             f"Unknown or unsupported vertical '{vertical}'. "
-            f"Supported: {', '.join(DISPATCHABLE_VERTICALS)}."
+            f"Supported: {', '.join(known)}."
         )
     if account_count <= 0:
         raise DispatchError("account_count must be positive.")
@@ -199,19 +232,27 @@ def dispatch_job(
     not by running it — there was no real API key in this sandbox to
     actually trigger a run and observe the skip.
     """
-    if vertical not in DISPATCHABLE_VERTICALS:
+    known = _known_verticals(db)
+    if vertical not in known:
         raise DispatchError(
             f"Unknown or unsupported vertical '{vertical}'. "
-            f"Supported: {', '.join(DISPATCHABLE_VERTICALS)}."
+            f"Supported: {', '.join(known)}."
         )
     if not account_ids:
         raise DispatchError("No accounts selected.")
 
-    worker_script = _worker_script_path()
+    # A custom vertical runs through its own worker script, never
+    # unified_worker.py -- that script has no routing for a config-driven
+    # vertical and this branch deliberately doesn't try to teach it one
+    # (Custom_Vertical_Builder_Design.md §1: the three hardcoded verticals
+    # stay untouched).
+    is_custom = vertical not in DISPATCHABLE_VERTICALS
+    worker_script = _custom_worker_script_path() if is_custom else _worker_script_path()
     if not worker_script.exists():
         raise DispatchError(
-            f"unified_worker.py not found at {worker_script}. "
-            f"Set UNIFIED_WORKER_PATH if your repo layout differs."
+            f"{'run_custom_vertical_worker.py' if is_custom else 'unified_worker.py'} not found at "
+            f"{worker_script}. Set {'CUSTOM_VERTICAL_WORKER_PATH' if is_custom else 'UNIFIED_WORKER_PATH'} "
+            f"if your repo layout differs."
         )
 
     run_date = run_date or date.today().isoformat()
@@ -284,7 +325,7 @@ def dispatch_job(
     job = models.EnrichmentJob(
         id=job_id,
         vertical=vertical,
-        display_vertical=DISPATCHABLE_VERTICALS[vertical],
+        display_vertical=known[vertical],
         run_date=run_date,
         batch_file=str(batch_file.resolve()),
         log_file=str(log_file.resolve()),
