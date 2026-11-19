@@ -213,13 +213,23 @@ def add_channel(
         # runner; surface it here instead.
         raise CustomVerticalError(f"Config generation failed: {e}") from e
 
+    generated_json = generated.to_json()
+    # Found alongside fix #4 in the 2026-11-18 optimization pass: the
+    # hand-edit path (config_json param, below) got shape validation, but
+    # the LLM-generated path never did -- so a malformed model response
+    # (a string where a list was expected, say) would pass straight
+    # through to the DB unchecked and only surface later at dispatch time,
+    # the exact failure mode fix #4 was meant to close. Same validator,
+    # applied here too.
+    _validate_config_json(channel_type, generated_json)
+
     channel = models.CustomVerticalChannel(
         vertical_key=vertical_key,
         step_order=step_order,
         channel_type=channel_type,
         enabled=True,
         description=description,
-        config_json=generated.to_json(),
+        config_json=generated_json,
         config_generated_cost=generated.cost,
     )
     db.add(channel)
@@ -259,8 +269,10 @@ def update_channel(
             )
         except ValueError as e:
             raise CustomVerticalError(f"Config regeneration failed: {e}") from e
+        regenerated_json = generated.to_json()
+        _validate_config_json(channel.channel_type, regenerated_json)
         channel.description = regenerate_from_description
-        channel.config_json = generated.to_json()
+        channel.config_json = regenerated_json
         # Regeneration cost accumulates on top of the original -- it's a
         # real additional LLM call, not a replacement of the first one's
         # cost, and CLAUDE.md's QA bar requires every cost to be tracked,
