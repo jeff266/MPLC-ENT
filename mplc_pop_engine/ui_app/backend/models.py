@@ -318,6 +318,22 @@ class CustomVertical(Base):
 
     vertical_key: Mapped[str] = mapped_column(String(100), primary_key=True)
     display_name: Mapped[str] = mapped_column(String(200))
+    # Added 2026-11-18 ("when we create a vertical, does it map to the
+    # correct pipeline post-Step-1?" follow-up): Stage B's classifier
+    # (industry_reclassifier.py) is a fixed, already-validated 7-category
+    # taxonomy with zero knowledge of custom verticals, and extending it
+    # was explicitly ruled out in favor of a separate, additive tagger --
+    # see pipeline_runner.py's match_custom_verticals() and
+    # CustomVerticalMatch below. match_keywords_json is generated ONCE (a
+    # single LLM call from this vertical's own channel descriptions, same
+    # "one-time, not per-account" principle as config_json on
+    # CustomVerticalChannel) via a JSON list of plain keyword/phrase
+    # strings, then hand-editable in Settings the same way a channel's
+    # config is. Matching itself (checking these keywords against each
+    # safe account's industry/account_name) is a free substring check --
+    # no LLM cost per account, no cost tracking needed for that part.
+    match_keywords_json: Mapped[Optional[str]] = mapped_column(Text)
+    match_keywords_generated_cost: Mapped[float] = mapped_column(Float, default=0.0)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow,
                                                    onupdate=datetime.utcnow)
@@ -325,6 +341,9 @@ class CustomVertical(Base):
     channels: Mapped[list["CustomVerticalChannel"]] = relationship(
         back_populates="vertical", cascade="all, delete-orphan",
         order_by="CustomVerticalChannel.step_order",
+    )
+    matches: Mapped[list["CustomVerticalMatch"]] = relationship(
+        back_populates="vertical", cascade="all, delete-orphan",
     )
 
 
@@ -359,3 +378,43 @@ class CustomVerticalChannel(Base):
                                                    onupdate=datetime.utcnow)
 
     vertical: Mapped["CustomVertical"] = relationship(back_populates="channels")
+
+
+class CustomVerticalMatch(Base):
+    """One safe account matching one custom vertical's keywords, on one
+    run_date. Deliberately a SEPARATE table from ClassificationRun, not an
+    extension of it -- Stage B's classifier assigns exactly ONE of its 7
+    fixed categories per account per run_date (enforced by
+    classification_runs' uq_classification_account_run unique constraint),
+    but a custom vertical is not mutually exclusive with those categories
+    or with another custom vertical: the same account could plausibly
+    match two different custom verticals' keywords (e.g. "senior living"
+    and "memory care" verticals both matching an assisted-living account).
+    So this is a many-to-many shape (account_id, vertical_key, run_date),
+    not a single-value-per-account-per-date column like
+    classification_runs.vertical.
+
+    Populated by pipeline_runner.py's match_custom_verticals() -- run
+    automatically right after Stage B in the weekly pipeline, and also
+    on-demand via POST /custom-verticals/rematch (Settings' "Re-match now"
+    button) for whenever Jeff edits a vertical's keywords and doesn't want
+    to wait for next week's run. Append-only per run_date, same pattern as
+    eligibility_runs/classification_runs/segmentation_runs, so history is
+    kept rather than overwritten."""
+    __tablename__ = "custom_vertical_matches"
+    __table_args__ = (
+        UniqueConstraint(
+            "account_id", "vertical_key", "run_date",
+            name="uq_custom_vertical_match_account_vertical_run",
+        ),
+        Index("ix_custom_vertical_matches_run_vertical", "run_date", "vertical_key"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    account_id: Mapped[str] = mapped_column(ForeignKey("accounts.account_id"), index=True)
+    vertical_key: Mapped[str] = mapped_column(ForeignKey("custom_verticals.vertical_key"), index=True)
+    run_date: Mapped[str] = mapped_column(String(10), index=True)
+    matched_keyword: Mapped[Optional[str]] = mapped_column(String(200))  # which keyword matched, for debugging/audit
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    vertical: Mapped["CustomVertical"] = relationship(back_populates="matches")

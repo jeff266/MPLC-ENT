@@ -25,7 +25,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import select
+from sqlalchemy import and_, select
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.orm import Session
 
 from . import models
@@ -97,6 +98,8 @@ def _vertical_to_dict(v: models.CustomVertical) -> Dict[str, Any]:
     return {
         "vertical_key": v.vertical_key,
         "display_name": v.display_name,
+        "match_keywords_json": v.match_keywords_json,
+        "match_keywords_generated_cost": v.match_keywords_generated_cost,
         "created_at": v.created_at.isoformat() if v.created_at else None,
         "updated_at": v.updated_at.isoformat() if v.updated_at else None,
         "channels": [_channel_to_dict(c) for c in v.channels],
@@ -301,9 +304,210 @@ def delete_channel(db: Session, channel_id: int) -> None:
     db.commit()
 
 
+def _validate_match_keywords_json(match_keywords_json: str) -> None:
+    """Same shape-validation discipline as _validate_config_json above,
+    applied to match_keywords_json -- a hand-edit or a malformed LLM
+    response here shouldn't surface only when pipeline_runner's matching
+    pass runs against the whole account table."""
+    try:
+        parsed = json.loads(match_keywords_json)
+    except (TypeError, json.JSONDecodeError) as e:
+        raise CustomVerticalError(f"match_keywords_json is not valid JSON: {e}") from e
+    if not isinstance(parsed, dict):
+        raise CustomVerticalError(
+            f"match_keywords_json must decode to a JSON object, got {type(parsed).__name__}"
+        )
+    keywords = parsed.get("keywords")
+    if keywords is None:
+        raise CustomVerticalError("match_keywords_json is missing required field 'keywords'")
+    if not isinstance(keywords, list) or not all(isinstance(k, str) for k in keywords):
+        raise CustomVerticalError(
+            f"match_keywords_json field 'keywords' must be a list of strings, got {keywords!r}"
+        )
+
+
+def generate_match_keywords(
+    db: Session,
+    vertical_key: str,
+    anthropic_api_key: Optional[str] = None,
+) -> Dict[str, Any]:
+    """The one-time call behind match_keywords_json. Reads every channel's
+    description on this vertical (regardless of enabled/disabled -- a
+    disabled channel's description still describes what the business
+    looks like) and makes ONE LLM call to draft industry-match keywords,
+    per Jeff's 2026-11-18 scoping answer ("one-time LLM call from channel
+    descriptions, hand-editable afterward" -- same mechanism as channel
+    config generation, deliberately not re-run per account or per
+    channel edit)."""
+    vertical = db.get(models.CustomVertical, vertical_key)
+    if vertical is None:
+        raise CustomVerticalError(f"No custom vertical '{vertical_key}'")
+
+    descriptions = [c.description for c in vertical.channels if c.description]
+    if not descriptions:
+        raise CustomVerticalError(
+            f"Custom vertical '{vertical_key}' has no channels with a description yet -- "
+            "add a channel first."
+        )
+
+    try:
+        generated = config_from_description.generate_match_keywords(
+            display_name=vertical.display_name,
+            channel_descriptions=descriptions,
+            anthropic_api_key=anthropic_api_key,
+        )
+    except ValueError as e:
+        raise CustomVerticalError(f"Match-keyword generation failed: {e}") from e
+
+    generated_json = generated.to_json()
+    _validate_match_keywords_json(generated_json)  # defense in depth, same lesson as fix #4/#4-extension
+
+    vertical.match_keywords_json = generated_json
+    vertical.match_keywords_generated_cost = (vertical.match_keywords_generated_cost or 0.0) + generated.cost
+    vertical.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(vertical)
+    return _vertical_to_dict(vertical)
+
+
+def update_match_keywords(db: Session, vertical_key: str, match_keywords_json: str) -> Dict[str, Any]:
+    """Hand-edit path for match_keywords_json -- same split as
+    update_channel's config_json param vs. regenerate_from_description."""
+    vertical = db.get(models.CustomVertical, vertical_key)
+    if vertical is None:
+        raise CustomVerticalError(f"No custom vertical '{vertical_key}'")
+    _validate_match_keywords_json(match_keywords_json)
+    vertical.match_keywords_json = match_keywords_json
+    vertical.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(vertical)
+    return _vertical_to_dict(vertical)
+
+
 def dispatchable_custom_verticals(db: Session) -> Dict[str, str]:
     """vertical_key -> display_name for every custom vertical, in the same
     shape as enrichment.DISPATCHABLE_VERTICALS, so main.py's
     /enrichment/verticals endpoint can union the two (design doc §6)."""
     rows = db.execute(select(models.CustomVertical)).scalars().all()
     return {v.vertical_key: v.display_name for v in rows}
+
+
+# ---------------------------------------------------------------------------
+# Custom-vertical account matching -- answers Jeff's 2026-11-18 follow-up:
+# "when we create a vertical, does it map to the correct pipeline post-
+# Step-1 (safe to distribute)?" Deliberately NOT a change to Stage B's
+# classifier (industry_reclassifier.py) -- that's a fixed, already-
+# validated 7-category taxonomy with no notion of custom verticals, and
+# teaching it about them would mean re-validating tested infra. This is a
+# separate, additive tagging pass writing to its own table
+# (CustomVerticalMatch), run automatically right after Stage B in the
+# weekly pipeline (pipeline_runner.match_custom_verticals) and also
+# on-demand (POST /custom-verticals/rematch, Settings' "Re-match now").
+# ---------------------------------------------------------------------------
+
+# Same SQL-variable-budget chunking pipeline_runner.py uses for bulk
+# inserts (SQLite caps bound variables per statement). CustomVerticalMatch
+# writes 4 columns (account_id, vertical_key, run_date, matched_keyword),
+# so a 900-variable budget is a chunk size of 225 rows.
+_MATCH_VARIABLE_BUDGET = 900
+_MATCH_INSERT_COLUMNS = 4
+
+
+def _match_chunks(lst: list, n: int):
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
+
+
+def match_accounts_to_custom_verticals(db: Session, run_date: str) -> Dict[str, int]:
+    """For every custom vertical with match_keywords_json populated, scans
+    every account that is 'safe to distribute' on `run_date` (an
+    EligibilityRun row with excluded=False) and checks a free,
+    case-insensitive substring match of each keyword against that
+    account's industry text and account_name. A match writes a row to
+    CustomVerticalMatch (upserted on (account_id, vertical_key, run_date),
+    so re-running the same run_date is idempotent, same convention as
+    classification_runs/segmentation_runs). Returns {vertical_key: match_count}
+    for whichever UI triggered this (the weekly pipeline summary, or the
+    "Re-match now" button's response) to show.
+
+    Deliberately does NOT remove a previously-matched row that no longer
+    matches on a later run of the SAME run_date -- an upsert only adds or
+    refreshes matches, it never deletes, mirroring the append-only,
+    never-destructive convention every other *_runs table in this schema
+    already follows. A genuinely stale match from an OLDER run_date simply
+    isn't returned by a query scoped to the current run_date (see
+    queries.py's custom-vertical filter branch)."""
+    verticals = (
+        db.execute(select(models.CustomVertical).where(models.CustomVertical.match_keywords_json.is_not(None)))
+        .scalars()
+        .all()
+    )
+    if not verticals:
+        return {}
+
+    # Parse each vertical's keywords once, not per account -- same
+    # "don't redo per-account work that doesn't change per account"
+    # principle as this session's runner.build_channels() fix.
+    vertical_keywords: Dict[str, List[str]] = {}
+    for v in verticals:
+        try:
+            parsed = json.loads(v.match_keywords_json)
+            keywords = parsed.get("keywords", [])
+        except (TypeError, json.JSONDecodeError):
+            # A malformed match_keywords_json shouldn't crash the whole
+            # matching pass for every OTHER vertical -- skip just this
+            # one and let it surface next time Jeff edits/regenerates it
+            # (both paths are shape-validated going forward; this only
+            # protects against a row written before that validation
+            # existed, or hand-edited directly in the DB).
+            continue
+        if keywords:
+            vertical_keywords[v.vertical_key] = [k.lower() for k in keywords if k]
+
+    if not vertical_keywords:
+        return {}
+
+    safe_accounts = db.execute(
+        select(models.Account.account_id, models.Account.account_name, models.Account.industry)
+        .join(
+            models.EligibilityRun,
+            and_(
+                models.EligibilityRun.account_id == models.Account.account_id,
+                models.EligibilityRun.run_date == run_date,
+                models.EligibilityRun.excluded.is_(False),
+            ),
+        )
+    ).all()
+
+    match_counts: Dict[str, int] = {k: 0 for k in vertical_keywords}
+    rows_to_insert: List[Dict[str, Any]] = []
+    for account_id, account_name, industry in safe_accounts:
+        haystack = f"{account_name or ''} {industry or ''}".lower()
+        if not haystack.strip():
+            continue
+        for vertical_key, keywords in vertical_keywords.items():
+            matched_keyword = next((kw for kw in keywords if kw in haystack), None)
+            if matched_keyword is not None:
+                match_counts[vertical_key] += 1
+                rows_to_insert.append({
+                    "account_id": account_id,
+                    "vertical_key": vertical_key,
+                    "run_date": run_date,
+                    "matched_keyword": matched_keyword,
+                })
+
+    if not rows_to_insert:
+        return match_counts
+
+    table = models.CustomVerticalMatch.__table__
+    chunk_size = max(1, _MATCH_VARIABLE_BUDGET // _MATCH_INSERT_COLUMNS)
+    for chunk in _match_chunks(rows_to_insert, chunk_size):
+        stmt = sqlite_insert(table).values(chunk)
+        stmt = stmt.on_conflict_do_update(
+            index_elements=["account_id", "vertical_key", "run_date"],
+            set_={"matched_keyword": stmt.excluded.matched_keyword},
+        )
+        db.execute(stmt)
+    db.commit()
+
+    return match_counts

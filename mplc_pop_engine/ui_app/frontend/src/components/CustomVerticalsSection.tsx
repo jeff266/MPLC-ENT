@@ -6,10 +6,14 @@ import {
   deleteCustomVertical,
   deleteCustomVerticalChannel,
   fetchCustomVerticals,
+  generateCustomVerticalMatchKeywords,
+  rematchCustomVerticals,
   updateCustomVerticalChannel,
+  updateCustomVerticalMatchKeywords,
   type CustomVerticalChannelRow,
   type CustomVerticalChannelType,
   type CustomVerticalRow,
+  type RematchResult,
 } from "../api/client";
 
 /** Custom Vertical Builder -- folded into the Settings tab per Jeff's
@@ -313,6 +317,146 @@ function AddChannelForm({ verticalKey }: { verticalKey: string }) {
   );
 }
 
+/** Answers "when I create a vertical, does it map to the right pipeline
+ * post-Step-1 (safe to distribute)?" -- Jeff's 2026-11-18 follow-up.
+ * Stage B's classifier is a fixed, already-validated 7-category
+ * taxonomy with no notion of custom verticals (deliberately not
+ * extended -- see custom_verticals.py's match_accounts_to_custom_
+ * verticals docstring), so this is a separate, additive tagging pass:
+ * match_keywords_json is generated ONCE (an LLM call from this
+ * vertical's own channel descriptions, same mechanism/cost-tracking
+ * split as a channel's config_json above), then a free keyword match
+ * against every safe account's industry/account name tags matches into
+ * CustomVerticalMatch -- which Step 2's vertical filter can now select
+ * on, the same way it already selects on the 7 hardcoded labels. */
+function MatchKeywordsSection({ vertical }: { vertical: CustomVerticalRow }) {
+  const queryClient = useQueryClient();
+  const [editingKeywords, setEditingKeywords] = useState(false);
+  const [keywordsDraft, setKeywordsDraft] = useState(vertical.match_keywords_json ?? "");
+
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ["custom-verticals"] });
+
+  const generate = useMutation({
+    mutationFn: () => generateCustomVerticalMatchKeywords(vertical.vertical_key),
+    onSuccess: invalidate,
+  });
+
+  const update = useMutation({
+    mutationFn: (json: string) => updateCustomVerticalMatchKeywords(vertical.vertical_key, json),
+    onSuccess: () => {
+      invalidate();
+      setEditingKeywords(false);
+    },
+  });
+
+  let parsedKeywords: string[] = [];
+  try {
+    parsedKeywords = vertical.match_keywords_json
+      ? JSON.parse(vertical.match_keywords_json).keywords ?? []
+      : [];
+  } catch {
+    parsedKeywords = [];
+  }
+
+  const hasChannelDescriptions = vertical.channels.length > 0;
+
+  return (
+    <div className="custom-match-keywords">
+      <h5>Pipeline matching (post-Step-1 routing)</h5>
+      <p className="custom-channel-hint">
+        After Step 1 marks accounts "safe to distribute," these keywords decide which of them get tagged for{" "}
+        {vertical.display_name} so they show up as a filter option in Step 2. This never touches the built-in
+        Healthcare/Corporate/MDU classification -- it's a separate, free keyword match.
+      </p>
+
+      {parsedKeywords.length > 0 ? (
+        <div className="custom-channel-config">
+          <div>
+            <strong>Match keywords:</strong> {parsedKeywords.join(", ")}
+          </div>
+          <div className="custom-channel-cost-note">
+            Generated once for ${vertical.match_keywords_generated_cost.toFixed(4)} — the match pass itself is free.
+          </div>
+        </div>
+      ) : (
+        <p className="action-error">
+          No match keywords yet — accounts won't be tagged for this vertical until you generate them.
+        </p>
+      )}
+
+      <div className="custom-channel-actions">
+        <button
+          type="button"
+          disabled={generate.isPending || !hasChannelDescriptions}
+          title={hasChannelDescriptions ? undefined : "Add a channel with a description first"}
+          onClick={() => {
+            // Real money (a real LLM call) on a single click -- same
+            // confirm pattern as "Regenerate from description" on a
+            // channel, added for the same reason: no undo, no estimate
+            // shown beforehand.
+            const verb = parsedKeywords.length > 0 ? "Regenerate" : "Generate";
+            if (
+              window.confirm(
+                `${verb} match keywords for "${vertical.display_name}" from its channel descriptions? ` +
+                  "This makes a real (small, one-time) LLM call.",
+              )
+            ) {
+              generate.mutate();
+            }
+          }}
+        >
+          {generate.isPending
+            ? "Generating…"
+            : parsedKeywords.length > 0
+              ? "Regenerate match keywords"
+              : "Generate match keywords"}
+        </button>
+        {!editingKeywords && (
+          <button
+            type="button"
+            onClick={() => {
+              setKeywordsDraft(vertical.match_keywords_json ?? "");
+              setEditingKeywords(true);
+            }}
+          >
+            Hand-edit keywords
+          </button>
+        )}
+      </div>
+
+      {editingKeywords && (
+        <div className="custom-channel-config-editor">
+          <textarea
+            rows={3}
+            value={keywordsDraft}
+            onChange={(e) => setKeywordsDraft(e.target.value)}
+            placeholder='{"keywords": ["assisted living", "senior living", ...]}'
+          />
+          <div className="custom-channel-actions">
+            <button
+              type="button"
+              className="primary"
+              disabled={update.isPending}
+              onClick={() => update.mutate(keywordsDraft)}
+            >
+              Save keywords
+            </button>
+            <button type="button" onClick={() => setEditingKeywords(false)}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {(generate.isError || update.isError) && (
+        <p className="action-error">
+          {String(((generate.error ?? update.error) as Error)?.message ?? "Request failed")}
+        </p>
+      )}
+    </div>
+  );
+}
+
 function VerticalCard({ vertical }: { vertical: CustomVerticalRow }) {
   const queryClient = useQueryClient();
   const [expanded, setExpanded] = useState(true);
@@ -354,6 +498,7 @@ function VerticalCard({ vertical }: { vertical: CustomVerticalRow }) {
 
       {expanded && (
         <div className="custom-vertical-body">
+          <MatchKeywordsSection vertical={vertical} />
           <p className="step-description">
             Runs in order below. The run stops at the first enabled step that finds a PROSPECT — later steps
             don't run (and aren't charged) once one hits.
@@ -428,6 +573,46 @@ function NewVerticalForm() {
   );
 }
 
+/** Runs the keyword-match pass (see MatchKeywordsSection) on demand,
+ * against every custom vertical at once, right now rather than waiting
+ * for next week's pipeline run -- for right after Jeff edits a
+ * vertical's keywords. Global because the backend endpoint itself runs
+ * across all custom verticals in one pass (pipeline_runner.py does the
+ * same thing automatically after each weekly run). */
+function RematchButton() {
+  const [result, setResult] = useState<RematchResult | null>(null);
+
+  const rematch = useMutation({
+    mutationFn: rematchCustomVerticals,
+    onSuccess: setResult,
+  });
+
+  return (
+    <div className="custom-rematch">
+      <button type="button" disabled={rematch.isPending} onClick={() => rematch.mutate()}>
+        {rematch.isPending ? "Matching…" : "Re-match accounts now"}
+      </button>
+      <span className="custom-channel-hint">
+        Free — re-runs the keyword match against the latest "safe to distribute" accounts without waiting for next
+        week's pipeline run.
+      </span>
+      {rematch.isError && (
+        <p className="action-error">{String((rematch.error as Error)?.message ?? "Request failed")}</p>
+      )}
+      {result && (
+        <p className="custom-channel-cost-note">
+          Matched as of {result.run_date}:{" "}
+          {Object.keys(result.matches).length === 0
+            ? "no custom verticals have match keywords yet"
+            : Object.entries(result.matches)
+                .map(([k, n]) => `${k}: ${n}`)
+                .join(", ")}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export function CustomVerticalsSection() {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["custom-verticals"],
@@ -442,6 +627,8 @@ export function CustomVerticalsSection() {
         YouTube video, website scrape), describe what each should look for in plain English, and set the order
         they run in. The first enabled channel that finds a PROSPECT wins — later ones are skipped.
       </p>
+
+      <RematchButton />
 
       {isLoading && <p>Loading…</p>}
       {isError && <p className="action-error">Failed to load custom verticals: {String(error)}</p>}

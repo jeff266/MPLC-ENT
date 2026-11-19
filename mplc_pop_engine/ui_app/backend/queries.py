@@ -20,6 +20,24 @@ def _latest_run_date(session: Session, model, run_date: Optional[str]) -> Option
     return session.execute(select(func.max(model.run_date))).scalar_one_or_none()
 
 
+def _is_custom_vertical_key(session: Session, vertical: str) -> bool:
+    """Added 2026-11-18, alongside custom_verticals.match_accounts_to_
+    custom_verticals: `vertical` can now mean either one of Stage B's 7
+    fixed classification labels (models.ClassificationRun.vertical, e.g.
+    "Health Care Services") or a custom vertical's vertical_key (e.g.
+    "assisted_living_dayrooms", tagged into CustomVerticalMatch by the
+    separate, additive matching pass). These are two different,
+    non-overlapping namespaces -- a custom vertical_key is always a
+    create_custom_vertical-validated slug, never one of the 7 fixed
+    labels. This one cheap lookup (not a per-row check) decides which
+    table _filtered_accounts_query should actually filter against,
+    without touching the existing ClassificationRun path at all when the
+    answer is no."""
+    return session.execute(
+        select(models.CustomVertical.vertical_key).where(models.CustomVertical.vertical_key == vertical)
+    ).first() is not None
+
+
 def _filtered_accounts_query(
     elig_date: str,
     vertical: Optional[str] = None,
@@ -31,13 +49,25 @@ def _filtered_accounts_query(
     capacity_min: Optional[int] = None,
     capacity_max: Optional[int] = None,
     columns: Optional[list] = None,
+    is_custom_vertical: bool = False,
 ):
     """Shared join + filter logic behind both the paginated triage table
     (list_accounts) and the select-all-filtered id resolver
     (resolve_filtered_account_ids) — kept in one place so the two can never
-    drift into filtering accounts differently."""
+    drift into filtering accounts differently.
+
+    is_custom_vertical (2026-11-18): when True, `vertical` is filtered
+    against CustomVerticalMatch instead of ClassificationRun -- see
+    _is_custom_vertical_key's docstring. The CustomVerticalMatch join is
+    added ONLY in this branch (not unconditionally alongside
+    ClassificationRun/SegmentationRun above), and its ON clause already
+    restricts to this specific vertical_key + run_date, so it can never
+    fan an account out into duplicate rows the way an unconditional join
+    (matching every vertical_key an account happens to satisfy) would —
+    an account matches at most one row for one specific vertical_key per
+    run_date, per CustomVerticalMatch's own unique constraint."""
     conditions = [models.EligibilityRun.run_date == elig_date]
-    if vertical:
+    if vertical and not is_custom_vertical:
         conditions.append(models.ClassificationRun.vertical == vertical)
     if segment:
         conditions.append(models.SegmentationRun.segment == segment)
@@ -73,7 +103,7 @@ def _filtered_accounts_query(
         models.SegmentationRun.edge_case,
     ]
 
-    return (
+    query = (
         select(*cols)
         .join(models.EligibilityRun, models.EligibilityRun.account_id == models.Account.account_id)
         # LEFT OUTER, not inner: Stage B/C only ever run on the "safe"
@@ -91,8 +121,24 @@ def _filtered_accounts_query(
             models.SegmentationRun.account_id == models.Account.account_id,
             models.SegmentationRun.run_date == elig_date,
         ))
-        .where(and_(*conditions))
     )
+
+    if vertical and is_custom_vertical:
+        # INNER join, added ONLY in this branch -- deliberately not an
+        # outerjoin alongside ClassificationRun/SegmentationRun above,
+        # since those two exist for every safe account regardless of
+        # filter, while this one should only ever narrow the result to
+        # accounts that actually matched THIS vertical_key. The ON
+        # clause already pins both vertical_key and run_date, so this
+        # can't fan an account out into duplicate rows (see
+        # _filtered_accounts_query's docstring).
+        query = query.join(models.CustomVerticalMatch, and_(
+            models.CustomVerticalMatch.account_id == models.Account.account_id,
+            models.CustomVerticalMatch.vertical_key == vertical,
+            models.CustomVerticalMatch.run_date == elig_date,
+        ))
+
+    return query.where(and_(*conditions))
 
 
 def list_accounts(
@@ -116,10 +162,12 @@ def list_accounts(
     if elig_date is None:
         return {"run_date": None, "total": 0, "page": page, "page_size": page_size, "rows": []}
 
+    is_custom_vertical = bool(vertical) and _is_custom_vertical_key(session, vertical)
     base_query = _filtered_accounts_query(
         elig_date, vertical, segment, excluded,
         country=country, operating_market=operating_market,
         capacity_type=capacity_type, capacity_min=capacity_min, capacity_max=capacity_max,
+        is_custom_vertical=is_custom_vertical,
     )
 
     total = session.execute(
@@ -162,11 +210,13 @@ def resolve_filtered_account_ids(
     if elig_date is None:
         return []
 
+    is_custom_vertical = bool(vertical) and _is_custom_vertical_key(session, vertical)
     query = _filtered_accounts_query(
         elig_date, vertical, segment, excluded,
         country=country, operating_market=operating_market,
         capacity_type=capacity_type, capacity_min=capacity_min, capacity_max=capacity_max,
         columns=[models.Account.account_id],
+        is_custom_vertical=is_custom_vertical,
     )
     ids = [row[0] for row in session.execute(query).all()]
     if exclude_account_ids:

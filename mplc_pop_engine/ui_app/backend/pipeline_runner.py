@@ -24,6 +24,7 @@ sys.path.insert(0, str(_ORCHESTRATOR_DIR))
 from weekly_pipeline import run_weekly_pipeline  # noqa: E402
 
 from . import models
+from . import custom_verticals
 
 # SQLite caps total bound variables per statement (SQLITE_MAX_VARIABLE_NUMBER,
 # 32766 on this system's SQLite 3.53.1, but older builds default to 999) — a
@@ -218,6 +219,22 @@ def run_and_persist(
         _insert_classification_runs(session, results['stage_b']['dataframes'], run_date)
         session.commit()
 
+        # Added 2026-11-18: tags safe accounts against any custom
+        # vertical's match keywords, right after Stage B's hardcoded
+        # 7-category classification -- a separate, additive pass (see
+        # custom_verticals.match_accounts_to_custom_verticals's own
+        # docstring for why this is NOT folded into Stage B's classifier
+        # itself). Runs for every weekly pipeline run automatically, same
+        # as Stage A/B/C; a one-off re-run against an already-persisted
+        # run_date is also available via POST /custom-verticals/rematch
+        # for right after Jeff edits a vertical's keywords.
+        if verbose:
+            print("Persisting custom-vertical matches...")
+        custom_match_counts = custom_verticals.match_accounts_to_custom_verticals(session, run_date)
+        if verbose and custom_match_counts:
+            for vk, count in custom_match_counts.items():
+                print(f"  {vk}: {count} matched accounts")
+
         if verbose:
             print("Persisting Stage C (segmentation_runs)...")
         roe_audit_log_path = Path(output_dir) / f"{run_date}_roe_audit_log.csv"
@@ -229,6 +246,7 @@ def run_and_persist(
                         'excluded_count': results['stage_a']['excluded_count']},
             'stage_b': {'verticals': results['stage_b']['verticals']},
             'stage_c': {'segments': results['stage_c']['segments']},
+            'custom_verticals': {'matches': custom_match_counts},
         }
 
         run_row.status = "completed"

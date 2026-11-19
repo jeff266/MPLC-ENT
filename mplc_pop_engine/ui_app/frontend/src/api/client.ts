@@ -890,6 +890,14 @@ export interface CustomVerticalChannelRow {
 export interface CustomVerticalRow {
   vertical_key: string;
   display_name: string;
+  // Added 2026-11-18: answers "does a custom vertical map to the right
+  // pipeline post-Step-1?" -- match_keywords_json is generated once (an
+  // LLM call from the vertical's own channel descriptions) and used by a
+  // separate, free keyword-match pass (not Stage B's classifier) to tag
+  // "safe to distribute" accounts. See custom_verticals.py's
+  // match_accounts_to_custom_verticals for the full mechanism.
+  match_keywords_json: string | null;
+  match_keywords_generated_cost: number;
   created_at: string | null;
   updated_at: string | null;
   channels: CustomVerticalChannelRow[];
@@ -948,6 +956,41 @@ export async function updateCustomVerticalChannel(
 
 export async function deleteCustomVerticalChannel(verticalKey: string, channelId: number): Promise<void> {
   await client.delete(`/custom-verticals/${encodeURIComponent(verticalKey)}/channels/${channelId}`);
+}
+
+// Account-matching for custom verticals -- the piece that answers "when I
+// create a vertical, does it map to the right pipeline post-Step-1?" A
+// separate, additive pass from Stage B's classifier (see CLAUDE.md /
+// custom_verticals.py for why); these three calls are its UI surface.
+
+export async function generateCustomVerticalMatchKeywords(
+  verticalKey: string,
+): Promise<CustomVerticalRow> {
+  const { data } = await client.post<CustomVerticalRow>(
+    `/custom-verticals/${encodeURIComponent(verticalKey)}/match-keywords/generate`,
+  );
+  return data;
+}
+
+export async function updateCustomVerticalMatchKeywords(
+  verticalKey: string,
+  matchKeywordsJson: string,
+): Promise<CustomVerticalRow> {
+  const { data } = await client.put<CustomVerticalRow>(
+    `/custom-verticals/${encodeURIComponent(verticalKey)}/match-keywords`,
+    { match_keywords_json: matchKeywordsJson },
+  );
+  return data;
+}
+
+export interface RematchResult {
+  run_date: string;
+  matches: Record<string, number>;
+}
+
+export async function rematchCustomVerticals(): Promise<RematchResult> {
+  const { data } = await client.post<RematchResult>("/custom-verticals/rematch");
+  return data;
 }
 
 export function downloadBlob(blob: Blob, filename: string) {

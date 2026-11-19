@@ -854,6 +854,56 @@ def delete_custom_vertical_channel_endpoint(
         raise HTTPException(status_code=404, detail=str(e))
 
 
+# ---------------------------------------------------------------------------
+# Custom-vertical account matching -- Jeff (2026-11-18 follow-up): "when we
+# create a vertical, does it map to the correct pipeline post-Step-1 (safe
+# to distribute)?" See custom_verticals.match_accounts_to_custom_verticals's
+# docstring for why this is a separate, additive pass rather than a change
+# to Stage B's classifier. generate/update match_keywords mirror the
+# existing add_channel/update_channel generate-vs-hand-edit split exactly.
+# ---------------------------------------------------------------------------
+
+
+class UpdateMatchKeywordsRequest(BaseModel):
+    match_keywords_json: str
+
+
+@app.post("/custom-verticals/{vertical_key}/match-keywords/generate")
+def generate_custom_vertical_match_keywords_endpoint(
+    vertical_key: str, db: Session = Depends(get_db)
+):
+    try:
+        return custom_verticals.generate_match_keywords(db, vertical_key)
+    except custom_verticals.CustomVerticalError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.put("/custom-verticals/{vertical_key}/match-keywords")
+def update_custom_vertical_match_keywords_endpoint(
+    vertical_key: str, req: UpdateMatchKeywordsRequest, db: Session = Depends(get_db)
+):
+    try:
+        return custom_verticals.update_match_keywords(db, vertical_key, req.match_keywords_json)
+    except custom_verticals.CustomVerticalError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/custom-verticals/rematch")
+def rematch_custom_verticals_endpoint(db: Session = Depends(get_db)):
+    """Settings' "Re-match now" button -- runs the same keyword-match pass
+    pipeline_runner.py runs automatically each week, but on demand, against
+    the latest 'safe to distribute' run_date, for right after Jeff edits a
+    vertical's keywords without waiting for next week's pipeline run."""
+    run_date = queries._latest_run_date(db, models.EligibilityRun, None)
+    if run_date is None:
+        raise HTTPException(
+            status_code=400,
+            detail="No eligibility run found yet -- run Step 1 (Salesforce extract + eligibility) first.",
+        )
+    counts = custom_verticals.match_accounts_to_custom_verticals(db, run_date)
+    return {"run_date": run_date, "matches": counts}
+
+
 @app.get("/enrichment/cost-estimate")
 def get_enrichment_cost_estimate(
     vertical: str,

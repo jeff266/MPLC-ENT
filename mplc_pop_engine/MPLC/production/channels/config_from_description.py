@@ -136,3 +136,94 @@ def generate_channel_config(
         cost=cost,
         raw_model_output=text,
     )
+
+
+@dataclass
+class GeneratedMatchKeywords:
+    """What gets stored as CustomVertical.match_keywords_json (plus
+    match_keywords_generated_cost, stored alongside it, same split as
+    GeneratedChannelConfig above)."""
+    keywords: List[str] = field(default_factory=list)
+    cost: float = 0.0
+    raw_model_output: Optional[str] = None
+
+    def to_json(self) -> str:
+        return json.dumps({"keywords": self.keywords})
+
+
+_MATCH_KEYWORDS_PROMPT_TEMPLATE = """You are configuring account routing for a sales prospecting tool called
+MPLC's PoP Detection Engine. A new custom vertical called "{display_name}"
+was just defined, with these evidence-channel descriptions (what the
+person is looking for photo/video evidence of):
+
+{channel_descriptions}
+
+Your job: produce a list of plain keyword/phrase strings that would
+plausibly appear in a Salesforce "Industry" field value or a company's
+account name for a business that belongs to this vertical. These keywords
+will be used for a cheap, free, case-insensitive substring match against
+every account's industry text and account name -- NOT for a search query,
+and NOT for anything shown to a vision model. Think "what words would a
+CRM industry picklist or a company name contain for this kind of
+business," not "what would I search Google Images for."
+
+Keep each keyword short (1-4 words), avoid overly generic single words
+that would match too broadly (e.g. avoid "center" or "services" alone),
+and include common synonyms/variants a real Salesforce export might use.
+
+Produce a JSON object with exactly this field:
+{{
+  "keywords": [list of 3-10 short keyword/phrase strings]
+}}
+
+Answer with ONLY the JSON object, no other text."""
+
+
+def generate_match_keywords(
+    display_name: str,
+    channel_descriptions: List[str],
+    anthropic_api_key: Optional[str] = None,
+) -> GeneratedMatchKeywords:
+    """The one-time call behind CustomVertical.match_keywords_json --
+    same "generate once, hand-editable afterward" principle as
+    generate_channel_config above, just producing industry-match
+    keywords for the separate, additive custom-vertical tagger
+    (pipeline_runner.match_custom_verticals()) instead of a channel's
+    search/VLM config. Never called per account -- only when Jeff clicks
+    "Generate match keywords" (or "Regenerate") in Settings."""
+    if not channel_descriptions:
+        raise ValueError(
+            "Can't generate match keywords for a vertical with no channels yet -- "
+            "add at least one channel (with a description) first."
+        )
+
+    api_key = anthropic_api_key or os.getenv("ANTHROPIC_API_KEY")
+    from anthropic import Anthropic
+    client = Anthropic(api_key=api_key)
+
+    prompt = _MATCH_KEYWORDS_PROMPT_TEMPLATE.format(
+        display_name=display_name,
+        channel_descriptions="\n".join(f"- {d}" for d in channel_descriptions),
+    )
+
+    response = client.messages.create(
+        model="claude-sonnet-4-5-20250929",
+        max_tokens=300,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    cost = (response.usage.input_tokens * CLAUDE_INPUT_COST_PER_TOKEN
+            + response.usage.output_tokens * CLAUDE_OUTPUT_COST_PER_TOKEN)
+    text = response.content[0].text.strip()
+    if text.startswith("```"):
+        text = text.strip("`").lstrip("json").strip()
+
+    try:
+        parsed = json.loads(text)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Model did not return valid JSON for match keywords: {e}\nRaw output: {text}") from e
+
+    keywords = parsed.get("keywords", [])
+    if not isinstance(keywords, list) or not all(isinstance(k, str) for k in keywords):
+        raise ValueError(f"Model's 'keywords' field was not a list of strings: {keywords!r}")
+
+    return GeneratedMatchKeywords(keywords=keywords, cost=cost, raw_model_output=text)
