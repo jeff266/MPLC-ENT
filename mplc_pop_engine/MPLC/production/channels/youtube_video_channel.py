@@ -251,6 +251,32 @@ Answer ONLY with valid JSON:
         with tempfile.TemporaryDirectory() as tmp:
             tmp_dir = Path(tmp)
             for video in videos:
+                # Entity verification runs ONCE per video, using the search
+                # result's own url/title, before any download/ffmpeg/YOLO/VLM
+                # work happens at all. (Optimization, 2026-11-18: originally
+                # this ran per FRAME, after a full VLM analysis of that frame
+                # -- meaning a wrong-entity video still paid for a RapidAPI
+                # download, frame extraction, and VLM calls on every frame
+                # before any of that got thrown away. The entity check only
+                # depends on the video's url/title, which don't change frame
+                # to frame, so there is nothing to gain by repeating it, and
+                # everything to lose by running it last.) Same non-negotiable
+                # entity-resolution requirement as SerperImageEvidenceChannel
+                # -- see that file's comment for why this replaces
+                # healthcare's own verify_video_entity rather than reusing it.
+                verdict = verify_entity_match(
+                    account_name=ctx.account_name,
+                    account_industry=ctx.industry,
+                    account_state=ctx.state,
+                    account_website=ctx.website,
+                    evidence_url=video["url"],
+                    evidence_title=video["title"],
+                    use_llm_arbitration=True,
+                )
+                total_cost += verdict.get("details", {}).get("llm_arbitration", {}).get("cost", 0.0)
+                if not verdict["match"]:
+                    continue
+
                 video_path = self._download_video(video["url"], tmp_dir)
                 if video_path is None:
                     continue
@@ -262,23 +288,6 @@ Answer ONLY with valid JSON:
                     vlm_result, vlm_cost = self._analyze_frame_vlm(frame_path, ctx, video["title"])
                     total_cost += vlm_cost
                     if not vlm_result or not vlm_result.get("tv_detected") or not vlm_result.get("tv_powered_on"):
-                        continue
-
-                    # Same non-negotiable entity-resolution requirement as
-                    # SerperImageEvidenceChannel -- see that file's comment
-                    # for why this replaces healthcare's own
-                    # verify_video_entity rather than reusing it.
-                    verdict = verify_entity_match(
-                        account_name=ctx.account_name,
-                        account_industry=ctx.industry,
-                        account_state=ctx.state,
-                        account_website=ctx.website,
-                        evidence_url=video["url"],
-                        evidence_title=video["title"],
-                        use_llm_arbitration=True,
-                    )
-                    total_cost += verdict.get("details", {}).get("llm_arbitration", {}).get("cost", 0.0)
-                    if not verdict["match"]:
                         continue
 
                     return ChannelResult(

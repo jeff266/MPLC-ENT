@@ -123,42 +123,57 @@ def build_channel(row: ChannelConfigRow) -> EvidenceChannel:
     raise ValueError(f"Unknown channel_type '{row.channel_type}'")
 
 
-def run_vertical_for_account(
-    vertical_key: str,
-    channel_rows: List[ChannelConfigRow],
-    ctx: AccountContext,
-) -> Dict[str, Any]:
-    """Runs one account through a custom vertical's ordered, enabled
-    channels with early exit on PROSPECT. Returns an Evidence Persistence
-    Schema record (CLAUDE.md) -- same shape whether a channel hit, all
-    channels REJECTED, or a channel errored (errors are tracked separately,
-    per CLAUDE.md QA requirement #2: failed calls are not a clean REJECTED).
-    """
-    ordered = sorted(
+def build_channels(channel_rows: List[ChannelConfigRow]) -> List[EvidenceChannel]:
+    """Filters to enabled rows, sorts by step_order, and builds each
+    channel ONCE. Call this once per vertical per batch (run_vertical_for_
+    accounts does this) and reuse the result across every account --
+    never rebuild per account.
+
+    This matters beyond construction overhead: YouTubeVideoEvidenceChannel
+    lazy-loads its YOLO model on first use and caches it on the instance
+    (self._yolo_model) specifically so a batch pays that load cost once.
+    Calling build_channel() fresh for every account defeats that cache
+    entirely -- the model gets reloaded from disk on every single account.
+    Found during a 2026-11-18 optimization pass; the original per-account
+    build_channel() call inside run_vertical_for_account is kept below
+    only as a standalone single-row builder other callers can still use
+    directly."""
+    ordered_rows = sorted(
         (r for r in channel_rows if r.enabled),
         key=lambda r: r.step_order,
     )
+    # Fail fast on a bad/missing config for ANY row before running a
+    # single account -- a setup error, not a per-account failure, so it
+    # shouldn't surface only after burning cost on account #1.
+    return [build_channel(row) for row in ordered_rows]
 
+
+def run_vertical_for_account(
+    vertical_key: str,
+    channels: List[EvidenceChannel],
+    ctx: AccountContext,
+) -> Dict[str, Any]:
+    """Runs one account through a custom vertical's ALREADY-BUILT, ordered
+    channel list with early exit on PROSPECT. Takes built EvidenceChannel
+    instances (from build_channels(), built once per batch), not raw DB
+    rows -- see build_channels()'s docstring for why rebuilding per
+    account is wrong. Returns an Evidence Persistence Schema record
+    (CLAUDE.md) -- same shape whether a channel hit, all channels
+    REJECTED, or a channel errored (errors are tracked separately, per
+    CLAUDE.md QA requirement #2: failed calls are not a clean REJECTED).
+    """
     cost_breakdown: Dict[str, float] = {}
     channel_errors: List[Dict[str, str]] = []
     rejections: List[Dict[str, Any]] = []
 
-    for row in ordered:
-        try:
-            channel = build_channel(row)
-        except ValueError as e:
-            # A bad/missing config is a setup error, not a per-account
-            # failure -- raise immediately rather than silently skipping
-            # the step for every account in the batch.
-            raise
-
+    for channel in channels:
         try:
             result: ChannelResult = channel.search_evidence(ctx)
         except Exception as e:
             # A genuine exception during a live call (network error, etc.)
             # is excluded from the coverage denominator per CLAUDE.md QA
             # requirement #2 -- logged, not counted as REJECTED.
-            channel_errors.append({"channel": row.channel_type, "error": str(e)})
+            channel_errors.append({"channel": channel.name, "error": str(e)})
             continue
 
         bucket_key = result.channel
@@ -185,7 +200,7 @@ def run_vertical_for_account(
                 },
             }
 
-        rejections.append({"channel": row.channel_type, "reason": result.details.get("reason", "")})
+        rejections.append({"channel": channel.name, "reason": result.details.get("reason", "")})
 
     return {
         "account_name": ctx.account_name,
@@ -215,11 +230,14 @@ def run_vertical_for_accounts(
     progress_every: int = 25,
 ) -> List[Dict[str, Any]]:
     """Batch convenience wrapper -- same shape unified_worker.py already
-    expects to log per CLAUDE.md's "Track costs" workflow item."""
+    expects to log per CLAUDE.md's "Track costs" workflow item. Builds
+    the channel list ONCE (see build_channels()) and reuses it for every
+    account, rather than rebuilding per account."""
+    channels = build_channels(channel_rows)
     records = []
     start = time.time()
     for i, ctx in enumerate(accounts, start=1):
-        records.append(run_vertical_for_account(vertical_key, channel_rows, ctx))
+        records.append(run_vertical_for_account(vertical_key, channels, ctx))
         if progress_every and i % progress_every == 0:
             elapsed = time.time() - start
             print(f"[{vertical_key}] {i}/{len(accounts)} accounts, {elapsed:.0f}s elapsed", file=sys.stderr)

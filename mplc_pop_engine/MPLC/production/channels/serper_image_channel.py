@@ -134,9 +134,24 @@ class SerperImageEvidenceChannel(EvidenceChannel):
 
     def _download_and_validate(self, image_url: str) -> Optional[bytes]:
         try:
+            # stream=True + a Content-Length check (rather than downloading
+            # the full body via .content first) lets an oversized image be
+            # rejected without pulling the rest of the bytes over the wire.
+            # (Optimization, 2026-11-18: previously stream=True was passed
+            # but .content was read immediately afterward, which defeats
+            # streaming entirely -- the full response is still buffered
+            # before the size check runs. This still isn't a hard guarantee,
+            # since a server can omit or lie about Content-Length, but it's
+            # a real improvement for the common case of a server reporting
+            # it honestly.)
             response = requests.get(image_url, headers={"User-Agent": "Mozilla/5.0"}, timeout=10, stream=True)
             if response.status_code != 200:
                 return None
+            content_length = response.headers.get("Content-Length")
+            if content_length is not None:
+                declared_kb = int(content_length) / 1024
+                if declared_kb < 5 or declared_kb > 5000:
+                    return None
             content = response.content
             size_kb = len(content) / 1024
             if size_kb < 5 or size_kb > 5000:
@@ -207,18 +222,18 @@ Answer ONLY with valid JSON:
             return ChannelResult.rejected(self.name, "No images found", cost=total_cost)
 
         for img in images:
-            content = self._download_and_validate(img["url"])
-            if content is None:
-                continue
-            vlm_result, vlm_cost = self._analyze_vlm(content, ctx)
-            total_cost += vlm_cost
-            if not vlm_result or not vlm_result.get("tv_detected") or not vlm_result.get("tv_powered_on"):
-                continue
-
-            # Entity verification is NOT optional and NOT a per-channel ad
-            # hoc check (design doc §8) -- the shared, hardened cascade
-            # decides, using the LLM arbitration tier for ambiguous cases
-            # (the Heritage-Crossing-style collision this was built for).
+            # Entity verification runs FIRST, before any paid VLM call.
+            # (Optimization, 2026-11-18: originally this ran after the VLM
+            # call, which meant a wrong-entity image still burned a full
+            # VLM analysis before being rejected. verify_entity_match's
+            # cheap layers -- domain/category/name match -- cost nothing,
+            # so checking those first means VLM spend only ever goes
+            # toward candidates that are at least about the right
+            # business.) Entity verification is NOT optional and NOT a
+            # per-channel ad hoc check (design doc §8) -- the shared,
+            # hardened cascade decides, using the LLM arbitration tier for
+            # ambiguous cases (the Heritage-Crossing-style collision this
+            # was built for).
             verdict = verify_entity_match(
                 account_name=ctx.account_name,
                 account_industry=ctx.industry,
@@ -230,6 +245,14 @@ Answer ONLY with valid JSON:
             )
             total_cost += verdict.get("details", {}).get("llm_arbitration", {}).get("cost", 0.0)
             if not verdict["match"]:
+                continue
+
+            content = self._download_and_validate(img["url"])
+            if content is None:
+                continue
+            vlm_result, vlm_cost = self._analyze_vlm(content, ctx)
+            total_cost += vlm_cost
+            if not vlm_result or not vlm_result.get("tv_detected") or not vlm_result.get("tv_powered_on"):
                 continue
 
             return ChannelResult(

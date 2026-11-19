@@ -730,11 +730,13 @@ def list_dispatchable_verticals(db: Session = Depends(get_db)):
     custom_entries = [
         {"key": k, "label": v, "toggleable_channels": []}
         for k, v in custom.items()
-        # A custom vertical_key colliding with a hardcoded one is rejected
-        # at creation time (custom_verticals.create_custom_vertical has no
-        # such check today — documented gap, not silently resolved here);
-        # this filter just guarantees the hardcoded entry always wins if
-        # a collision somehow exists, never a duplicate dropdown row.
+        # A custom vertical_key colliding with a hardcoded one is now
+        # rejected at creation time (create_custom_vertical_endpoint below
+        # passes DISPATCHABLE_VERTICALS' keys as reserved_keys — 2026-11-18
+        # optimization pass, finding #5). This filter stays anyway as a
+        # second line of defense against a collision from a row created
+        # before that check existed, so the hardcoded entry always wins
+        # rather than producing a duplicate dropdown row.
         if k not in enrichment.DISPATCHABLE_VERTICALS
     ]
     return base + custom_entries
@@ -778,7 +780,12 @@ def create_custom_vertical_endpoint(
     req: CreateCustomVerticalRequest, db: Session = Depends(get_db)
 ):
     try:
-        return custom_verticals.create_custom_vertical(db, req.vertical_key, req.display_name)
+        return custom_verticals.create_custom_vertical(
+            db,
+            req.vertical_key,
+            req.display_name,
+            reserved_keys=set(enrichment.DISPATCHABLE_VERTICALS.keys()),
+        )
     except custom_verticals.CustomVerticalError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

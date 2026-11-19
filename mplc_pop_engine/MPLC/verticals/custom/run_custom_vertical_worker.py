@@ -123,6 +123,11 @@ def process_batch(batch_file: str, vertical: str, worker_id: int, run_date: str 
 
     try:
         channel_rows = _load_channel_rows(vertical)
+        # Built ONCE for the whole batch, not per record -- see
+        # runner.build_channels()'s docstring: rebuilding per account
+        # would reload YouTubeVideoEvidenceChannel's YOLO model from disk
+        # on every single account instead of once per job.
+        channels = runner.build_channels(channel_rows)
     except ValueError as e:
         log.error(f"FATAL: {e}")
         sys.exit(1)
@@ -175,7 +180,7 @@ def process_batch(batch_file: str, vertical: str, worker_id: int, run_date: str 
         try:
             log.info(f"[{i}/{len(records)}] Processing {account_name}")
             ctx = _record_to_context(record, vertical)
-            result = runner.run_vertical_for_account(vertical, channel_rows, ctx)
+            result = runner.run_vertical_for_account(vertical, channels, ctx)
             full_result = {**record, **result}
             results.append(full_result)
             processed_count += 1
