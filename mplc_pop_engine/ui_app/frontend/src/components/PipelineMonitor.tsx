@@ -41,6 +41,7 @@ export function PipelineMonitor() {
               <tr>
                 <th></th>
                 <th>Vertical</th>
+                <th>Source</th>
                 <th>Run date</th>
                 <th>Dispatched</th>
                 <th>Skipped (already enriched)</th>
@@ -60,6 +61,15 @@ export function PipelineMonitor() {
                     <input type="radio" checked={j.job_id === selectedJobId} readOnly />
                   </td>
                   <td>{j.display_vertical}</td>
+                  <td>
+                    {j.source === "clay_import" ? (
+                      <span className="status-pill status-pill-brand" title="Dispatched from the Clay Import tab, not from a Salesforce account selection">
+                        Clay import
+                      </span>
+                    ) : (
+                      "Salesforce"
+                    )}
+                  </td>
                   <td>{j.run_date}</td>
                   <td>{j.total_dispatched.toLocaleString()}</td>
                   <td>{j.skipped_already_enriched.toLocaleString()}</td>

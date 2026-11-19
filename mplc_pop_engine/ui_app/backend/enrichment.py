@@ -402,6 +402,7 @@ def _job_summary(job: models.EnrichmentJob) -> dict:
         "started_at": job.started_at,
         "finished_at": job.finished_at,
         "created_by": job.created_by,
+        "source": job.source,
     }
 
 
@@ -443,6 +444,7 @@ def job_progress(db: Session, job_id: str) -> dict:
         "display_vertical": job.display_vertical,
         "run_date": job.run_date,
         "status": job.status,
+        "source": job.source,
         "process_alive": process_alive,
         "total_dispatched": job.total_dispatched,
         "skipped_already_enriched": job.skipped_already_enriched,

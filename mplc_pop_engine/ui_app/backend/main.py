@@ -41,6 +41,7 @@ from . import models
 from . import queries
 from . import enrichment
 from . import clay_import
+from . import clay_dispatch
 from . import brand_verification
 from . import duplicate_detection
 from . import custom_verticals
@@ -454,6 +455,9 @@ _CLAY_EXPORT_FIELDNAMES = [
     # DictWriter-shape rule: queries.py now always includes this key,
     # so it has to be listed here too or every export 400s.
     "exclusion_reasons",
+    # This row's latest clay_dispatch.py outcome, if any (2026-11-18) --
+    # same DictWriter-shape rule as exclusion_reasons above.
+    "dispatch_status", "dispatch_vertical", "dispatch_job_id",
 ]
 
 
@@ -507,6 +511,36 @@ def verify_clay_brand_match(batch_id: str, row_id: int, db: Session = Depends(ge
     try:
         return brand_verification.verify_row(db, batch_id, row_id)
     except brand_verification.BrandVerificationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+# Jeff (2026-11-18), after the "why protected" chips shipped: "After I
+# dedupe the list and find the net new, and select accounts, how do I
+# route them to a vertical? or store in them in a future run?" --
+# clay_dispatch.py is the answer: select any rows (dedupe status is a
+# decision aid, never a gate, per his own scoping answer), pick a
+# vertical, dispatch straight into the same worker/Pipeline Monitor Step
+# 2/3 already use for Salesforce accounts, no Salesforce account needed.
+class DispatchClayRowsRequest(BaseModel):
+    clay_match_ids: list[int]
+    vertical: str
+    disabled_channels: Optional[list[str]] = None
+    confirmed_protected: bool = False
+    created_by: Optional[str] = None
+
+
+@app.post("/clay-dedupe/dispatch")
+def dispatch_clay_rows_endpoint(req: DispatchClayRowsRequest, db: Session = Depends(get_db)):
+    try:
+        return clay_dispatch.dispatch_clay_rows(
+            db,
+            clay_match_ids=req.clay_match_ids,
+            vertical=req.vertical,
+            created_by=req.created_by,
+            disabled_channels=req.disabled_channels,
+            confirmed_protected=req.confirmed_protected,
+        )
+    except clay_dispatch.ClayDispatchError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 

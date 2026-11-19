@@ -253,6 +253,39 @@ class ClayMatch(Base):
     ai_check_cost: Mapped[Optional[float]] = mapped_column(Float)
 
 
+class ClayDispatch(Base):
+    """One ClayMatch row's outcome from one clay_dispatch.dispatch_clay_rows()
+    call (Jeff, 2026-11-18: "after I dedupe the list and find the net new,
+    and select accounts, how do I route them to a vertical? or store them
+    in a future run?" -- there was no path; this table plus clay_dispatch.py
+    is that path). 'dispatched' means this row's company was sent to the
+    named vertical's worker as part of job_id (possibly coalesced with a
+    sibling row that normalized to the same pseudo account_id);
+    'skipped_already_enriched' means Supabase already had a completed
+    result for this company + vertical from a PRIOR dispatch (any run_date,
+    any earlier import) -- see clay_dispatch.compute_pseudo_account_id for
+    why the same real-world company always resolves to the same account_id
+    across different Clay imports, which is what makes this skip possible.
+
+    Keyed by clay_match_id, not just account_id, so re-importing the same
+    export later (new batch_id, new ClayMatch.id rows, but the SAME pseudo
+    account_id for the same company) still gets its own history entry here
+    instead of colliding with the earlier one."""
+    __tablename__ = "clay_dispatches"
+    __table_args__ = (
+        Index("ix_clay_dispatch_match", "clay_match_id"),
+        Index("ix_clay_dispatch_account", "account_id"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    clay_match_id: Mapped[int] = mapped_column(ForeignKey("clay_matches.id"), index=True)
+    job_id: Mapped[str] = mapped_column(ForeignKey("enrichment_jobs.id"), index=True)
+    account_id: Mapped[str] = mapped_column(String(18))  # pseudo id -- see compute_pseudo_account_id
+    vertical: Mapped[str] = mapped_column(String(50))
+    status: Mapped[str] = mapped_column(String(30))  # dispatched | skipped_already_enriched
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
+
+
 class Action(Base):
     """Audit trail of what a human actually did in the UI (the real
     'select rows -> dispatch' triage action), separate from what the
@@ -304,6 +337,13 @@ class EnrichmentJob(Base):
     started_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     finished_at: Mapped[Optional[datetime]] = mapped_column(DateTime)
     created_by: Mapped[Optional[str]] = mapped_column(String(100))
+    # "salesforce" (default, every job before 2026-11-18) or "clay_import" --
+    # lets Step 3's Pipeline Monitor tag a job dispatched straight from a
+    # Clay/ZoomInfo import (clay_dispatch.py) instead of the usual
+    # Salesforce-account selection, since the two use entirely different
+    # account_id namespaces (real 18-char SF ids vs. this module's stable
+    # pseudo-ids -- see clay_dispatch.compute_pseudo_account_id).
+    source: Mapped[str] = mapped_column(String(20), default="salesforce")
 
     job_accounts: Mapped[list["EnrichmentJobAccount"]] = relationship(back_populates="job")
 

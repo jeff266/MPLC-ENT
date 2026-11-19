@@ -353,6 +353,32 @@ def clay_ambiguous_queue(session: Session, batch_id: Optional[str] = None,
     }
 
 
+def _latest_clay_dispatch_map(session: Session, clay_match_ids: list[int]) -> dict:
+    """The most recent clay_dispatch.py dispatch outcome for each of the
+    given ClayMatch ids, one query per page rather than one query per row
+    (no N+1). A row can be dispatched more than once over time (e.g. first
+    try errored, re-sent later, or sent to a different vertical the
+    second time) -- ordering ascending by id and letting a later row
+    overwrite an earlier one in the dict is the simplest way to keep only
+    the latest without a window function."""
+    if not clay_match_ids:
+        return {}
+    rows = session.execute(
+        select(
+            models.ClayDispatch.clay_match_id,
+            models.ClayDispatch.status,
+            models.ClayDispatch.vertical,
+            models.ClayDispatch.job_id,
+        )
+        .where(models.ClayDispatch.clay_match_id.in_(clay_match_ids))
+        .order_by(models.ClayDispatch.id.asc())
+    ).all()
+    out: dict[int, dict] = {}
+    for clay_match_id, status, vertical, job_id in rows:
+        out[clay_match_id] = {"status": status, "vertical": vertical, "job_id": job_id}
+    return out
+
+
 def clay_batch_rows(
     session: Session,
     batch_id: str,
@@ -415,6 +441,7 @@ def clay_batch_rows(
         filtered_query.order_by(models.ClayMatch.id)
         .offset((page - 1) * page_size).limit(page_size)
     ).scalars().all()
+    dispatch_map = _latest_clay_dispatch_map(session, [r.id for r in rows])
 
     return {
         "total_rows": total_rows,
@@ -434,6 +461,9 @@ def clay_batch_rows(
                 "ai_verified_at": r.ai_verified_at.isoformat() if r.ai_verified_at else None,
                 "ai_check_cost": r.ai_check_cost,
                 "exclusion_reasons": r.exclusion_reasons,
+                "dispatch_status": dispatch_map.get(r.id, {}).get("status"),
+                "dispatch_vertical": dispatch_map.get(r.id, {}).get("vertical"),
+                "dispatch_job_id": dispatch_map.get(r.id, {}).get("job_id"),
             }
             for r in rows
         ],
@@ -450,6 +480,7 @@ def clay_batch_rows_by_ids(session: Session, batch_id: str, ids: list[int]):
             and_(models.ClayMatch.batch_id == batch_id, models.ClayMatch.id.in_(ids))
         ).order_by(models.ClayMatch.id)
     ).scalars().all()
+    dispatch_map = _latest_clay_dispatch_map(session, [r.id for r in rows])
     return [
         {
             "id": r.id, "clay_company_name": r.clay_company_name,
@@ -463,6 +494,9 @@ def clay_batch_rows_by_ids(session: Session, batch_id: str, ids: list[int]):
             "ai_verified_at": r.ai_verified_at.isoformat() if r.ai_verified_at else None,
             "ai_check_cost": r.ai_check_cost,
             "exclusion_reasons": r.exclusion_reasons,
+            "dispatch_status": dispatch_map.get(r.id, {}).get("status"),
+            "dispatch_vertical": dispatch_map.get(r.id, {}).get("vertical"),
+            "dispatch_job_id": dispatch_map.get(r.id, {}).get("job_id"),
         }
         for r in rows
     ]

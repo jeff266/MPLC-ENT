@@ -273,6 +273,11 @@ export interface ClayBatchRow {
   // open_deal / lost_deal_last_9_months) -- only populated for
   // MATCHED_PROTECTED rows. See REASON_LABEL_INFO in ClayBatchReview.tsx.
   exclusion_reasons: string | null;
+  // This row's latest clay_dispatch.py outcome, if it's ever been sent to
+  // a vertical pipeline from this tab -- null if it never has.
+  dispatch_status: string | null; // "dispatched" | "skipped_already_enriched" | null
+  dispatch_vertical: string | null;
+  dispatch_job_id: string | null;
 }
 
 export interface ClayBatchRowsResult {
@@ -319,6 +324,51 @@ export async function downloadSelectedClayRowsCsv(batchId: string, ids: number[]
     { responseType: "blob" },
   );
   return response.data as Blob;
+}
+
+// ---- Clay dispatch: send selected rows straight into a vertical pipeline
+// ----------------------------------------------------------------------
+// Jeff (2026-11-18): "After I dedupe the list and find the net new, and
+// select accounts, how do I route them to a vertical? or store in them
+// in a future run?" -- any selected row (any classification -- the
+// dedupe status is a decision aid, never a gate) can be sent here. No
+// Salesforce account needed; see clay_dispatch.py for how.
+
+export interface ProtectedClayRow {
+  id: number;
+  clay_company_name: string | null;
+  matched_account_name: string | null;
+  exclusion_reasons: string | null;
+}
+
+export type DispatchClayRowsResult =
+  | { requires_confirmation: true; protected_rows: ProtectedClayRow[] }
+  | {
+      requires_confirmation: false;
+      job_id: string;
+      vertical: string;
+      run_date: string;
+      total_requested: number;
+      total_dispatched: number;
+      skipped_already_enriched: number;
+      missing_ids: number[];
+      unusable_ids: number[];
+      pid: number;
+    };
+
+export async function dispatchClayRows(req: {
+  clayMatchIds: number[];
+  vertical: string;
+  disabledChannels?: string[];
+  confirmedProtected?: boolean;
+}): Promise<DispatchClayRowsResult> {
+  const { data } = await client.post<DispatchClayRowsResult>("/clay-dedupe/dispatch", {
+    clay_match_ids: req.clayMatchIds,
+    vertical: req.vertical,
+    disabled_channels: req.disabledChannels,
+    confirmed_protected: req.confirmedProtected ?? false,
+  });
+  return data;
 }
 
 // ---- AI brand-match verification ----------------------------------------
@@ -654,6 +704,10 @@ export interface EnrichmentJobSummary {
   started_at: string;
   finished_at: string | null;
   created_by: string | null;
+  // "salesforce" (the usual Step 2 dispatch) or "clay_import" (dispatched
+  // straight from the Clay Import tab's review table, no Salesforce
+  // account needed -- see dispatchClayRows).
+  source: string;
 }
 
 export async function fetchEnrichmentJobs(): Promise<EnrichmentJobSummary[]> {
@@ -697,6 +751,7 @@ export interface JobProgress {
   process_alive: boolean;
   total_dispatched: number;
   skipped_already_enriched: number;
+  source: string;
   status_counts: Record<string, number>;
   cost_so_far: number;
   heartbeat: EnrichmentHeartbeat | null;

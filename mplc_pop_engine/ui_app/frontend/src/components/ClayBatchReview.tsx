@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  dispatchClayRows,
   downloadBlob,
   downloadClayBatchCsv,
   downloadSelectedClayRowsCsv,
   fetchClayBatchRows,
+  fetchDispatchableVerticals,
   verifyClayBrandMatch,
 } from "../api/client";
 
@@ -149,6 +151,7 @@ export function ClayBatchReview({ batchId }: { batchId: string }) {
     setSearch("");
     setClassification("");
     setSelectedIds(new Set());
+    setDispatchMessage(null);
   }, [batchId]);
 
   useEffect(() => {
@@ -186,6 +189,50 @@ export function ClayBatchReview({ batchId }: { batchId: string }) {
       setVerifyError({ id: rowId, message: String(e) });
     },
     onSettled: () => setVerifyingRowId(null),
+  });
+
+  // Jeff (2026-11-18): "After I dedupe the list and find the net new, and
+  // select accounts, how do I route them to a vertical? or store in them
+  // in a future run?" -- send the checked rows straight to a vertical
+  // pipeline, same picker Step 2 uses, no Salesforce account needed.
+  const verticalsQuery = useQuery({
+    queryKey: ["dispatchable-verticals"],
+    queryFn: fetchDispatchableVerticals,
+  });
+  const [dispatchVertical, setDispatchVertical] = useState("");
+  const [dispatchMessage, setDispatchMessage] = useState<string | null>(null);
+  const dispatchMutation = useMutation({
+    mutationFn: (confirmedProtected: boolean) =>
+      dispatchClayRows({
+        clayMatchIds: Array.from(selectedIds),
+        vertical: dispatchVertical,
+        confirmedProtected,
+      }),
+    onSuccess: (data) => {
+      if (data.requires_confirmation) {
+        const names = data.protected_rows
+          .map((r) => r.clay_company_name ?? `row ${r.id}`)
+          .join(", ");
+        const proceed = window.confirm(
+          `${data.protected_rows.length} selected row(s) are "Matched — protected" ` +
+            `(an existing Salesforce account, currently excluded): ${names}.\n\n` +
+            "Send them to the pipeline anyway?",
+        );
+        if (proceed) dispatchMutation.mutate(true);
+        return;
+      }
+      const parts = [`Dispatched ${data.total_dispatched.toLocaleString()} row(s) as job ${data.job_id.slice(0, 8)}…`];
+      if (data.skipped_already_enriched > 0) {
+        parts.push(`${data.skipped_already_enriched.toLocaleString()} skipped (already enriched for this company).`);
+      }
+      if (data.unusable_ids.length > 0) {
+        parts.push(`${data.unusable_ids.length} row(s) had no company name or website -- not sent.`);
+      }
+      parts.push("Check the Pipeline Monitor tab for progress.");
+      setDispatchMessage(parts.join(" "));
+      setSelectedIds(new Set());
+      queryClient.invalidateQueries({ queryKey: ["clay-batch-rows", batchId] });
+    },
   });
 
   async function handleDownloadAll() {
@@ -303,6 +350,37 @@ export function ClayBatchReview({ batchId }: { batchId: string }) {
       {downloadAllError && <p className="action-error">Download failed: {downloadAllError}</p>}
       {exportSelectedError && <p className="action-error">Export failed: {exportSelectedError}</p>}
 
+      <div className="clay-dispatch-toolbar">
+        <select
+          value={dispatchVertical}
+          onChange={(e) => {
+            setDispatchVertical(e.target.value);
+            setDispatchMessage(null);
+          }}
+        >
+          <option value="">— pick a vertical —</option>
+          {(verticalsQuery.data ?? []).map((v) => (
+            <option key={v.key} value={v.key}>
+              {v.label}
+            </option>
+          ))}
+        </select>
+        <button
+          type="button"
+          onClick={() => dispatchMutation.mutate(false)}
+          disabled={selectedIds.size === 0 || !dispatchVertical || dispatchMutation.isPending}
+          title="Run these rows through the picked vertical's pipeline -- no Salesforce account needed. The dedupe status above is a decision aid, not a requirement: any selected row can be sent."
+        >
+          {dispatchMutation.isPending
+            ? "Dispatching…"
+            : `Send ${selectedIds.size.toLocaleString()} selected to pipeline`}
+        </button>
+      </div>
+      {dispatchMutation.isError && (
+        <p className="action-error">Dispatch failed: {String(dispatchMutation.error)}</p>
+      )}
+      {dispatchMessage && <p className="field-hint">{dispatchMessage}</p>}
+
       {rowsQuery.isError && (
         <p className="action-error">Could not load rows: {String(rowsQuery.error)}</p>
       )}
@@ -334,6 +412,7 @@ export function ClayBatchReview({ batchId }: { batchId: string }) {
             <th>Confidence</th>
             <th># candidates</th>
             <th>AI verification</th>
+            <th>Pipeline</th>
           </tr>
         </thead>
         <tbody>
@@ -409,11 +488,31 @@ export function ClayBatchReview({ batchId }: { batchId: string }) {
                   </>
                 )}
               </td>
+              <td>
+                {row.dispatch_status ? (
+                  <span
+                    className={
+                      row.dispatch_status === "dispatched"
+                        ? "status-pill status-pill-matched"
+                        : "status-pill status-pill-net-new"
+                    }
+                    title={
+                      row.dispatch_status === "dispatched"
+                        ? `Sent to the ${row.dispatch_vertical} pipeline, job ${row.dispatch_job_id?.slice(0, 8)}…`
+                        : `Already had a completed ${row.dispatch_vertical} result for this company from an earlier import -- not re-sent`
+                    }
+                  >
+                    {row.dispatch_status === "dispatched" ? "Sent" : "Already processed"}
+                  </span>
+                ) : (
+                  "—"
+                )}
+              </td>
             </tr>
           ))}
           {rows.length === 0 && !rowsQuery.isFetching && (
             <tr>
-              <td colSpan={9}>No rows match this filter.</td>
+              <td colSpan={10}>No rows match this filter.</td>
             </tr>
           )}
         </tbody>
