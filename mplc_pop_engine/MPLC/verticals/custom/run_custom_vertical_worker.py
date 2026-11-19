@@ -83,16 +83,28 @@ def _load_channel_rows(vertical_key: str) -> list[runner.ChannelConfigRow]:
 
 def _record_to_context(record: dict, vertical_key: str) -> AccountContext:
     """batch CSV columns, per enrichment.py's dispatch_job(): account_id,
-    account_name, website, operating_market, segment. No city/state column
-    today -- query templates referencing {city}/{state} simply skip that
-    placeholder (see SerperImageEvidenceChannel._format_queries), they
-    don't error, so this isn't a hard blocker, just a known gap flagged
-    back to the caller below rather than silently guessed at."""
+    account_name, website, operating_market, segment, state, country,
+    industry. (state/country/industry added 2026-11-18 -- see
+    dispatch_job()'s comment: they were being queried from the Account
+    table and then silently dropped before reaching this CSV, which meant
+    entity_verification.verify_entity_match()'s geographic-distance and
+    category-incompatibility layers could never fire for a custom
+    vertical, and {state}/{country} query-template placeholders silently
+    formatted to blank strings instead of real values -- NOT skipped, as
+    a previous version of this comment incorrectly claimed: str.format()
+    happily substitutes AccountContext's default empty string, it doesn't
+    raise. No `city` column -- models.Account has no city field at all,
+    so that one genuinely has no upstream source to propagate and stays
+    unset; a query template using {city} still formats, just always
+    blank.)"""
     return AccountContext(
         account_name=record.get("account_name", ""),
         website=record.get("website", ""),
         operating_market=record.get("operating_market") or "United States",
         segment=record.get("segment", ""),
+        state=record.get("state", ""),
+        country=record.get("country") or "United States",
+        industry=record.get("industry") or None,
         vertical=vertical_key,
     )
 

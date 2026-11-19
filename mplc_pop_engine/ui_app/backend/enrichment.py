@@ -286,8 +286,30 @@ def dispatch_job(
     stdout_file = job_dir / "stdout.log"
 
     with open(batch_file, "w", newline="") as f:
+        # state/country/industry added 2026-11-18: queries.accounts_by_ids()
+        # already selects these (confirmed against models.Account, which
+        # has real state/country/industry columns -- just no `city`, so
+        # that one genuinely has no upstream source and stays unset), but
+        # they were being dropped here before ever reaching a batch file.
+        # The three hardcoded verticals' own enrichers never asked for
+        # them, so this went unnoticed -- but the Custom Vertical Builder's
+        # channels (serper_image_channel.py/youtube_video_channel.py) DO
+        # read ctx.state/ctx.industry, both for query-template placeholders
+        # and for entity_verification.verify_entity_match()'s geographic-
+        # distance and category-incompatibility layers. Without them, those
+        # two cascade layers could never fire for a custom vertical, and
+        # {state}/{country} placeholders silently formatted to blank
+        # strings instead of real values -- the exact "true entity
+        # resolution" gap this session's scoping call was about. Adding
+        # these columns is backward-compatible: unified_worker.py reads
+        # this CSV with csv.DictReader, which tolerates extra columns it
+        # doesn't use, so healthcare/corporate/mdu are unaffected.
         writer = csv.DictWriter(
-            f, fieldnames=["account_id", "account_name", "website", "operating_market", "segment"]
+            f,
+            fieldnames=[
+                "account_id", "account_name", "website", "operating_market",
+                "segment", "state", "country", "industry",
+            ],
         )
         writer.writeheader()
         for r in to_dispatch:
@@ -297,6 +319,9 @@ def dispatch_job(
                 "website": r.get("website") or "",
                 "operating_market": r.get("operating_market") or "United States",
                 "segment": r.get("segment") or "",
+                "state": r.get("state") or "",
+                "country": r.get("country") or "",
+                "industry": r.get("industry") or "",
             })
 
     cmd = [
