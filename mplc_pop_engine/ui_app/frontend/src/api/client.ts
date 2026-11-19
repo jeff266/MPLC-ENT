@@ -864,6 +864,92 @@ export async function verifySetting(key: string): Promise<VerifyResult> {
   return data;
 }
 
+// ---------------------------------------------------------------------------
+// Custom Vertical Builder -- Jeff (2026-11-18): config-driven way to define
+// a new vertical (channel selection, search-term/description config,
+// ordering, early-exit-on-PROSPECT) without writing new Python per
+// vertical. See claude/Custom_Vertical_Builder_Design.md in the MPLC
+// project. Surfaced in the Settings tab, not a new top-level tab.
+// ---------------------------------------------------------------------------
+
+export type CustomVerticalChannelType = "serper_image" | "youtube_video" | "website_scrape";
+
+export interface CustomVerticalChannelRow {
+  id: number;
+  vertical_key: string;
+  step_order: number;
+  channel_type: CustomVerticalChannelType;
+  enabled: boolean;
+  description: string;
+  config_json: string | null;
+  config_generated_cost: number;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+export interface CustomVerticalRow {
+  vertical_key: string;
+  display_name: string;
+  created_at: string | null;
+  updated_at: string | null;
+  channels: CustomVerticalChannelRow[];
+}
+
+export async function fetchCustomVerticals(): Promise<CustomVerticalRow[]> {
+  const { data } = await client.get<CustomVerticalRow[]>("/custom-verticals");
+  return data;
+}
+
+export async function createCustomVertical(
+  verticalKey: string,
+  displayName: string,
+): Promise<CustomVerticalRow> {
+  const { data } = await client.post<CustomVerticalRow>("/custom-verticals", {
+    vertical_key: verticalKey,
+    display_name: displayName,
+  });
+  return data;
+}
+
+export async function deleteCustomVertical(verticalKey: string): Promise<void> {
+  await client.delete(`/custom-verticals/${encodeURIComponent(verticalKey)}`);
+}
+
+export async function addCustomVerticalChannel(
+  verticalKey: string,
+  channelType: CustomVerticalChannelType,
+  description: string,
+): Promise<CustomVerticalChannelRow> {
+  const { data } = await client.post<CustomVerticalChannelRow>(
+    `/custom-verticals/${encodeURIComponent(verticalKey)}/channels`,
+    { channel_type: channelType, description },
+  );
+  return data;
+}
+
+export interface UpdateCustomVerticalChannelInput {
+  step_order?: number;
+  enabled?: boolean;
+  config_json?: string;
+  regenerate_from_description?: string;
+}
+
+export async function updateCustomVerticalChannel(
+  verticalKey: string,
+  channelId: number,
+  input: UpdateCustomVerticalChannelInput,
+): Promise<CustomVerticalChannelRow> {
+  const { data } = await client.put<CustomVerticalChannelRow>(
+    `/custom-verticals/${encodeURIComponent(verticalKey)}/channels/${channelId}`,
+    input,
+  );
+  return data;
+}
+
+export async function deleteCustomVerticalChannel(verticalKey: string, channelId: number): Promise<void> {
+  await client.delete(`/custom-verticals/${encodeURIComponent(verticalKey)}/channels/${channelId}`);
+}
+
 export function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchSettings, updateSetting, verifySetting, type SettingField, type VerifyResult } from "../api/client";
+import { CustomVerticalsSection } from "./CustomVerticalsSection";
 
 /** Settings tab. Added 2026-11-14 (Jeff: "would it be good to have a
  * settings page that can store variables and write to the env file? And
@@ -145,6 +146,8 @@ export function Settings() {
           </tbody>
         </table>
       )}
+
+      <CustomVerticalsSection />
     </div>
   );
 }
