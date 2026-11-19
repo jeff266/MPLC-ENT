@@ -70,17 +70,27 @@ function ChannelRow({
     onSuccess: invalidate,
   });
 
-  const swapStepOrder = (other: CustomVerticalChannelRow) => {
-    // Simple adjacent swap -- reordering a short list, not a general
-    // drag-and-drop, so two updates (this row <-> its neighbor) is enough.
-    // Both fire before the shared query invalidation so the list re-fetches
-    // once, with both new positions already committed, rather than
-    // flickering through an inconsistent intermediate order.
-    Promise.all([
-      updateCustomVerticalChannel(verticalKey, channel.id, { step_order: other.step_order }),
-      updateCustomVerticalChannel(verticalKey, other.id, { step_order: channel.step_order }),
-    ]).then(invalidate);
-  };
+  // Was a bare Promise.all(...).then(invalidate) with no .catch -- every
+  // OTHER mutation in this file surfaces .isError, but a failed reorder
+  // (e.g. a network blip on one of the two requests) used to silently
+  // half-apply with zero feedback, leaving the two rows with duplicate or
+  // inconsistent step_order and no way to tell something went wrong.
+  // Wrapped as a real useMutation (2026-11-18) so it reports errors the
+  // same way update/remove already do.
+  const reorder = useMutation({
+    mutationFn: (other: CustomVerticalChannelRow) =>
+      // Simple adjacent swap -- reordering a short list, not a general
+      // drag-and-drop, so two updates (this row <-> its neighbor) is
+      // enough. Both fire before the shared query invalidation so the
+      // list re-fetches once, with both new positions already
+      // committed, rather than flickering through an inconsistent
+      // intermediate order.
+      Promise.all([
+        updateCustomVerticalChannel(verticalKey, channel.id, { step_order: other.step_order }),
+        updateCustomVerticalChannel(verticalKey, other.id, { step_order: channel.step_order }),
+      ]),
+    onSuccess: invalidate,
+  });
 
   let parsedConfig: { query_templates?: string[]; target_spaces?: string[]; excluded_spaces?: string[] } | null = null;
   try {
@@ -105,22 +115,41 @@ function ChannelRow({
         <div className="custom-channel-order-buttons">
           <button
             type="button"
-            disabled={!prevChannel}
+            disabled={!prevChannel || reorder.isPending}
             title="Move earlier"
-            onClick={() => prevChannel && swapStepOrder(prevChannel)}
+            onClick={() => prevChannel && reorder.mutate(prevChannel)}
           >
             ↑
           </button>
           <button
             type="button"
-            disabled={!nextChannel}
+            disabled={!nextChannel || reorder.isPending}
             title="Move later"
-            onClick={() => nextChannel && swapStepOrder(nextChannel)}
+            onClick={() => nextChannel && reorder.mutate(nextChannel)}
           >
             ↓
           </button>
         </div>
-        <button type="button" className="custom-channel-delete" onClick={() => remove.mutate()}>
+        <button
+          type="button"
+          className="custom-channel-delete"
+          onClick={() => {
+            // Was a single click with no confirm -- unlike "Delete
+            // vertical" below, which does confirm despite being harder to
+            // reach (one header button vs. this one sitting inline among
+            // small ↑/↓ icon buttons, a much easier misclick target). A
+            // misclick here permanently destroys the channel and the
+            // config it cost a real LLM call to generate, with no undo.
+            if (
+              window.confirm(
+                `Remove step ${channel.step_order + 1} (${CHANNEL_TYPE_LABELS[channel.channel_type]})? ` +
+                  "This deletes its generated config and can't be undone.",
+              )
+            ) {
+              remove.mutate();
+            }
+          }}
+        >
           Remove
         </button>
       </div>
@@ -203,12 +232,26 @@ function ChannelRow({
               type="button"
               className="primary"
               disabled={update.isPending || !regenDescription.trim()}
-              onClick={() =>
+              onClick={() => {
+                // Was a single click with no confirm, unlike "Delete
+                // vertical" below -- but this one actually spends real
+                // money (a real LLM call), and sits right next to
+                // "Hand-edit config" above, which has no side effect at
+                // all. A misclick between the two used to burn a paid
+                // regeneration with no undo.
+                if (
+                  !window.confirm(
+                    "Regenerate this step's config from the description above? " +
+                      "This makes a real (small, one-time) LLM call and replaces the current config.",
+                  )
+                ) {
+                  return;
+                }
                 update.mutate(
                   { regenerate_from_description: regenDescription },
                   { onSuccess: () => setShowRegen(false) },
-                )
-              }
+                );
+              }}
             >
               {update.isPending ? "Regenerating…" : "Regenerate (one-time LLM call)"}
             </button>
@@ -219,9 +262,9 @@ function ChannelRow({
         </div>
       )}
 
-      {(update.isError || remove.isError) && (
+      {(update.isError || remove.isError || reorder.isError) && (
         <p className="action-error">
-          {String(((update.error ?? remove.error) as Error)?.message ?? "Request failed")}
+          {String(((update.error ?? remove.error ?? reorder.error) as Error)?.message ?? "Request failed")}
         </p>
       )}
     </div>
