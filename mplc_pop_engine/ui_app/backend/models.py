@@ -306,3 +306,56 @@ class EnrichmentJobAccount(Base):
     account_id: Mapped[str] = mapped_column(String(18), index=True)
 
     job: Mapped["EnrichmentJob"] = relationship(back_populates="job_accounts")
+
+
+class CustomVertical(Base):
+    """A vertical Jeff defines from the Settings tab instead of a new Python
+    file. See claude/Custom_Vertical_Builder_Design.md in the project.
+    `vertical_key` is a slug and doubles as the key DISPATCHABLE_VERTICALS
+    uses for the hardcoded verticals, so Step 2's dispatch dropdown can
+    union the two without a separate ID scheme."""
+    __tablename__ = "custom_verticals"
+
+    vertical_key: Mapped[str] = mapped_column(String(100), primary_key=True)
+    display_name: Mapped[str] = mapped_column(String(200))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow,
+                                                   onupdate=datetime.utcnow)
+
+    channels: Mapped[list["CustomVerticalChannel"]] = relationship(
+        back_populates="vertical", cascade="all, delete-orphan",
+        order_by="CustomVerticalChannel.step_order",
+    )
+
+
+class CustomVerticalChannel(Base):
+    """One step in a custom vertical's recipe. Execution order is
+    `step_order`; the runner (verticals/custom/runner.py) stops at the
+    first enabled channel that returns tier=PROSPECT -- same early-exit
+    convention every hardcoded vertical already uses, just config-driven
+    here instead of a hand-written if/elif chain.
+
+    `description` is Jeff's plain-English input, kept even after
+    `config_json` is generated so a channel can be regenerated later
+    without re-typing it. `config_json` is generated ONCE (not per account
+    enriched) by production/channels/config_from_description.py, then
+    hand-editable -- see design doc §2."""
+    __tablename__ = "custom_vertical_channels"
+    __table_args__ = (
+        Index("ix_custom_vertical_channels_vertical", "vertical_key"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    vertical_key: Mapped[str] = mapped_column(ForeignKey("custom_verticals.vertical_key"))
+    step_order: Mapped[int] = mapped_column(Integer, default=0)
+    # "serper_image" | "youtube_video" | "website_scrape"
+    channel_type: Mapped[str] = mapped_column(String(30))
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    description: Mapped[str] = mapped_column(Text)
+    config_json: Mapped[Optional[str]] = mapped_column(Text)  # JSON: query_templates, target_spaces, excluded_spaces
+    config_generated_cost: Mapped[float] = mapped_column(Float, default=0.0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow,
+                                                   onupdate=datetime.utcnow)
+
+    vertical: Mapped["CustomVertical"] = relationship(back_populates="channels")

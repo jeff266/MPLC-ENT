@@ -43,6 +43,7 @@ from . import enrichment
 from . import clay_import
 from . import brand_verification
 from . import duplicate_detection
+from . import custom_verticals
 from . import supabase_client
 from . import auth
 from . import settings as settings_module
@@ -691,12 +692,11 @@ CHANNEL_LABELS: dict[str, str] = {
 }
 
 
-@app.get("/enrichment/verticals")
-def list_dispatchable_verticals():
-    """What the Step 2 vertical picker should offer — deliberately NOT
-    {'hotels'}, since unified_worker.py's own CLI accepts it but its
-    target module (process_hotel's import) doesn't exist in this repo
-    checkout (verified 2026-11-13).
+def _hardcoded_dispatchable_verticals() -> list[dict]:
+    """The three/five hardcoded verticals (healthcare/corporate/mdu/auto/
+    dental) — deliberately NOT {'hotels'}, since unified_worker.py's own
+    CLI accepts it but its target module (process_hotel's import) doesn't
+    exist in this repo checkout (verified 2026-11-13).
 
     toggleable_channels (2026-11-13): the paid channels this vertical has
     that can be turned off for a given dispatch via disabled_channels —
@@ -713,6 +713,138 @@ def list_dispatchable_verticals():
         }
         for k, v in enrichment.DISPATCHABLE_VERTICALS.items()
     ]
+
+
+@app.get("/enrichment/verticals")
+def list_dispatchable_verticals(db: Session = Depends(get_db)):
+    """What the Step 2 vertical picker should offer. Unions the hardcoded
+    verticals above with custom verticals defined via the Custom Vertical
+    Builder (Custom_Vertical_Builder_Design.md §6), so a finished custom
+    vertical shows up in Step 2's dispatch dropdown the same way
+    healthcare/corporate/mdu already do. A custom vertical has no
+    CHANNEL_ENV_VARS entry (its channels are toggled per-channel in the
+    Settings tab, not via env vars) so toggleable_channels is always empty
+    for these."""
+    base = _hardcoded_dispatchable_verticals()
+    custom = custom_verticals.dispatchable_custom_verticals(db)
+    custom_entries = [
+        {"key": k, "label": v, "toggleable_channels": []}
+        for k, v in custom.items()
+        # A custom vertical_key colliding with a hardcoded one is rejected
+        # at creation time (custom_verticals.create_custom_vertical has no
+        # such check today — documented gap, not silently resolved here);
+        # this filter just guarantees the hardcoded entry always wins if
+        # a collision somehow exists, never a duplicate dropdown row.
+        if k not in enrichment.DISPATCHABLE_VERTICALS
+    ]
+    return base + custom_entries
+
+
+# ---------------------------------------------------------------------------
+# Custom Vertical Builder -- Jeff (2026-11-18): "is there a way to order
+# steps and set an option to not run the rest of the steps if it's decided
+# it's a prospect" / "I like [new-verticals-only now, full migration scoped
+# out later]... need to make sure we keep track of costs." See
+# claude/Custom_Vertical_Builder_Design.md in the MPLC project. UI surface
+# is the Settings tab per Jeff's explicit choice, not a new top-level tab.
+# ---------------------------------------------------------------------------
+
+
+class CreateCustomVerticalRequest(BaseModel):
+    vertical_key: str
+    display_name: str
+
+
+class AddCustomVerticalChannelRequest(BaseModel):
+    channel_type: str
+    description: str
+    step_order: Optional[int] = None
+
+
+class UpdateCustomVerticalChannelRequest(BaseModel):
+    step_order: Optional[int] = None
+    enabled: Optional[bool] = None
+    config_json: Optional[str] = None
+    regenerate_from_description: Optional[str] = None
+
+
+@app.get("/custom-verticals")
+def list_custom_verticals_endpoint(db: Session = Depends(get_db)):
+    return custom_verticals.list_custom_verticals(db)
+
+
+@app.post("/custom-verticals")
+def create_custom_vertical_endpoint(
+    req: CreateCustomVerticalRequest, db: Session = Depends(get_db)
+):
+    try:
+        return custom_verticals.create_custom_vertical(db, req.vertical_key, req.display_name)
+    except custom_verticals.CustomVerticalError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/custom-verticals/{vertical_key}")
+def get_custom_vertical_endpoint(vertical_key: str, db: Session = Depends(get_db)):
+    try:
+        return custom_verticals.get_custom_vertical(db, vertical_key)
+    except custom_verticals.CustomVerticalError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@app.delete("/custom-verticals/{vertical_key}")
+def delete_custom_vertical_endpoint(vertical_key: str, db: Session = Depends(get_db)):
+    try:
+        custom_verticals.delete_custom_vertical(db, vertical_key)
+        return {"deleted": vertical_key}
+    except custom_verticals.CustomVerticalError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@app.post("/custom-verticals/{vertical_key}/channels")
+def add_custom_vertical_channel_endpoint(
+    vertical_key: str, req: AddCustomVerticalChannelRequest, db: Session = Depends(get_db)
+):
+    try:
+        return custom_verticals.add_channel(
+            db,
+            vertical_key=vertical_key,
+            channel_type=req.channel_type,
+            description=req.description,
+            step_order=req.step_order,
+        )
+    except custom_verticals.CustomVerticalError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.put("/custom-verticals/{vertical_key}/channels/{channel_id}")
+def update_custom_vertical_channel_endpoint(
+    vertical_key: str,
+    channel_id: int,
+    req: UpdateCustomVerticalChannelRequest,
+    db: Session = Depends(get_db),
+):
+    try:
+        return custom_verticals.update_channel(
+            db,
+            channel_id=channel_id,
+            step_order=req.step_order,
+            enabled=req.enabled,
+            config_json=req.config_json,
+            regenerate_from_description=req.regenerate_from_description,
+        )
+    except custom_verticals.CustomVerticalError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.delete("/custom-verticals/{vertical_key}/channels/{channel_id}")
+def delete_custom_vertical_channel_endpoint(
+    vertical_key: str, channel_id: int, db: Session = Depends(get_db)
+):
+    try:
+        custom_verticals.delete_channel(db, channel_id)
+        return {"deleted": channel_id}
+    except custom_verticals.CustomVerticalError as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 
 @app.get("/enrichment/cost-estimate")
