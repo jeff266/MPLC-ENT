@@ -143,6 +143,30 @@ def _build_eligibility_map(db: Session) -> Dict[str, bool]:
     return {account_id: bool(excluded) for account_id, excluded in rows}
 
 
+def _build_exclusion_reasons_map(db: Session) -> Dict[str, Optional[str]]:
+    """WHY each account on the latest eligibility run is excluded, straight
+    from account_eligibility.py's own exclusion_reasons column -- same
+    run_date this module already resolves for _build_eligibility_map, just
+    pulling the reasons alongside the bool instead of a second query.
+    "Protected" alone (the bool) collapses six independent business
+    reasons -- customer status, an open deal, <90-day activity, a lost
+    deal in the last 9 months, a name marker, or any of those propagated
+    from a sibling/domain-mate/name-mate -- into one label; Jeff asked
+    (2026-11-18) which of those a MATCHED_PROTECTED row actually meant,
+    and the honest answer is "could be any/several of them," so the
+    review table needs the real reason string per row, not just the
+    verdict. Returns {} when _build_eligibility_map would too (no run
+    yet) -- same caller, same guard."""
+    latest_date = queries._latest_run_date(db, models.EligibilityRun, None)
+    if not latest_date:
+        return {}
+    rows = db.execute(
+        select(models.EligibilityRun.account_id, models.EligibilityRun.exclusion_reasons)
+        .where(models.EligibilityRun.run_date == latest_date)
+    ).all()
+    return {account_id: reasons for account_id, reasons in rows}
+
+
 def run_import(
     db: Session,
     filename: str,
@@ -160,6 +184,7 @@ def run_import(
     clay_df = _read_export_file(filename, file_bytes)
     sf_df = _build_sf_universe_df(db)
     eligibility_map = _build_eligibility_map(db)
+    exclusion_reasons_map = _build_exclusion_reasons_map(db)
 
     try:
         result_df = clay_dedupe.run_clay_dedupe_df(
@@ -179,6 +204,7 @@ def run_import(
 
     batch_id = str(uuid.uuid4())
     for _, row in result_df.iterrows():
+        matched_id = row.get("matched_account_id")
         db.add(models.ClayMatch(
             batch_id=batch_id,
             clay_company_name=row.get("clay_company_name"),
@@ -186,9 +212,15 @@ def run_import(
             classification=row["classification"],
             match_method=row.get("match_method"),
             match_confidence=row.get("match_confidence"),
-            matched_account_id=row.get("matched_account_id"),
+            matched_account_id=matched_id,
             matched_account_name=row.get("matched_account_name"),
             num_candidates=int(row["num_candidates"]),
+            # Only meaningful (and only ever populated) for
+            # MATCHED_PROTECTED rows -- every other classification's
+            # matched account either isn't excluded or doesn't exist, so
+            # .get() on a map keyed by excluded accounts' ids correctly
+            # falls through to None for them.
+            exclusion_reasons=exclusion_reasons_map.get(matched_id) if matched_id else None,
         ))
     db.commit()
 

@@ -450,6 +450,10 @@ _CLAY_EXPORT_FIELDNAMES = [
     # returning these on every Clay row dict; DictWriter raises on any dict
     # key not in fieldnames, so this list has to track that shape exactly.
     "ai_verdict", "ai_reasoning", "ai_verified_at", "ai_check_cost",
+    # Why a MATCHED_PROTECTED row is protected (2026-11-18) -- same
+    # DictWriter-shape rule: queries.py now always includes this key,
+    # so it has to be listed here too or every export 400s.
+    "exclusion_reasons",
 ]
 
 

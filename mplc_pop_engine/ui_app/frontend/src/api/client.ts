@@ -168,6 +168,11 @@ export interface ClayMatchRow {
   ai_reasoning: string | null;
   ai_verified_at: string | null;
   ai_check_cost: number | null;
+  // Semicolon-delimited subset of account_eligibility.py's REASON_LABELS
+  // (own_bad_status / cluster_bad_status / name_marker / recent_activity /
+  // open_deal / lost_deal_last_9_months) -- only populated for
+  // MATCHED_PROTECTED rows. See REASON_LABEL_INFO in ClayBatchReview.tsx.
+  exclusion_reasons: string | null;
 }
 
 export interface ClayAmbiguousPage {
@@ -263,6 +268,11 @@ export interface ClayBatchRow {
   ai_reasoning: string | null;
   ai_verified_at: string | null;
   ai_check_cost: number | null;
+  // Semicolon-delimited subset of account_eligibility.py's REASON_LABELS
+  // (own_bad_status / cluster_bad_status / name_marker / recent_activity /
+  // open_deal / lost_deal_last_9_months) -- only populated for
+  // MATCHED_PROTECTED rows. See REASON_LABEL_INFO in ClayBatchReview.tsx.
+  exclusion_reasons: string | null;
 }
 
 export interface ClayBatchRowsResult {

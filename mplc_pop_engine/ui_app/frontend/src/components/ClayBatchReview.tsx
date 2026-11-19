@@ -28,6 +28,96 @@ const AI_VERDICT_LABELS: Record<string, string> = {
   uncertain: "AI: uncertain",
 };
 
+// Jeff (2026-11-18), after a screenshot of this exact table: "when it
+// says matched-protected does that mean it's a customer? active with <
+// 90 days? open opp?" -- the honest answer is "could be any of those, or
+// more than one, or propagated from a sibling/domain-mate/name-mate,"
+// because account_eligibility.py's `excluded` flag is an OR across six
+// independent reasons (REASON_LABELS there). A single "Protected" badge
+// collapses all six into one label, so this maps each real reason token
+// (as it comes back, semicolon-joined, in ClayMatch.exclusion_reasons)
+// to a short chip label plus the one-line definition shown in the
+// legend and in each chip's title tooltip -- same source of truth, so
+// the chip and the legend entry can never say different things.
+const REASON_LABEL_INFO: Record<string, { chip: string; description: string }> = {
+  own_bad_status: {
+    chip: "Customer / licensed",
+    description: "This account's own Salesforce status is Licensed, Customer, Delete / Duplicate, Licensed under another Account, or Do Not Market.",
+  },
+  cluster_bad_status: {
+    chip: "Related account is a customer",
+    description: "A sibling, parent, shared-domain, or shared-name account has status Licensed or Customer, and that status propagates to this account.",
+  },
+  name_marker: {
+    chip: "Name flagged",
+    description: "This account's (or a related account's) name contains a marker like -NO USE, -DUPE, (DUPLICATE), or DO NOT USE.",
+  },
+  recent_activity: {
+    chip: "Active <90 days",
+    description: "This account (or a related account) has qualifying Salesforce activity logged in the last 90 days (Pardot/marketing-automation-only activity doesn't count).",
+  },
+  open_deal: {
+    chip: "Open deal",
+    description: "This account (or a related account) has an open Salesforce opportunity.",
+  },
+  lost_deal_last_9_months: {
+    chip: "Lost deal <9mo",
+    description: "This account (or a related account) had a Closed Lost opportunity in the last 9 months.",
+  },
+};
+
+/** Renders a MATCHED_PROTECTED row's real exclusion_reasons string
+ * (semicolon-joined REASON_LABELS tokens) as small chips, each with the
+ * plain-English reason as its hover title. "—" for everything else
+ * (nothing to explain for an available/net-new/unknown/brand row), and
+ * a raw fallback chip for a token this map doesn't recognize yet (e.g.
+ * account_eligibility.py grows a 7th reason before this map is updated)
+ * rather than silently dropping it. */
+function ExclusionReasonChips({ reasons }: { reasons: string | null }) {
+  if (!reasons) return <>—</>;
+  const tokens = reasons.split(";").map((t) => t.trim()).filter(Boolean);
+  if (tokens.length === 0) return <>—</>;
+  return (
+    <div className="exclusion-reason-chips">
+      {tokens.map((token) => {
+        const info = REASON_LABEL_INFO[token];
+        return (
+          <span
+            key={token}
+            className="reason-chip"
+            title={info?.description ?? token}
+          >
+            {info?.chip ?? token}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Collapsed-by-default key explaining what each reason chip means --
+ * the plain-English version of the six REASON_LABEL_INFO entries, so a
+ * rep doesn't have to hover every chip to understand the table. */
+function ReasonLegend() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="reason-legend">
+      <button type="button" className="reason-legend-toggle" onClick={() => setOpen((o) => !o)}>
+        {open ? "Hide" : "What do “protected” reasons mean?"}
+      </button>
+      {open && (
+        <ul className="reason-legend-list">
+          {Object.entries(REASON_LABEL_INFO).map(([token, info]) => (
+            <li key={token}>
+              <span className="reason-chip">{info.chip}</span> — {info.description}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 const PAGE_SIZE = 50;
 
 /** Per-row table for one Clay dedupe run (Jeff, 2026-11-16: "show a table
@@ -155,6 +245,8 @@ export function ClayBatchReview({ batchId }: { batchId: string }) {
     <div className="clay-batch-review">
       <h4>Review this run's rows</h4>
 
+      <ReasonLegend />
+
       <div className="clay-review-chips">
         <button
           type="button"
@@ -238,6 +330,7 @@ export function ClayBatchReview({ batchId }: { batchId: string }) {
             <th>Website</th>
             <th>Status</th>
             <th>Matched Salesforce account</th>
+            <th>Why protected</th>
             <th>Confidence</th>
             <th># candidates</th>
             <th>AI verification</th>
@@ -272,6 +365,9 @@ export function ClayBatchReview({ batchId }: { batchId: string }) {
               <td title={row.matched_account_id ?? undefined}>
                 {row.matched_account_name ?? "—"}
                 {row.num_candidates > 1 ? ` (+${row.num_candidates - 1} more)` : ""}
+              </td>
+              <td>
+                <ExclusionReasonChips reasons={row.exclusion_reasons} />
               </td>
               <td>{row.match_confidence ?? "—"}</td>
               <td>{row.num_candidates}</td>
@@ -317,7 +413,7 @@ export function ClayBatchReview({ batchId }: { batchId: string }) {
           ))}
           {rows.length === 0 && !rowsQuery.isFetching && (
             <tr>
-              <td colSpan={8}>No rows match this filter.</td>
+              <td colSpan={9}>No rows match this filter.</td>
             </tr>
           )}
         </tbody>

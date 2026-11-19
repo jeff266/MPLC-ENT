@@ -213,6 +213,24 @@ class ClayMatch(Base):
     matched_account_id: Mapped[Optional[str]] = mapped_column(String(18))
     matched_account_name: Mapped[Optional[str]] = mapped_column(String(500))
     num_candidates: Mapped[int] = mapped_column(Integer, default=0)
+    # Why the matched account is MATCHED_PROTECTED, straight from
+    # account_eligibility.py's own exclusion_reasons column for that
+    # account's latest EligibilityRun (semicolon-delimited subset of
+    # REASON_LABELS there: own_bad_status / cluster_bad_status /
+    # name_marker / recent_activity / open_deal /
+    # lost_deal_last_9_months). "Protected" collapses six different
+    # business reasons into one label -- Jeff asked (2026-11-18) whether
+    # it means customer status, <90-day activity, or an open opp, and the
+    # honest answer is "could be any of those, or more than one, or
+    # propagated from a sibling/domain-mate/name-mate" -- so this is
+    # captured at import time (not recomputed later) so the review table
+    # can show the real reason(s) per row instead of just the verdict.
+    # Null for every non-MATCHED_PROTECTED row (nothing to explain) and
+    # for MATCHED_PROTECTED rows from a run where no eligibility map was
+    # available (shouldn't happen -- protected status itself requires one
+    # -- but nullable rather than assumed-present, same caution as the
+    # other optional fields on this model).
+    exclusion_reasons: Mapped[Optional[str]] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     # AI brand-verification (2026-11-16, Jeff: "is there a way for the low

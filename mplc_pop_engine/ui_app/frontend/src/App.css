@@ -956,6 +956,59 @@ tr.row-net-new {
   }
 }
 
+/* "Why protected" reason chips (Jeff, 2026-11-18): a MATCHED_PROTECTED
+   row's real account_eligibility.py exclusion_reasons, shown per-row
+   instead of leaving "Protected" as an unexplained verdict -- see
+   REASON_LABEL_INFO in ClayBatchReview.tsx for what each token means. */
+.exclusion-reason-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  max-width: 220px;
+}
+.reason-chip {
+  display: inline-block;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.1rem 0.55rem;
+  font-size: 0.74rem;
+  white-space: nowrap;
+  cursor: default;
+}
+@media (prefers-color-scheme: dark) {
+  .reason-chip {
+    border-color: var(--border-dark);
+  }
+}
+
+/* Collapsed-by-default key explaining what the chips above mean, so a
+   rep isn't stuck hovering every chip one at a time to understand the
+   table. */
+.reason-legend {
+  margin: 0.5rem 0;
+}
+.reason-legend-toggle {
+  border: none;
+  background: none;
+  color: var(--accent);
+  font-size: 0.82rem;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+.reason-legend-list {
+  margin: 0.5rem 0 0;
+  padding-left: 1.2rem;
+  font-size: 0.82rem;
+  opacity: 0.85;
+}
+.reason-legend-list li {
+  margin-bottom: 0.3rem;
+}
+.reason-legend-list .reason-chip {
+  margin-right: 0.2rem;
+}
+
 /* ---- Custom Vertical Builder (Settings tab) ---- */
 .custom-verticals-section {
   margin-top: 2rem;
