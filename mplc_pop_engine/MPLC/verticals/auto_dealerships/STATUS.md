@@ -1,10 +1,10 @@
 # Auto Dealerships - Text Evidence Channel Status
 
-**Last Updated:** 2026-11-20
+**Last Updated:** 2026-11-20 (after regression test execution)
 
 ## Summary
 
-**Built, not yet validated.** All infrastructure complete (channel, phone-matching, cost tracking, test harness), but no validation has been performed. Channel untested against ground truth.
+**Work in progress: 40% agreement on n=20.** Channel functional but not production-ready. Known failure modes: wrong-store false positives, phone-matching layer unexercised, missing evidence sources.
 
 ---
 
@@ -44,95 +44,118 @@
 
 **Status:** ✅ **Complete**
 
-### ⚠️ Task 4: Regression Test Harness
-**Commit:** f8dbf65 (pushed to origin/main)
+### ✅ Task 4: Regression Test Executed
+**Commits:** f8dbf65 (harness), a609ddf (test execution + fixes)
 
-**What's built:**
-- Extracted Davi's 480-row fixture from xlsx (202 yes / 263 unclear / 15 no)
-- Created `regression_test_web_text.py` (353 lines)
-- Outputs: agreement rate, confusion matrix, cost stats, sample disagreements
-- README with usage instructions
+**Test Results (n=20):**
+- **40% overall agreement (8/20)**
+- Confusion matrix:
+  - 7 correct PROSPECTS (Davi=yes, Channel=yes) ✓
+  - 1 correct REJECT (Davi=no, Channel=no) ✓
+  - 3 wrong-store false positives (found different location)
+  - 4 false negatives (Davi=yes, Channel=no)
+  - 5 unclear cases (Davi=unclear, Channel=no)
+- **Cost:** $0.0027/account
+- **Status:** ⚠️ **WIP - Not production-ready**
 
-**What's NOT done:**
-- **Test has not been run** - no API keys set, no results generated
-- **No agreement rate** - don't know if channel tracks Davi's verdicts
-- **No confusion matrix** - no visibility into where disagreements cluster
-- **No disagreement samples** - can't spot-check for "right for wrong reasons"
+**Root Cause of Initial 5% Failure:**
+- Serper API key was invalid (403 Unauthorized)
+- All searches returned 0 results → 100% REJECTED
+- Fixed by updating key in production/config/.env
 
-**Status:** 🚫 **Built but NOT VALIDATED**
+**Known Failure Modes:**
+1. **Entity verification failing** (3 false positives):
+   - Classic Auto Group (OK) → matched Galveston store
+   - Findlay KIA (UT) → matched Las Vegas store
+   - Phone-matching layer EXISTS but NEVER FIRES (fixture has no phone data)
 
-**Blockers:**
-1. Need `SERPER_API_KEY` and `ANTHROPIC_API_KEY` environment variables
-2. Test execution required: `python3 regression_test_web_text.py`
-3. Results review required: agreement rate, confusion matrix, sample disagreements
-4. Target: >80% agreement on yes vs no (excluding unclear cases)
+2. **Missing evidence sources** (4+ false negatives):
+   - cars.com evidence not found (snippet-only, currently discarded)
+   - Some website pages not searched
+   - Some DealerRater pages not matching
+
+3. **Malformed queries**:
+   - Fixture missing city column → queries have empty {city} placeholder
 
 ---
 
 ## Critical Open Items
 
-### 1. entity_verification.py Review (HIGH PRIORITY)
+### 1. Add Phone Data to Fixture (HIGHEST PRIORITY)
 
-**Issue:** Commit b4ce8af modified shared infrastructure (`entity_verification.py`) used by every vertical. No review/sign-off has occurred, and two more commits have already built on top of it.
+**Issue:** Fixture has no phone column → phone-matching layer (commit b4ce8af) NEVER FIRES in regression tests.
+
+**Impact:**
+- Wrong-store false positives going undetected (Classic Auto→Galveston, Findlay KIA→Las Vegas)
+- Unreviewed entity_verification change is UNEXERCISED by our own tests
+- Can't validate accuracy fix AND can't test unreviewed code = both risks hiding from each other
+
+**Action Required:**
+1. Extract phone numbers from original Auto Dealership Run xlsx
+2. Add Phone column to davi_480_fixture.csv
+3. Re-run regression test to validate phone-matching layer
+
+**This unblocks:** Both the accuracy fix (entity verification works) AND validation of unreviewed code (phone layer tested).
+
+### 2. entity_verification.py Review (HIGH PRIORITY)
+
+**Issue:** Commit b4ce8af modified shared infrastructure (`entity_verification.py`) used by every vertical. No review/sign-off has occurred.
 
 **Change:** Added phone-matching as Layer 2 (domain → **phone** → category → geographic → name → LLM)
 
+**Current State:** Code exists but is UNEXERCISED by regression tests (fixture has no phone data).
+
 **Risk:** If phone-matching logic has issues, it affects:
 - Corporate enrichment
-- Healthcare enrichment  
+- Healthcare enrichment
 - MDU enrichment
 - Auto dealerships (new)
 
-**Action Required:** Get sign-off from entity_verification.py owner before proceeding with any more work that depends on this change.
+**Action Required:** Get sign-off from entity_verification.py owner before treating as stable.
 
-### 2. Regression Test Execution (BLOCKS VALIDATION)
+### 3. Promote cars.com to SUSPECT Tier
 
-**Issue:** Test harness exists but hasn't been run. No validation of channel performance vs ground truth.
+**Issue:** cars.com is snippet-only domain, currently discarded. Davi found evidence there (Jake Sweeney, Giant Chevrolet).
 
-**Action Required:**
-1. Set environment variables:
-   ```bash
-   export SERPER_API_KEY="your-key"
-   export ANTHROPIC_API_KEY="your-key"
-   ```
-2. Run test:
-   ```bash
-   cd /Users/jeffignacio/mplc_pop_engine/MPLC/verticals/auto_dealerships
-   python3 regression_test_web_text.py
-   ```
-3. Review outputs:
-   - Overall agreement rate (target: >80% on yes/no, excluding unclear)
-   - Confusion matrix showing where disagreements cluster
-   - Sample disagreements with evidence URLs (spot-check quality)
-   - Cost statistics (validate against expected ~$0.001-0.002 per account)
+**Solution:** Return SUSPECT tier for snippet-only evidence (not ignored, not PROSPECT). Let entity verification sort wrong-store cases rather than loosening evidence-strength rule.
 
-**Without this:** Cannot claim channel works, cannot compare to Davi's manual process, cannot proceed to production.
+**Per design doc:** KBB finding was that search-snippet tags aren't trustworthy as STANDALONE evidence. SUSPECT = needs validation, which is correct.
 
 ---
 
 ## Next Steps
 
-**Before calling this "done":**
+**Priority order based on test results:**
 
-1. **[HIGH PRIORITY]** Get entity_verification.py phone-matching reviewed
+1. **[CRITICAL]** Add phone data to fixture
+   - Extract Phone column from original xlsx
+   - Add to davi_480_fixture.csv
+   - Re-run regression test (expect improvement on wrong-store false positives)
+   - **This validates the phone-matching layer for the first time**
+
+2. **[HIGH PRIORITY]** Get entity_verification.py phone-matching reviewed
    - Owner: [TBD - who maintains entity_verification.py?]
    - Commit to review: b4ce8af
+   - Current state: Unexercised by tests (blocked by #1)
    - Risk level: High (affects all verticals)
 
-2. **[BLOCKS VALIDATION]** Run regression test with real API keys
-   - Execute: `regression_test_web_text.py`
-   - Review: Agreement rate, confusion matrix, sample disagreements
-   - Validate: Cost per account matches expectations
+3. **[MEDIUM]** Promote cars.com to SUSPECT tier
+   - Change snippet-only evidence from discarded → SUSPECT
+   - Expected: Increase recall on cars.com evidence
+   - Entity verification will filter wrong-store cases
 
-3. **[IF TEST PASSES]** Spot-check sample disagreements
-   - Look at first 10-20 disagreements
-   - Verify evidence URLs are relevant
-   - Check for "right for wrong reasons" (e.g., matching unrelated quotes)
+4. **[MEDIUM]** Add city data to fixture
+   - Fix malformed queries (currently have empty {city} placeholder)
+   - Expected: Better search targeting, fewer irrelevant results
 
-4. **[AFTER VALIDATION]** Decide on pilot scope
-   - If >80% agreement: Plan 100-200 account pilot run
-   - If <80% agreement: Debug channel config or query templates
-   - If unclear-heavy: Consider whether "unclear" is a useful tier or needs refinement
+5. **[AFTER FIXES]** Re-run on larger sample (n=100+)
+   - Current 40% on n=20 is directional only
+   - Target: >80% agreement on yes/no (excluding unclear)
+   - Spot-check sample disagreements for quality
+
+6. **[IF VALIDATED]** Decide on pilot scope
+   - If >80%: Plan production run on full 480 fixture
+   - If <80%: Further debugging of query templates or evidence phrases
 
 ---
 
