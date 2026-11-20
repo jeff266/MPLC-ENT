@@ -331,11 +331,22 @@ class WebTextEvidenceChannel(EvidenceChannel):
                 cost=total_cost,
             )
 
-        # Step 6: Entity verification (phone matching will be added to this module in Task 2)
-        # For now, use existing verification which will check domain/name/geographic matching
+        # Step 6: Entity verification with phone matching
+        # Phone is extracted from AccountContext (may be in extra fields or main fields)
+        account_phone = store.get("phone", "")  # Already extracted in _pin_store()
+
         entity_match = verify_entity_match(
+            account_name=ctx.account_name,
+            account_industry=ctx.industry,
+            account_state=ctx.state,
+            account_website=ctx.website,
+            account_phone=account_phone,
             evidence_url=evidence.source_url,
-            account_ctx=ctx,
+            evidence_title=hit.get("title", ""),
+            evidence_snippet=hit.get("snippet", ""),
+            # TODO: Extract phone from evidence (DealerRater, review sites)
+            # For now, evidence_phone is None - full phone extraction requires
+            # parsing page content for phone numbers, which is out of scope for Task 2
             use_llm_arbitration=True,
         )
 

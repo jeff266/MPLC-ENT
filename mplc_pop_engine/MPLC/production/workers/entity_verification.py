@@ -141,6 +141,36 @@ def _tokenize_name(name: str, remove_stopwords: bool = True) -> List[str]:
     return tokens
 
 
+def _normalize_phone(phone: str) -> str:
+    """
+    Normalize phone number to digits only for comparison.
+
+    Strips all non-digit characters (spaces, dashes, parentheses, country codes).
+    Returns empty string if input is None or not a valid phone number.
+
+    Examples:
+        "(555) 123-4567" → "5551234567"
+        "+1-555-123-4567" → "15551234567"
+        "555.123.4567" → "5551234567"
+    """
+    if not phone:
+        return ""
+
+    # Extract digits only
+    digits = re.sub(r'\D', '', phone)
+
+    # Remove leading country code if present (US: +1)
+    if len(digits) == 11 and digits.startswith('1'):
+        digits = digits[1:]
+
+    # Valid US phone number should be 10 digits
+    if len(digits) == 10:
+        return digits
+
+    # Return as-is if not standard length (may be international)
+    return digits
+
+
 def _check_category_compatibility(
     account_industry: str,
     evidence_text: str
@@ -287,10 +317,12 @@ def verify_entity_match(
     account_state: Optional[str] = None,
     account_zip: Optional[str] = None,
     account_website: Optional[str] = None,
+    account_phone: Optional[str] = None,
     evidence_url: Optional[str] = None,
     evidence_title: Optional[str] = None,
     evidence_location: Optional[str] = None,
     evidence_snippet: Optional[str] = None,
+    evidence_phone: Optional[str] = None,
     min_name_match_threshold: float = 0.75,
     use_llm_arbitration: bool = False,
     verbose: bool = False
@@ -298,12 +330,13 @@ def verify_entity_match(
     """
     Verify if evidence is actually about the given account.
 
-    5-layer verification cascade (short-circuits on first decisive signal):
-    1. Domain match (strongest signal)
-    2. Category incompatibility (hard reject)
-    3. Geographic distance (when available)
-    4. Name similarity (token-based, NOT substring)
-    5. LLM arbitration (optional, cost-gated)
+    6-layer verification cascade (short-circuits on first decisive signal):
+    1. Domain match (strongest signal when available)
+    2. Phone match (very high confidence, added 2026-11-20 for Auto Dealerships)
+    3. Category incompatibility (hard reject)
+    4. Geographic distance (when available)
+    5. Name similarity (token-based, NOT substring)
+    6. LLM arbitration (optional, cost-gated)
 
     Args:
         account_name: Salesforce account name
@@ -311,10 +344,12 @@ def verify_entity_match(
         account_state: Salesforce state
         account_zip: Salesforce ZIP code
         account_website: Salesforce website URL
+        account_phone: Salesforce phone number (added 2026-11-20)
         evidence_url: URL where evidence was found
         evidence_title: Title/name from evidence
         evidence_location: Location string from evidence
         evidence_snippet: Text snippet from evidence
+        evidence_phone: Phone number from evidence (added 2026-11-20)
         min_name_match_threshold: Minimum fraction of tokens that must match (default 0.75)
         use_llm_arbitration: Enable LLM tie-breaker for ambiguous cases
         verbose: Print detailed reasoning
@@ -355,7 +390,32 @@ def verify_entity_match(
                     'details': details
                 }
 
-    # Layer 2: Category/business-type incompatibility (hard reject)
+    # Layer 2: Phone match (very high confidence, added 2026-11-20)
+    # Phone matching is Davi's most reliable store-matching method for Auto
+    # Dealerships and other retail/service locations. When phone numbers match,
+    # this is a very strong identity signal - stronger than name or location alone.
+    if account_phone and evidence_phone:
+        account_phone_norm = _normalize_phone(account_phone)
+        evidence_phone_norm = _normalize_phone(evidence_phone)
+
+        details['account_phone_normalized'] = account_phone_norm
+        details['evidence_phone_normalized'] = evidence_phone_norm
+
+        if account_phone_norm and evidence_phone_norm and len(account_phone_norm) == 10:
+            # Exact phone match
+            if account_phone_norm == evidence_phone_norm:
+                if verbose:
+                    print(f"✅ Layer 2 (Phone): Match - {account_phone_norm}")
+
+                return {
+                    'match': True,
+                    'confidence': 'high',
+                    'reason': f"Phone match: {account_phone_norm}",
+                    'layer': 'phone',
+                    'details': details
+                }
+
+    # Layer 3: Category/business-type incompatibility (hard reject)
     evidence_text_combined = ' '.join(filter(None, [evidence_title, evidence_snippet, evidence_location]))
 
     compatible, incompat_reason = _check_category_compatibility(
@@ -368,7 +428,7 @@ def verify_entity_match(
 
     if not compatible:
         if verbose:
-            print(f"❌ Layer 2 (Category): Reject - {incompat_reason}")
+            print(f"❌ Layer 3 (Category): Reject - {incompat_reason}")
 
         return {
             'match': False,
@@ -378,7 +438,7 @@ def verify_entity_match(
             'details': details
         }
 
-    # Layer 3: Geographic distance check (when available)
+    # Layer 4: Geographic distance check (when available)
     # FIX (2026-11-14): this layer used to compute `geographic_flag` and say
     # in a comment that it "requires stricter name match" without ever
     # actually enforcing it -- the flag was set and then dropped.
@@ -393,8 +453,8 @@ def verify_entity_match(
     # geography conflict combined with a strong name match isn't weak
     # evidence that needs a higher bar; it's genuinely ambiguous evidence
     # that name-matching alone cannot resolve, however good the score looks.
-    # So: a confirmed different-state conflict blocks Layer 4/4B from
-    # auto-accepting at all, regardless of score, and defers to Layer 5
+    # So: a confirmed different-state conflict blocks Layer 5/5B from
+    # auto-accepting at all, regardless of score, and defers to Layer 6
     # (LLM arbitration) if enabled, or the safe default-reject if not.
     geo_conflict = False
     if account_state and evidence_location:
@@ -410,9 +470,9 @@ def verify_entity_match(
             details['geographic_flag'] = 'different_state'
             geo_conflict = True
             if verbose:
-                print(f"⚠️  Layer 3 (Geography): Different state - name match alone cannot resolve this, deferring")
+                print(f"⚠️  Layer 4 (Geography): Different state - name match alone cannot resolve this, deferring")
 
-    # Layer 4: Name similarity (token-based, NOT substring containment)
+    # Layer 5: Name similarity (token-based, NOT substring containment)
     if evidence_title:
         name_score, name_reason = _calculate_name_similarity(
             account_name,
@@ -426,7 +486,7 @@ def verify_entity_match(
         if name_score < min_name_match_threshold:
             # Clear mismatch by name alone -- geography is moot, reject now.
             if verbose:
-                print(f"❌ Layer 4 (Name): Reject - {name_score:.1%} below threshold ({name_reason})")
+                print(f"❌ Layer 5 (Name): Reject - {name_score:.1%} below threshold ({name_reason})")
 
             return {
                 'match': False,
@@ -441,10 +501,10 @@ def verify_entity_match(
             # isn't decisive -- don't return here, fall through to Layer 5.
             details['geo_conflict_blocked_autoaccept'] = True
             if verbose:
-                print(f"⚠️  Layer 4 (Name): {name_score:.1%} match, but geography conflicts - not auto-accepting, deferring to arbitration")
+                print(f"⚠️  Layer 5 (Name): {name_score:.1%} match, but geography conflicts - not auto-accepting, deferring to arbitration")
         else:
             if verbose:
-                print(f"✅ Layer 4 (Name): Match - {name_score:.1%} ({name_reason})")
+                print(f"✅ Layer 5 (Name): Match - {name_score:.1%} ({name_reason})")
 
             return {
                 'match': True,
@@ -454,7 +514,7 @@ def verify_entity_match(
                 'details': details
             }
 
-    # Layer 4B: Check URL path for name matches (when title not available)
+    # Layer 5B: Check URL path for name matches (when title not available)
     # Many healthcare sites have facility names in URL paths even when metadata is missing
     # Example: "https://hughesmarino.com/portfolio/family-health-centers-of-san-diego-diamond-project/"
     if evidence_url and not evidence_title:
@@ -485,10 +545,10 @@ def verify_entity_match(
             if name_score >= min_name_match_threshold and geo_conflict:
                 details['geo_conflict_blocked_autoaccept'] = True
                 if verbose:
-                    print(f"⚠️  Layer 4B (URL Path): {name_score:.1%} match, but geography conflicts - not auto-accepting, deferring to arbitration")
+                    print(f"⚠️  Layer 5B (URL Path): {name_score:.1%} match, but geography conflicts - not auto-accepting, deferring to arbitration")
             elif name_score >= min_name_match_threshold:
                 if verbose:
-                    print(f"✅ Layer 4B (URL Path): Match - {name_score:.1%} ({name_reason})")
+                    print(f"✅ Layer 5B (URL Path): Match - {name_score:.1%} ({name_reason})")
 
                 return {
                     'match': True,
@@ -505,7 +565,7 @@ def verify_entity_match(
     # reaching here means no decisive signal from layers 1-4B (no domain
     # match, no category hard-reject, and either no name/URL text to
     # compare at all, or a name score below the threshold but not
-    # confidently rejected by Layer 4B's weaker URL-path check). That's
+    # confidently rejected by Layer 5B's weaker URL-path check). That's
     # exactly the "ambiguous case" this layer was designed for, so arbitrate
     # for real instead of silently falling through to default-reject.
     if use_llm_arbitration:
@@ -524,11 +584,11 @@ def verify_entity_match(
 
         if arbitration.get('error'):
             if verbose:
-                print(f"⚠️  Layer 5 (LLM): Error - {arbitration['error']} - defaulting to reject")
+                print(f"⚠️  Layer 6 (LLM): Error - {arbitration['error']} - defaulting to reject")
         else:
             if verbose:
                 verdict_icon = "✅" if arbitration['match'] else "❌"
-                print(f"{verdict_icon} Layer 5 (LLM): {arbitration['reason']}")
+                print(f"{verdict_icon} Layer 6 (LLM): {arbitration['reason']}")
 
             return {
                 'match': arbitration['match'],
@@ -562,7 +622,7 @@ def _llm_arbitrate(
     evidence_snippet: Optional[str],
     details: Dict,
 ) -> Dict:
-    """Layer 5 implementation: ask Claude to judge an ambiguous case,
+    """Layer 6 implementation: ask Claude to judge an ambiguous case,
     following corporate_fixed.py's validate_with_sonnet pattern (same
     model, same structured VERDICT/CONFIDENCE/REASONING response format,
     same cost calculation) so this behaves consistently with the other
