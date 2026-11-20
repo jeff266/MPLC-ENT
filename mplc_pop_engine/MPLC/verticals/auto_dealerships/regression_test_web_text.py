@@ -21,8 +21,18 @@ from typing import List, Dict
 import pandas as pd
 import argparse
 
+# Load env file explicitly
+ENV_FILE = Path(__file__).parent.parent.parent / "production" / "config" / ".env"
+if ENV_FILE.exists():
+    with open(ENV_FILE) as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith('#') and '=' in line:
+                key, value = line.split('=', 1)
+                os.environ[key] = value.strip('"').strip("'")
+
 # Add channels to path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "channels"))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / "production" / "channels"))
 from web_text_channel import WebTextEvidenceChannel, TextEvidence
 from base import AccountContext, ChannelResult
 
