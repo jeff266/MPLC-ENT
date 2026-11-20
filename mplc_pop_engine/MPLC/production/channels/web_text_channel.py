@@ -43,6 +43,13 @@ from base import AccountContext, ChannelResult, EvidenceChannel  # noqa: E402
 sys.path.insert(0, str(Path(__file__).parent.parent / "workers"))
 from entity_verification import verify_entity_match  # noqa: E402
 
+# Try to import cost tracker (optional dependency)
+try:
+    sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
+    from cost_tracker import CostTracker  # noqa: E402
+except ImportError:
+    CostTracker = None
+
 # Cost constants
 # Serper API: $0.001 per search (same as image search)
 # Web page fetches: typically included in search cost or free (direct HTTP requests)
@@ -81,6 +88,7 @@ class WebTextEvidenceChannel(EvidenceChannel):
         anthropic_key: Optional[str] = None,
         max_evidence_queries: int = 4,
         results_per_query: int = 5,
+        cost_tracker: Optional['CostTracker'] = None,
     ):
         """
         pin_query_template: e.g. "{phone}" or "{account_name} {state}" -- used to
@@ -107,6 +115,7 @@ class WebTextEvidenceChannel(EvidenceChannel):
         self.anthropic_key = anthropic_key or os.getenv("ANTHROPIC_API_KEY")
         self.max_evidence_queries = max_evidence_queries
         self.results_per_query = results_per_query
+        self.cost_tracker = cost_tracker
 
         # Compile evidence phrases into regex patterns for efficient matching
         self._evidence_patterns = [
@@ -254,6 +263,11 @@ class WebTextEvidenceChannel(EvidenceChannel):
         total_cost = 0.0
         evidence = None
 
+        # Cost tracking
+        searches_performed = 0
+        pages_fetched = 0
+        queries_performed = []
+
         # Step 1: Pin store identity
         store = self._pin_store(ctx)
 
@@ -268,6 +282,8 @@ class WebTextEvidenceChannel(EvidenceChannel):
             # Run search
             hits = self._search(query)
             total_cost += SERPER_COST_PER_CALL
+            searches_performed += 1
+            queries_performed.append(query)
 
             if not hits:
                 # No results for this query - try next
@@ -280,6 +296,7 @@ class WebTextEvidenceChannel(EvidenceChannel):
                 # Fetchable domain: fetch page and check for evidence
                 if any(d in domain for d in self.fetchable_domains):
                     page_text = self._fetch_page(hit["link"])
+                    pages_fetched += 1
                     if page_text:
                         evidence_match = self._contains_evidence(page_text)
                         if evidence_match:
@@ -317,6 +334,17 @@ class WebTextEvidenceChannel(EvidenceChannel):
 
         # Step 4: Return early if no evidence found
         if not evidence:
+            # Log costs before returning
+            if self.cost_tracker:
+                self.cost_tracker.log_web_search_call(
+                    account_id=ctx.account_name,
+                    stage="web_text_evidence",
+                    searches_performed=searches_performed,
+                    pages_fetched=pages_fetched,
+                    queries=queries_performed,
+                    result_status="rejected",
+                    result_summary="No evidence phrases found"
+                )
             return ChannelResult.rejected(
                 self.name,
                 reason="No evidence phrases found in search results or fetched pages",
@@ -325,6 +353,17 @@ class WebTextEvidenceChannel(EvidenceChannel):
 
         # Step 5: Only proceed with entity verification if evidence is solid
         if evidence.strength != "solid":
+            # Log costs before returning
+            if self.cost_tracker:
+                self.cost_tracker.log_web_search_call(
+                    account_id=ctx.account_name,
+                    stage="web_text_evidence",
+                    searches_performed=searches_performed,
+                    pages_fetched=pages_fetched,
+                    queries=queries_performed,
+                    result_status="rejected",
+                    result_summary="Only weak (snippet-only) evidence found"
+                )
             return ChannelResult.rejected(
                 self.name,
                 reason="Only weak (snippet-only) evidence found, not sufficient alone",
@@ -351,6 +390,17 @@ class WebTextEvidenceChannel(EvidenceChannel):
         )
 
         if not entity_match:
+            # Log costs before returning
+            if self.cost_tracker:
+                self.cost_tracker.log_web_search_call(
+                    account_id=ctx.account_name,
+                    stage="web_text_evidence",
+                    searches_performed=searches_performed,
+                    pages_fetched=pages_fetched,
+                    queries=queries_performed,
+                    result_status="suspect",
+                    result_summary=f"Evidence found but entity verification failed: {evidence.source_domain}"
+                )
             return ChannelResult(
                 tier="SUSPECT",
                 channel=self.name,
@@ -360,6 +410,17 @@ class WebTextEvidenceChannel(EvidenceChannel):
             )
 
         # Success: solid evidence with verified entity match
+        # Log costs before returning
+        if self.cost_tracker:
+            self.cost_tracker.log_web_search_call(
+                account_id=ctx.account_name,
+                stage="web_text_evidence",
+                searches_performed=searches_performed,
+                pages_fetched=pages_fetched,
+                queries=queries_performed,
+                result_status="success",
+                result_summary=f"Found evidence on {evidence.source_domain}"
+            )
         return ChannelResult(
             tier="PROSPECT",
             channel=self.name,
