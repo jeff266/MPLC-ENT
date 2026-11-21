@@ -81,19 +81,28 @@
 
 ## Critical Open Items
 
-### 1. Add Phone Data to Fixture (HIGHEST PRIORITY)
+### 1. Extract Evidence Phone from DealerRater Pages (HIGHEST PRIORITY)
 
-**Issue:** Fixture has no phone column → phone-matching layer (commit b4ce8af) NEVER FIRES in regression tests.
+**Issue:** Fixture HAS phone data (478/480 accounts), but web_text_channel.py doesn't extract phone numbers FROM EVIDENCE (DealerRater pages). Line 386-388 shows `evidence_phone=None` with TODO comment → phone-matching layer NEVER FIRES.
 
 **Impact:**
-- Wrong-store false positives going undetected (Classic Auto→Galveston, Findlay KIA→Las Vegas)
+- Wrong-store false positives going undetected:
+  - Classic Auto (Oklahoma, 918 area code) → matched Galveston store (409 area code)
+  - Findlay KIA (Utah) → matched Las Vegas store
+- Phone layer needs BOTH account_phone (✅ have) AND evidence_phone (❌ don't extract)
 - Unreviewed entity_verification change is UNEXERCISED by our own tests
-- Can't validate accuracy fix AND can't test unreviewed code = both risks hiding from each other
+
+**Verification:**
+- DealerRater pages DO contain phone numbers (confirmed: Galveston page has (409) 744-5711)
+- Fixture account phones are present: Classic Auto = +1 918-272-1101
+- These don't match → phone layer SHOULD fire and reject this evidence
 
 **Action Required:**
-1. Extract phone numbers from original Auto Dealership Run xlsx
-2. Add Phone column to davi_480_fixture.csv
-3. Re-run regression test to validate phone-matching layer
+1. Implement evidence phone extraction in web_text_channel.py:
+   - Parse DealerRater page content for phone numbers (regex: `\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}`)
+   - Pass extracted phone as `evidence_phone` parameter to verify_entity_match()
+2. Re-run regression test to validate phone-matching layer
+3. Expect improvement on wrong-store false positives (3 cases → should drop to 0)
 
 **This unblocks:** Both the accuracy fix (entity verification works) AND validation of unreviewed code (phone layer tested).
 
@@ -103,7 +112,7 @@
 
 **Change:** Added phone-matching as Layer 2 (domain → **phone** → category → geographic → name → LLM)
 
-**Current State:** Code exists but is UNEXERCISED by regression tests (fixture has no phone data).
+**Current State:** Code exists but is UNEXERCISED by regression tests (channel doesn't extract evidence_phone from DealerRater pages).
 
 **Risk:** If phone-matching logic has issues, it affects:
 - Corporate enrichment
@@ -127,10 +136,10 @@
 
 **Priority order based on test results:**
 
-1. **[CRITICAL]** Add phone data to fixture
-   - Extract Phone column from original xlsx
-   - Add to davi_480_fixture.csv
-   - Re-run regression test (expect improvement on wrong-store false positives)
+1. **[CRITICAL]** Extract evidence phone from DealerRater pages
+   - Implement phone extraction in web_text_channel.py (regex pattern)
+   - Pass evidence_phone to verify_entity_match()
+   - Re-run regression test (expect 3 wrong-store false positives → 0)
    - **This validates the phone-matching layer for the first time**
 
 2. **[HIGH PRIORITY]** Get entity_verification.py phone-matching reviewed
