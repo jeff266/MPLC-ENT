@@ -451,6 +451,7 @@ class WebTextEvidenceChannel(EvidenceChannel):
             evidence_snippet=hit.get("snippet", ""),
             evidence_phone=evidence.evidence_phone,  # Extracted from DealerRater page content
             use_llm_arbitration=True,
+            phone_is_primary_pin=True,  # web_text uses phone-first pinning (see _pin_store)
         )
 
         if not entity_match or not entity_match.get('match'):

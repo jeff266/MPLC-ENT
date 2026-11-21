@@ -325,6 +325,7 @@ def verify_entity_match(
     evidence_phone: Optional[str] = None,
     min_name_match_threshold: float = 0.75,
     use_llm_arbitration: bool = False,
+    phone_is_primary_pin: bool = False,
     verbose: bool = False
 ) -> Dict:
     """
@@ -352,6 +353,7 @@ def verify_entity_match(
         evidence_phone: Phone number from evidence (added 2026-11-20)
         min_name_match_threshold: Minimum fraction of tokens that must match (default 0.75)
         use_llm_arbitration: Enable LLM tie-breaker for ambiguous cases
+        phone_is_primary_pin: If True, phone mismatch is treated as hard reject (for phone-pinned channels)
         verbose: Print detailed reasoning
 
     Returns:
@@ -394,6 +396,11 @@ def verify_entity_match(
     # Phone matching is Davi's most reliable store-matching method for Auto
     # Dealerships and other retail/service locations. When phone numbers match,
     # this is a very strong identity signal - stronger than name or location alone.
+    #
+    # Mismatch handling (added 2026-11-20):
+    # For phone-pinned channels (web_text), a phone mismatch is a hard reject
+    # because different phones = different physical locations. For channels that
+    # don't use phone as primary pin, mismatch just falls through to next layer.
     if account_phone and evidence_phone:
         account_phone_norm = _normalize_phone(account_phone)
         evidence_phone_norm = _normalize_phone(evidence_phone)
@@ -414,6 +421,20 @@ def verify_entity_match(
                     'layer': 'phone',
                     'details': details
                 }
+
+            # Phone mismatch - hard reject if phone is primary pin method
+            elif phone_is_primary_pin:
+                if verbose:
+                    print(f"❌ Layer 2 (Phone): Mismatch - {account_phone_norm} != {evidence_phone_norm}")
+
+                return {
+                    'match': False,
+                    'confidence': 'high',
+                    'reason': f"Phone mismatch: account={account_phone_norm}, evidence={evidence_phone_norm}",
+                    'layer': 'phone_mismatch',
+                    'details': details
+                }
+            # Else: phone mismatch but not primary pin - fall through to next layer
 
     # Layer 3: Category/business-type incompatibility (hard reject)
     evidence_text_combined = ' '.join(filter(None, [evidence_title, evidence_snippet, evidence_location]))
