@@ -289,17 +289,32 @@ class WebTextEvidenceChannel(EvidenceChannel):
         """
         import re
 
-        # Valid NANP area codes (N = 2-9, X = 0-9)
-        # First digit 2-9, second digit 0-9, third digit 0-9
-        # Excludes: N11 (like 211, 311, 411, etc.), N9X (like 390-399, 590-599, etc. for future use)
-        # This is a simplified validation - covers most invalid codes like 589
+        # NANPA (North American Numbering Plan Administration) Invalid Area Codes
+        # Sources:
+        # - NANPA reserved codes: https://www.lincmad.com/planned.html
+        # - Non-geographic services: https://www.greatnumber.com/en/blog/nanpa-updates-2026-new-area-codes-exhaustion-forecasts-fcc-rules
+        # - NANP expansion: https://en.wikipedia.org/wiki/North_American_Numbering_Plan_expansion
         INVALID_AREA_CODES = {
-            # Invalid first digits (0, 1)
+            # Structurally invalid: First digit must be 2-9 (000-199 are invalid)
             *[f"{d:03d}" for d in range(0, 200)],
-            # N11 service codes
+
+            # N11 service codes (211, 311, 411, 511, 611, 711, 811, 911)
             *[f"{n}11" for n in range(2, 10)],
-            # Known unassigned/invalid codes (partial list)
-            '589', '590', '591', '592', '593', '594', '595', '596', '597', '598', '599',
+
+            # Permanently reserved codes
+            '555',  # Reserved for fictional use
+            '599',  # Permanently reserved
+
+            # 5YY codes - Assigned for non-geographic services (iPads, IoT devices)
+            '500', '522', '533', '544', '566', '577', '588',
+
+            # Reserved for future non-geographic services
+            '535', '542', '543', '545', '546', '547', '549', '550', '552', '553',
+            '554', '556', '558', '569', '578', '589',
+
+            # Special use codes
+            '456',  # Inbound international (non-dialable)
+            '622',  # Reserved for special use
         }
 
         # US phone pattern: optional (area), 3 digits, separator, 4 digits
@@ -337,13 +352,15 @@ class WebTextEvidenceChannel(EvidenceChannel):
             # Reject date-like patterns (YYMMDD-HHMM, YY.MM.DD, etc.)
             # Check if the digits look like a date: first 6 digits are plausible YYMMDD
             first_6 = digits[0:6]
-            # Date pattern: YY (00-99), MM (01-12), DD (01-31)
+            # Date pattern: YY (00-50), MM (01-12), DD (01-31)
+            # Only filter if YY looks like a recent year (2000-2050)
             if len(first_6) == 6:
                 yy = int(first_6[0:2])
                 mm = int(first_6[2:4])
                 dd = int(first_6[4:6])
-                # If MM is 01-12 and DD is 01-31, likely a date, not a phone
-                if 1 <= mm <= 12 and 1 <= dd <= 31:
+                # Only treat as date if YY is 00-50 (2000-2050) and MM/DD are valid
+                # This avoids filtering area codes like 650 (year 65 is too old/far)
+                if yy <= 50 and 1 <= mm <= 12 and 1 <= dd <= 31:
                     continue
 
             # Reject patterns with multiple dots (version numbers like 1.2.3.4)
