@@ -126,8 +126,10 @@ class WebTextEvidenceChannel(EvidenceChannel):
         self.populate_cache = populate_cache
 
         # Compile evidence phrases into regex patterns for efficient matching
+        # NOTE: Don't use re.escape() on the entire phrase - it escapes spaces unnecessarily
+        # Instead, just compile the phrase directly (spaces are literal in regex)
         self._evidence_patterns = [
-            re.compile(re.escape(phrase), re.IGNORECASE)
+            re.compile(phrase, re.IGNORECASE)
             for phrase in evidence_phrases
         ]
 
@@ -379,17 +381,77 @@ class WebTextEvidenceChannel(EvidenceChannel):
         Returns (matched_phrase, quote_context) if found, None otherwise.
 
         quote_context is ~200 chars of surrounding text for the evidence record.
+
+        CRITICAL BUG FIX: Strip HTML tags and filter obvious amenity lists to avoid
+        false positives from page scaffolding.
         """
+        # Strip HTML tags to avoid matching page scaffolding
+        clean_text = re.sub(r'<[^>]+>', ' ', text)
+
         for pattern in self._evidence_patterns:
-            match = pattern.search(text)
+            match = pattern.search(clean_text)
             if match:
                 # Extract context around the match (~100 chars before/after)
                 start = max(0, match.start() - 100)
-                end = min(len(text), match.end() + 100)
-                quote = text[start:end].strip()
+                end = min(len(clean_text), match.end() + 100)
+                quote = clean_text[start:end].strip()
 
                 # Clean up quote (remove extra whitespace, newlines)
                 quote = re.sub(r'\s+', ' ', quote)
+
+                # FILTER 1: Amenity list scaffolding
+                # Multiple Title Case terms close together without sentence structure
+                # Example: "Cable TV Customer Lounge Area Children's Play Room"
+                capital_words = re.findall(r'\b[A-Z][a-z]+', quote)
+                lowercase_connectors = re.findall(
+                    r'\b(the|a|an|is|was|are|were|and|to|for|with|at|in|on|my|me|I|you|they|he|she|it)\b',
+                    quote,
+                    re.IGNORECASE
+                )
+
+                # If 5+ capital words AND fewer than 3 connectors, likely amenity list
+                if len(capital_words) >= 5 and len(lowercase_connectors) < 3:
+                    continue
+
+                # FILTER 2: Staff/employee spaces (not customer-facing)
+                # "service lounge", "staff lounge", "employee lounge" are staff areas
+                # Only match customer-facing spaces: "customer lounge", "waiting area", etc.
+                staff_space_pattern = r'\b(service|staff|employee|sales|technician|mechanic)\s+(lounge|area|room)\b'
+                if re.search(staff_space_pattern, quote, re.IGNORECASE):
+                    continue
+
+                # FILTER 3: Negative/complaint context
+                # "needs upgrade", "lacks", "no lounge", "without", "outdated"
+                # Look for negation words within 50 chars of the matched phrase
+                match_pos = quote.lower().find(match.group().lower())
+                if match_pos >= 0:
+                    # Check 50 chars before and after the match
+                    context_start = max(0, match_pos - 50)
+                    context_end = min(len(quote), match_pos + len(match.group()) + 50)
+                    context = quote[context_start:context_end].lower()
+
+                    negation_patterns = [
+                        r'\bneeds?\s+(a\s+)?(major\s+)?upgrade',
+                        r'\blacks?\b',
+                        r'\bno\b',
+                        r'\bwithout\b',
+                        r'\boutdated\b',
+                        r'\bpoor\b',
+                        r'\bterrible\b',
+                        r'\bawful\b',
+                        r'\bdoesn\'t have\b',
+                        r'\bdon\'t have\b'
+                    ]
+
+                    # Check if ANY negation pattern matches
+                    has_negation = False
+                    for neg_pattern in negation_patterns:
+                        if re.search(neg_pattern, context):
+                            has_negation = True
+                            break
+
+                    if has_negation:
+                        continue  # Skip this match, try next evidence pattern
 
                 return (match.group(), quote)
 
@@ -428,7 +490,6 @@ class WebTextEvidenceChannel(EvidenceChannel):
             except (KeyError, IndexError):
                 # Template references missing fields - skip this query
                 continue
-
             # Run search
             hits = self._search(query)
             total_cost += SERPER_COST_PER_CALL
@@ -449,6 +510,10 @@ class WebTextEvidenceChannel(EvidenceChannel):
                     pages_fetched += 1
                     if page_text:
                         evidence_match = self._contains_evidence(page_text)
+                        if evidence_match:
+                            print(f"DEBUG: Evidence found! {evidence_match[0][:50]}")
+                        else:
+                            print(f"DEBUG: No evidence in {len(page_text)} chars from {hit['link'][:50]}")
                         if evidence_match:
                             matched_phrase, quote = evidence_match
                             # Extract phone number from page for entity verification
@@ -533,6 +598,7 @@ class WebTextEvidenceChannel(EvidenceChannel):
             account_name=ctx.account_name,
             account_industry=ctx.industry,
             account_state=ctx.state,
+            account_city=getattr(ctx, 'city', None),  # For directional containment
             account_website=ctx.website,
             account_phone=account_phone,
             evidence_url=evidence.source_url,
@@ -541,6 +607,7 @@ class WebTextEvidenceChannel(EvidenceChannel):
             evidence_phone=evidence.evidence_phone,  # Extracted from DealerRater page content
             use_llm_arbitration=True,
             phone_is_primary_pin=True,  # web_text uses phone-first pinning (see _pin_store)
+            use_directional_containment=True,  # Enable for dealer group prefix patterns (Villa Ford fix)
         )
 
         if not entity_match or not entity_match.get('match'):
