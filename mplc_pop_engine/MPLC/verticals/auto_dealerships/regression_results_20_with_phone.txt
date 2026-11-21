@@ -1,0 +1,93 @@
+Starting regression test...
+Loading 20 accounts from fixture...
+
+================================================================================
+REGRESSION TEST SUMMARY
+================================================================================
+
+Overall Agreement: 5/20 (25.0%)
+
+Confusion Matrix:
+                   Davi: yes   Davi: unclear     Davi: no
+Channel: yes                3               3            0
+Channel: unclear            2               1            0
+Channel: no                 6               4            1
+
+Disagreements by Type:
+  Davi=yes, Channel=no: 6 cases
+  Davi=unclear, Channel=no: 4 cases
+  Davi=unclear, Channel=yes: 3 cases
+  Davi=yes, Channel=unclear: 2 cases
+
+Cost Statistics:
+  Total cost: $0.06
+  Average cost per account: $0.0027
+
+================================================================================
+SAMPLE DISAGREEMENTS (showing up to 10)
+================================================================================
+
+Account: Krapohl Ford & Lincoln Co (Michigan)
+  Davi verdict: unclear
+  Channel verdict: no (tier=REJECTED)
+  Davi evidence: https://www.dealerrater.com/dealer/Krapohl-Ford-Lincoln-review-7969/
+  Channel evidence: (none found)
+
+Account: Findlay KIA (Utah)
+  Davi verdict: unclear
+  Channel verdict: yes (tier=PROSPECT)
+  Davi evidence: https://www.kbb.com/dealers/hurricane-ut/1093687/findlay-kia-st-george
+  Channel evidence: https://www.dealerrater.com/dealer/Findlay-Kia-Las-Vegas-review-28592/
+  Channel quote: Parts Store</li> <li class="line-height-1 pad-bottom-sm">Customer Lounge Area</li> <li class="line-height-1 pad-bottom-sm">Express Service<...
+
+Account: Cedar City Chrysler Dodge Jeep (Utah)
+  Davi verdict: unclear
+  Channel verdict: no (tier=REJECTED)
+  Davi evidence: https://www.dealerrater.com/dealer/Parkway-Autoplex-Inc-review-10523/
+  Channel evidence: (none found)
+
+Account: Classic Buick GMC (Ohio)
+  Davi verdict: unclear
+  Channel verdict: yes (tier=PROSPECT)
+  Davi evidence: 
+  Channel evidence: https://www.dealerrater.com/dealer/Classic-Buick-GMC-review-37828/
+  Channel quote: ;s Play Room</li> <li class="line-height-1 pad-bottom-sm">Customer Lounge Area</li> <li class="line-height-1 pad-bottom-sm">Drive-In Service...
+
+Account: Jake Sweeney Chrysler Jeep Dodge Ram (Ohio)
+  Davi verdict: yes
+  Channel verdict: no (tier=REJECTED)
+  Davi evidence: https://www.cars.com/dealers/152651/jake-sweeney-chrysler-jeep-dodge/service
+  Channel evidence: (none found)
+
+Account: Giant Chevrolet Cadillac (California)
+  Davi verdict: yes
+  Channel verdict: no (tier=REJECTED)
+  Davi evidence: https://www.cars.com/dealers/169522/giant-chevrolet/reviews/?page=7
+  Channel evidence: (none found)
+
+Account: Mission Chevrolet (Texas)
+  Davi verdict: unclear
+  Channel verdict: yes (tier=PROSPECT)
+  Davi evidence: https://www.kbb.com/dealers/el-paso-tx/71923/mission-chevrolet
+  Channel evidence: https://www.dealerrater.com/dealer/Hendrick-Chevrolet-Shawnee-Mission-dealer-reviews-13383/page19/
+  Channel quote: <span class="review-title bolder font-18 italic">I am currently in the service lounge awaiting my oil</span> <span class="review-snippet"> change and tire rotation....
+
+Account: Capital KIA (Ohio)
+  Davi verdict: unclear
+  Channel verdict: no (tier=REJECTED)
+  Davi evidence: 
+  Channel evidence: (none found)
+
+Account: Covert Country (Texas)
+  Davi verdict: yes
+  Channel verdict: no (tier=REJECTED)
+  Davi evidence: https://www.covertfordhutto.com/service/
+  Channel evidence: (none found)
+
+Account: Volvo Cars Mission Viejo (California)
+  Davi verdict: yes
+  Channel verdict: no (tier=REJECTED)
+  Davi evidence: https://www.volvocarsmissionviejo.com/service-department
+  Channel evidence: (none found)
+
+✓ Regression test complete
