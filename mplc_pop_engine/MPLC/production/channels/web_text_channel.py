@@ -91,6 +91,7 @@ class WebTextEvidenceChannel(EvidenceChannel):
         max_evidence_queries: int = 4,
         results_per_query: int = 5,
         cost_tracker: Optional['CostTracker'] = None,
+        populate_cache: bool = False,
     ):
         """
         pin_query_template: e.g. "{phone}" or "{account_name} {state}" -- used to
@@ -107,6 +108,10 @@ class WebTextEvidenceChannel(EvidenceChannel):
             but fetching the page doesn't reliably contain it (e.g. kbb.com,
             autotrader.com per Davi's 2026-11-18 finding). Evidence from these
             is recorded as "weak" and never sufficient alone.
+        populate_cache: If True, run ALL query templates even after finding solid
+            evidence, ensuring complete cache population for reproducibility. Use
+            True for the first run to build cache, False for subsequent runs to
+            enable early-exit optimization.
         """
         self.pin_query_template = pin_query_template
         self.evidence_query_templates = evidence_query_templates
@@ -118,6 +123,7 @@ class WebTextEvidenceChannel(EvidenceChannel):
         self.max_evidence_queries = max_evidence_queries
         self.results_per_query = results_per_query
         self.cost_tracker = cost_tracker
+        self.populate_cache = populate_cache
 
         # Compile evidence phrases into regex patterns for efficient matching
         self._evidence_patterns = [
@@ -477,8 +483,8 @@ class WebTextEvidenceChannel(EvidenceChannel):
                                 evidence_phone=None,  # Snippet-only, no full page content
                             )
 
-            # If we found solid evidence, stop searching
-            if evidence and evidence.strength == "solid":
+            # If we found solid evidence, stop searching (unless populate_cache=True)
+            if evidence and evidence.strength == "solid" and not self.populate_cache:
                 break
 
         # Step 4: Return early if no evidence found

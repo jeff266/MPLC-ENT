@@ -1,0 +1,182 @@
+[
+  {
+    "account_name": "Classic Auto Group",
+    "davi_verdict": "unclear",
+    "channel_tier": "SUSPECT",
+    "evidence_found": true,
+    "evidence_url": "https://www.dealerrater.com/dealer/Classic-Buick-GMC-Galveston-review-42186/",
+    "evidence_quote": "ldren&#39;s Play Room</li> <li class=\"line-height-1 pad-bottom-sm\">Customer Lounge Area</li> <li cla",
+    "cost": 0.001
+  },
+  {
+    "account_name": "Plexus: Employee Appreciation Event",
+    "davi_verdict": "no",
+    "channel_tier": "REJECTED",
+    "evidence_found": false,
+    "evidence_url": null,
+    "evidence_quote": null,
+    "cost": 0.004
+  },
+  {
+    "account_name": "Krapohl Ford & Lincoln Co",
+    "davi_verdict": "unclear",
+    "channel_tier": "REJECTED",
+    "evidence_found": false,
+    "evidence_url": null,
+    "evidence_quote": null,
+    "cost": 0.004
+  },
+  {
+    "account_name": "Findlay KIA",
+    "davi_verdict": "unclear",
+    "channel_tier": "SUSPECT",
+    "evidence_found": true,
+    "evidence_url": "https://www.dealerrater.com/dealer/Findlay-Kia-Las-Vegas-review-28592/",
+    "evidence_quote": "uthorized Parts Store</li> <li class=\"line-height-1 pad-bottom-sm\">Customer Lounge Area</li> <li cla",
+    "cost": 0.001
+  },
+  {
+    "account_name": "Cedar City Chrysler Dodge Jeep",
+    "davi_verdict": "unclear",
+    "channel_tier": "REJECTED",
+    "evidence_found": false,
+    "evidence_url": null,
+    "evidence_quote": null,
+    "cost": 0.004
+  },
+  {
+    "account_name": "Columbiana Chrysler Jeep Dodge",
+    "davi_verdict": "yes",
+    "channel_tier": "PROSPECT",
+    "evidence_found": true,
+    "evidence_url": "https://www.dealerrater.com/dealer/Columbiana-Chrysler-Jeep-Dodge-Ram-review-3452/page126",
+    "evidence_quote": "pad-left-lg amenity-list\"> <li class=\"line-height-1 pad-bottom-sm\">Customer Lounge Area</li> <li cla",
+    "cost": 0.001
+  },
+  {
+    "account_name": "Classic Buick GMC",
+    "davi_verdict": "unclear",
+    "channel_tier": "SUSPECT",
+    "evidence_found": true,
+    "evidence_url": "https://www.dealerrater.com/dealer/Classic-Buick-GMC-review-37828/",
+    "evidence_quote": "ldren&#39;s Play Room</li> <li class=\"line-height-1 pad-bottom-sm\">Customer Lounge Area</li> <li cla",
+    "cost": 0.001
+  },
+  {
+    "account_name": "Jake Sweeney Chrysler Jeep Dodge Ram",
+    "davi_verdict": "yes",
+    "channel_tier": "SUSPECT",
+    "evidence_found": true,
+    "evidence_url": "https://www.dealerrater.com/sales/Remi-Batchelor-review-464643/",
+    "evidence_quote": "gh checkup and full service on oil and tires. Found my offers and gave me appropriate discount. Comf",
+    "cost": 0.001
+  },
+  {
+    "account_name": "Giant Chevrolet Cadillac",
+    "davi_verdict": "yes",
+    "channel_tier": "PROSPECT",
+    "evidence_found": true,
+    "evidence_url": "https://www.dealerrater.com/dealer/Giant-Chevrolet-Cadillac-review-41949/",
+    "evidence_quote": "nction() { $(this).carousel('next'); }); // on click of View all amenities $(\".view-all-amenities\").",
+    "cost": 0.001
+  },
+  {
+    "account_name": "Mission Chevrolet",
+    "davi_verdict": "unclear",
+    "channel_tier": "PROSPECT",
+    "evidence_found": true,
+    "evidence_url": "https://www.dealerrater.com/dealer/Mission-Chevrolet-review-37091/",
+    "evidence_quote": "nction() { $(this).carousel('next'); }); // on click of View all amenities $(\".view-all-amenities\").",
+    "cost": 0.001
+  },
+  {
+    "account_name": "Capital KIA",
+    "davi_verdict": "unclear",
+    "channel_tier": "REJECTED",
+    "evidence_found": false,
+    "evidence_url": null,
+    "evidence_quote": null,
+    "cost": 0.004
+  },
+  {
+    "account_name": "Toyota of Santa Barbara",
+    "davi_verdict": "yes",
+    "channel_tier": "PROSPECT",
+    "evidence_found": true,
+    "evidence_url": "https://www.dealerrater.com/dealer/Toyota-of-Santa-Barbara-review-13998/",
+    "evidence_quote": "nction() { $(this).carousel('next'); }); // on click of View all amenities $(\".view-all-amenities\").",
+    "cost": 0.001
+  },
+  {
+    "account_name": "Covert Country",
+    "davi_verdict": "yes",
+    "channel_tier": "REJECTED",
+    "evidence_found": false,
+    "evidence_url": null,
+    "evidence_quote": null,
+    "cost": 0.004
+  },
+  {
+    "account_name": "Volvo Cars Mission Viejo",
+    "davi_verdict": "yes",
+    "channel_tier": "PROSPECT",
+    "evidence_found": true,
+    "evidence_url": "https://www.dealerrater.com/dealer/Volvo-Cars-Mission-Viejo-review-106006/",
+    "evidence_quote": "ry-button orange more-link\">More Inventory</a> </div> <!-- PHOTOS AND AMENITIES --> <div class=\"visi",
+    "cost": 0.001
+  },
+  {
+    "account_name": "Findlay Buick GMC",
+    "davi_verdict": "unclear",
+    "channel_tier": "PROSPECT",
+    "evidence_found": true,
+    "evidence_url": "https://www.dealerrater.com/dealer/Findlay-GMC-Prescott-review-30385/",
+    "evidence_quote": "nction() { $(this).carousel('next'); }); // on click of View all amenities $(\".view-all-amenities\").",
+    "cost": 0.001
+  },
+  {
+    "account_name": "Columbiana Chevrolet Buick Cad",
+    "davi_verdict": "yes",
+    "channel_tier": "REJECTED",
+    "evidence_found": false,
+    "evidence_url": null,
+    "evidence_quote": null,
+    "cost": 0.004
+  },
+  {
+    "account_name": "Jake Sweeney MazdaJake Sweeney Mazda Tri-County",
+    "davi_verdict": "yes",
+    "channel_tier": "PROSPECT",
+    "evidence_found": true,
+    "evidence_url": "https://www.dealerrater.com/dealer/Jake-Sweeney-Mazda-Tri-County-review-23636/",
+    "evidence_quote": "nction() { $(this).carousel('next'); }); // on click of View all amenities $(\".view-all-amenities\").",
+    "cost": 0.001
+  },
+  {
+    "account_name": "Jake Sweeney Mazda",
+    "davi_verdict": "yes",
+    "channel_tier": "PROSPECT",
+    "evidence_found": true,
+    "evidence_url": "https://www.dealerrater.com/dealer/Jake-Sweeney-Mazda-Tri-County-review-23636/",
+    "evidence_quote": "nction() { $(this).carousel('next'); }); // on click of View all amenities $(\".view-all-amenities\").",
+    "cost": 0.001
+  },
+  {
+    "account_name": "Villa Ford Of Orange",
+    "davi_verdict": "yes",
+    "channel_tier": "SUSPECT",
+    "evidence_found": true,
+    "evidence_url": "https://www.dealerrater.com/dealer/David-Wilson-s-Villa-Ford-dealer-reviews-14444/",
+    "evidence_quote": "ce staff and advisors.</span> <span class=\"review-snippet\"> Nice reception and waiting area with com",
+    "cost": 0.001
+  },
+  {
+    "account_name": "Jake Sweeney Chevrolet",
+    "davi_verdict": "yes",
+    "channel_tier": "PROSPECT",
+    "evidence_found": true,
+    "evidence_url": "https://www.dealerrater.com/dealer/Jake-Sweeney-Chevrolet-review-15798/",
+    "evidence_quote": "ldren&#39;s Play Room</li> <li class=\"line-height-1 pad-bottom-sm\">Customer Lounge Area</li> <li cla",
+    "cost": 0.001
+  }
+]
