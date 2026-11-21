@@ -72,6 +72,7 @@ class TextEvidence:
     strength: str                   # "solid" (from fetchable page) or "weak" (snippet-only)
     match_method: str              # "phone" | "website" | "name_state" | "other"
     store_match_confidence: str    # "high" | "medium" | "low" (separate from evidence strength)
+    evidence_phone: Optional[str] = None  # Phone number extracted from evidence page
 
 
 class WebTextEvidenceChannel(EvidenceChannel):
@@ -223,6 +224,66 @@ class WebTextEvidenceChannel(EvidenceChannel):
             # Fetch failed - return None, caller will skip this result
             return None
 
+    def _extract_phone(self, text: str) -> Optional[str]:
+        """
+        Extract phone number from text content.
+        Returns first valid phone number found in US format, or None if none found.
+
+        Matches formats like:
+        - (555) 123-4567 (preferred - most explicit)
+        - 555-123-4567
+        - 555.123.4567
+        - 5551234567
+
+        Prioritizes well-formatted phones (with parentheses/dashes) over unformatted digit strings.
+        """
+        import re
+        # US phone pattern: optional (area), 3 digits, separator, 4 digits
+        phone_pattern = r'\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}'
+        matches = re.findall(phone_pattern, text)
+
+        if not matches:
+            return None
+
+        # Score and filter matches
+        valid_matches = []
+        for match in matches:
+            # Normalize to check validity
+            digits = re.sub(r'\D', '', match)
+
+            # Must be exactly 10 digits (US phone without country code)
+            if len(digits) != 10:
+                continue
+
+            # Filter out obvious non-phones
+            first_digit = digits[0]
+            # Real US area codes don't start with 0 or 1
+            if first_digit in ['0', '1']:
+                continue
+
+            # Filter out patterns with all same digits (like 1111111111)
+            if len(set(digits)) == 1:
+                continue
+
+            # Score based on formatting (higher = more likely to be a real phone)
+            score = 0
+            if '(' in match and ')' in match:  # Has parentheses for area code
+                score += 10
+            if '-' in match:  # Has dashes
+                score += 5
+            # Penalize dots in middle (could be date/version number)
+            if '.' in match:
+                score -= 3
+
+            valid_matches.append((score, match))
+
+        if not valid_matches:
+            return None
+
+        # Return highest-scored match (most likely to be a real phone)
+        valid_matches.sort(reverse=True)
+        return valid_matches[0][1]
+
     def _contains_evidence(self, text: str) -> Optional[tuple[str, str]]:
         """
         Check if text contains any evidence phrases.
@@ -301,6 +362,8 @@ class WebTextEvidenceChannel(EvidenceChannel):
                         evidence_match = self._contains_evidence(page_text)
                         if evidence_match:
                             matched_phrase, quote = evidence_match
+                            # Extract phone number from page for entity verification
+                            evidence_phone = self._extract_phone(page_text)
                             evidence = TextEvidence(
                                 quote=quote,
                                 source_url=hit["link"],
@@ -308,6 +371,7 @@ class WebTextEvidenceChannel(EvidenceChannel):
                                 strength="solid",
                                 match_method="pending",  # Will be set by entity verification
                                 store_match_confidence="pending",
+                                evidence_phone=evidence_phone,
                             )
                             break  # Found solid evidence, exit inner loop
 
@@ -318,6 +382,7 @@ class WebTextEvidenceChannel(EvidenceChannel):
                     if evidence_match:
                         matched_phrase, quote = evidence_match
                         # Record weak evidence but don't break - keep looking for solid
+                        # Note: Can't extract phone from snippet alone, would need full page fetch
                         if not evidence or evidence.strength == "weak":
                             evidence = TextEvidence(
                                 quote=quote,
@@ -326,6 +391,7 @@ class WebTextEvidenceChannel(EvidenceChannel):
                                 strength="weak",
                                 match_method="pending",
                                 store_match_confidence="pending",
+                                evidence_phone=None,  # Snippet-only, no full page content
                             )
 
             # If we found solid evidence, stop searching
@@ -383,13 +449,11 @@ class WebTextEvidenceChannel(EvidenceChannel):
             evidence_url=evidence.source_url,
             evidence_title=hit.get("title", ""),
             evidence_snippet=hit.get("snippet", ""),
-            # TODO: Extract phone from evidence (DealerRater, review sites)
-            # For now, evidence_phone is None - full phone extraction requires
-            # parsing page content for phone numbers, which is out of scope for Task 2
+            evidence_phone=evidence.evidence_phone,  # Extracted from DealerRater page content
             use_llm_arbitration=True,
         )
 
-        if not entity_match:
+        if not entity_match or not entity_match.get('match'):
             # Log costs before returning
             if self.cost_tracker:
                 self.cost_tracker.log_web_search_call(
@@ -410,6 +474,10 @@ class WebTextEvidenceChannel(EvidenceChannel):
             )
 
         # Success: solid evidence with verified entity match
+        # Update evidence fields with entity verification results
+        evidence.match_method = entity_match.get('layer', 'unknown')
+        evidence.store_match_confidence = entity_match.get('confidence', 'unknown')
+
         # Log costs before returning
         if self.cost_tracker:
             self.cost_tracker.log_web_search_call(
@@ -419,7 +487,7 @@ class WebTextEvidenceChannel(EvidenceChannel):
                 pages_fetched=pages_fetched,
                 queries=queries_performed,
                 result_status="success",
-                result_summary=f"Found evidence on {evidence.source_domain}"
+                result_summary=f"Found evidence on {evidence.source_domain} via {evidence.match_method}"
             )
         return ChannelResult(
             tier="PROSPECT",
