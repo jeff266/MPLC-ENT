@@ -397,10 +397,14 @@ def verify_entity_match(
     # Dealerships and other retail/service locations. When phone numbers match,
     # this is a very strong identity signal - stronger than name or location alone.
     #
-    # Mismatch handling (added 2026-11-20):
-    # For phone-pinned channels (web_text), a phone mismatch is a hard reject
-    # because different phones = different physical locations. For channels that
-    # don't use phone as primary pin, mismatch just falls through to next layer.
+    # Area code comparison (revised 2026-11-20):
+    # Multi-line dealerships often have different phone numbers (sales/service/parts)
+    # at the same physical location. Same area code = same location.
+    # Different area codes = different locations (wrong-store match).
+    #
+    # Toll-free exclusion:
+    # 800-series numbers (800/833/844/855/866/877/888) are national/corporate,
+    # not location-specific. If evidence phone is toll-free, skip phone layer.
     if account_phone and evidence_phone:
         account_phone_norm = _normalize_phone(account_phone)
         evidence_phone_norm = _normalize_phone(evidence_phone)
@@ -408,33 +412,49 @@ def verify_entity_match(
         details['account_phone_normalized'] = account_phone_norm
         details['evidence_phone_normalized'] = evidence_phone_norm
 
-        if account_phone_norm and evidence_phone_norm and len(account_phone_norm) == 10:
-            # Exact phone match
-            if account_phone_norm == evidence_phone_norm:
+        if account_phone_norm and evidence_phone_norm and len(account_phone_norm) == 10 and len(evidence_phone_norm) == 10:
+            # Extract area codes (first 3 digits)
+            account_area_code = account_phone_norm[0:3]
+            evidence_area_code = evidence_phone_norm[0:3]
+
+            details['account_area_code'] = account_area_code
+            details['evidence_area_code'] = evidence_area_code
+
+            # Toll-free area codes (skip comparison for these)
+            TOLL_FREE_CODES = {'800', '833', '844', '855', '866', '877', '888'}
+
+            # If evidence phone is toll-free, skip phone layer (not a location signal)
+            if evidence_area_code in TOLL_FREE_CODES:
                 if verbose:
-                    print(f"✅ Layer 2 (Phone): Match - {account_phone_norm}")
+                    print(f"⚠️  Layer 2 (Phone): Evidence toll-free ({evidence_area_code}), skipping phone layer")
+                # Fall through to next layer
+            else:
+                # Compare area codes only (not full 10-digit numbers)
+                if account_area_code == evidence_area_code:
+                    if verbose:
+                        print(f"✅ Layer 2 (Phone): Area code match - {account_area_code}")
 
-                return {
-                    'match': True,
-                    'confidence': 'high',
-                    'reason': f"Phone match: {account_phone_norm}",
-                    'layer': 'phone',
-                    'details': details
-                }
+                    return {
+                        'match': True,
+                        'confidence': 'high',
+                        'reason': f"Phone area code match: {account_area_code} (account={account_phone_norm}, evidence={evidence_phone_norm})",
+                        'layer': 'phone',
+                        'details': details
+                    }
 
-            # Phone mismatch - hard reject if phone is primary pin method
-            elif phone_is_primary_pin:
-                if verbose:
-                    print(f"❌ Layer 2 (Phone): Mismatch - {account_phone_norm} != {evidence_phone_norm}")
+                # Area code mismatch - hard reject if phone is primary pin method
+                elif phone_is_primary_pin:
+                    if verbose:
+                        print(f"❌ Layer 2 (Phone): Area code mismatch - {account_area_code} != {evidence_area_code}")
 
-                return {
-                    'match': False,
-                    'confidence': 'high',
-                    'reason': f"Phone mismatch: account={account_phone_norm}, evidence={evidence_phone_norm}",
-                    'layer': 'phone_mismatch',
-                    'details': details
-                }
-            # Else: phone mismatch but not primary pin - fall through to next layer
+                    return {
+                        'match': False,
+                        'confidence': 'high',
+                        'reason': f"Phone area code mismatch: account={account_area_code} ({account_phone_norm}), evidence={evidence_area_code} ({evidence_phone_norm})",
+                        'layer': 'phone_mismatch',
+                        'details': details
+                    }
+                # Else: area code mismatch but not primary pin - fall through to next layer
 
     # Layer 3: Category/business-type incompatibility (hard reject)
     evidence_text_combined = ' '.join(filter(None, [evidence_title, evidence_snippet, evidence_location]))

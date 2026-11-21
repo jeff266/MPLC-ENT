@@ -31,6 +31,7 @@ import os
 import re
 import sys
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
 from urllib.parse import urlparse
@@ -163,7 +164,35 @@ class WebTextEvidenceChannel(EvidenceChannel):
         """
         Run a Serper web search and return results.
         Returns list of dicts with keys: title, snippet, link, domain.
+
+        Uses disk cache to ensure reproducible results across test runs.
+        Cache key: SHA256 hash of query string.
         """
+        import hashlib
+        import json
+        from pathlib import Path
+
+        # Cache directory (in verticals/auto_dealerships for now, can be moved)
+        cache_dir = Path(__file__).parent.parent.parent / "verticals" / "auto_dealerships" / "serper_cache"
+        cache_dir.mkdir(exist_ok=True)
+
+        # Cache key: hash of query
+        query_hash = hashlib.sha256(query.encode('utf-8')).hexdigest()[:16]
+        cache_file = cache_dir / f"{query_hash}.json"
+
+        # Try to load from cache first
+        if cache_file.exists():
+            try:
+                with open(cache_file, 'r') as f:
+                    cached_data = json.load(f)
+                    # Verify it's for the same query
+                    if cached_data.get('query') == query:
+                        return cached_data.get('results', [])
+            except (json.JSONDecodeError, KeyError):
+                # Cache corrupted, fall through to API call
+                pass
+
+        # Not in cache or cache invalid - call API
         if not self.serper_key:
             return []
 
@@ -193,6 +222,18 @@ class WebTextEvidenceChannel(EvidenceChannel):
                     "link": link,
                     "domain": domain,
                 })
+
+            # Save to cache for reproducible future runs
+            try:
+                with open(cache_file, 'w') as f:
+                    json.dump({
+                        'query': query,
+                        'results': results,
+                        'cached_at': str(datetime.now())
+                    }, f, indent=2)
+            except Exception:
+                # Cache write failed, but we have results - continue
+                pass
 
             return results
 
@@ -236,8 +277,23 @@ class WebTextEvidenceChannel(EvidenceChannel):
         - 5551234567
 
         Prioritizes well-formatted phones (with parentheses/dashes) over unformatted digit strings.
+        Filters invalid NANP area codes and date-like patterns.
         """
         import re
+
+        # Valid NANP area codes (N = 2-9, X = 0-9)
+        # First digit 2-9, second digit 0-9, third digit 0-9
+        # Excludes: N11 (like 211, 311, 411, etc.), N9X (like 390-399, 590-599, etc. for future use)
+        # This is a simplified validation - covers most invalid codes like 589
+        INVALID_AREA_CODES = {
+            # Invalid first digits (0, 1)
+            *[f"{d:03d}" for d in range(0, 200)],
+            # N11 service codes
+            *[f"{n}11" for n in range(2, 10)],
+            # Known unassigned/invalid codes (partial list)
+            '589', '590', '591', '592', '593', '594', '595', '596', '597', '598', '599',
+        }
+
         # US phone pattern: optional (area), 3 digits, separator, 4 digits
         phone_pattern = r'\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}'
         matches = re.findall(phone_pattern, text)
@@ -255,15 +311,41 @@ class WebTextEvidenceChannel(EvidenceChannel):
             if len(digits) != 10:
                 continue
 
-            # Filter out obvious non-phones
-            first_digit = digits[0]
+            # Extract area code
+            area_code = digits[0:3]
+
+            # Filter invalid NANP area codes
+            if area_code in INVALID_AREA_CODES:
+                continue
+
             # Real US area codes don't start with 0 or 1
-            if first_digit in ['0', '1']:
+            if area_code[0] in ['0', '1']:
                 continue
 
             # Filter out patterns with all same digits (like 1111111111)
             if len(set(digits)) == 1:
                 continue
+
+            # Reject date-like patterns (YYMMDD-HHMM, YY.MM.DD, etc.)
+            # Check if the digits look like a date: first 6 digits are plausible YYMMDD
+            first_6 = digits[0:6]
+            # Date pattern: YY (00-99), MM (01-12), DD (01-31)
+            if len(first_6) == 6:
+                yy = int(first_6[0:2])
+                mm = int(first_6[2:4])
+                dd = int(first_6[4:6])
+                # If MM is 01-12 and DD is 01-31, likely a date, not a phone
+                if 1 <= mm <= 12 and 1 <= dd <= 31:
+                    continue
+
+            # Reject patterns with multiple dots (version numbers like 1.2.3.4)
+            if '.' in match:
+                dot_count = match.count('.')
+                if dot_count >= 2:
+                    continue
+                # If single dot but no other formatting (parens/dashes), suspicious
+                if dot_count == 1 and '(' not in match and '-' not in match:
+                    continue
 
             # Score based on formatting (higher = more likely to be a real phone)
             score = 0
@@ -271,9 +353,10 @@ class WebTextEvidenceChannel(EvidenceChannel):
                 score += 10
             if '-' in match:  # Has dashes
                 score += 5
-            # Penalize dots in middle (could be date/version number)
-            if '.' in match:
-                score -= 3
+            # Single dot with good formatting is okay (penalize less)
+            if '.' in match and ('(' in match or '-' in match):
+                score -= 1
+            # Dots without other formatting already filtered above
 
             valid_matches.append((score, match))
 

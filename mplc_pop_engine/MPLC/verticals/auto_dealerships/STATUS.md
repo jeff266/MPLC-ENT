@@ -1,10 +1,25 @@
 # Auto Dealerships - Text Evidence Channel Status
 
-**Last Updated:** 2026-11-20 (after phone extraction implementation)
+**Last Updated:** 2026-11-20 (after phone extraction implementation + cache fix)
+
+## ⚠️ CRITICAL CAVEAT: Prior Results Not Reproducible
+
+**All prior agreement numbers (5%, 25%, 40%) are directional only** - Serper search results were NOT cached between runs, making comparisons invalid.
+
+**What changed (2026-11-20 evening):**
+- Implemented disk caching for Serper API responses (keyed by query hash)
+- Cache ensures reproducible results across test runs
+- **This affects ALL prior measurements** - search results likely varied between baseline, first fix, and revised fix runs
+
+**Going forward:** All new test runs use cached evidence, making confusion matrix comparisons trustworthy.
+
+**Retroactive impact:** Cannot confidently attribute prior changes (5%→25%→40%) to code fixes vs. Serper variability. Need clean baseline with cache populated.
+
+---
 
 ## Summary
 
-**Work in progress: 25% agreement on n=20 (strict), 40% if including SUSPECT tier.** Phone extraction working - 1 of 3 wrong-store false positives fixed. SUSPECT tier now populated (3 cases) indicating phone-matching layer is active. Known failure modes: 2 wrong-store false positives remain, missing evidence sources (cars.com).
+**Work in progress: Agreement metrics under review due to cache fix.** Phone extraction working - 1 of 3 wrong-store false positives fixed. SUSPECT tier now populated (3 cases) indicating phone-matching layer is active. Known failure modes: 2 wrong-store false positives remain, missing evidence sources (cars.com).
 
 ---
 
