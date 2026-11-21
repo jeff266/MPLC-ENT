@@ -141,6 +141,74 @@ def norm_name(n) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Corroboration checking (§7 design decision: require name OR phone match
+# beyond bare domain/name clustering before propagating exclusions)
+# ---------------------------------------------------------------------------
+_CORROBORATION_STOPWORDS = {
+    'center', 'system', 'group', 'services', 'facilities', 'facility',
+    'apartments', 'community', 'communities', 'properties',
+    'management', 'company', 'corporation', 'inc', 'llc',
+    'corp', 'ltd', 'co', 'the', 'and', 'of', 'at'
+}
+
+
+def _tokenize_name_for_corroboration(name: str) -> Set[str]:
+    """
+    Tokenize name for corroboration matching.
+    Returns significant tokens (>2 chars, not stopwords).
+    """
+    if pd.isna(name):
+        return set()
+    name_lower = name.lower().strip()
+    name_clean = _SUFFIX_RE.sub('', name_lower)
+    name_clean = _PUNCT_RE.sub('', name_clean)
+    tokens = re.findall(r'\b\w+\b', name_clean)
+    return {t for t in tokens if len(t) > 2 and t not in _CORROBORATION_STOPWORDS}
+
+
+def _normalize_phone_for_corroboration(phone) -> str:
+    """Extract last 10 digits from phone number (strips country codes)."""
+    if pd.isna(phone):
+        return ''
+    digits = re.sub(r'\D', '', str(phone))
+    if len(digits) >= 10:
+        return digits[-10:]
+    return digits
+
+
+def _accounts_corroborate(name1: str, phone1: str, name2: str, phone2: str) -> bool:
+    """
+    Check if two accounts corroborate (same real-world entity).
+
+    Corroboration requires:
+    - Name token overlap >= 75% (same as Villa Ford fix threshold)
+    OR
+    - Exact phone match (same 10 digits)
+
+    Returns True if corroboration exists, False otherwise.
+    """
+    # Phone corroboration: exact match
+    phone1_norm = _normalize_phone_for_corroboration(phone1)
+    phone2_norm = _normalize_phone_for_corroboration(phone2)
+    if phone1_norm and phone2_norm and len(phone1_norm) == 10 and phone1_norm == phone2_norm:
+        return True
+
+    # Name corroboration: token overlap >= 75%
+    tokens1 = _tokenize_name_for_corroboration(name1)
+    tokens2 = _tokenize_name_for_corroboration(name2)
+    if not tokens1 or not tokens2:
+        return False
+
+    overlap = tokens1 & tokens2
+    max_tokens = max(len(tokens1), len(tokens2))
+    if max_tokens == 0:
+        return False
+
+    overlap_pct = len(overlap) / max_tokens
+    return overlap_pct >= 0.75
+
+
+# ---------------------------------------------------------------------------
 # Flexible column lookup for the two files whose exact export shape hasn't
 # been confirmed against a real sample yet.
 # ---------------------------------------------------------------------------
@@ -500,10 +568,81 @@ def compute_eligibility_vectorized(
             print(f"    {g['kind']}: {g['value']!r} ({g['size']:,} accounts)")
 
     def _propagate(flag: pd.Series) -> pd.Series:
+        """
+        Propagate flags with corroboration gating (§7 design decision).
+
+        Hierarchy propagation: Unconditional (real Salesforce parent-child
+        relationships are trusted).
+
+        Domain/Name propagation: Gated by corroboration. For each account
+        without the flag, check if it corroborates (name token overlap >= 75%
+        OR exact phone match) with ANY flagged account in its domain/name
+        cluster. Only propagate if corroboration exists.
+
+        Additive only: Can prevent propagation (reduce false positives), but
+        never add exclusions that weren't already happening.
+        """
+        # Hierarchy propagation: Unconditional (trusted relationships)
         via_hierarchy = flag.groupby(hierarchy_component).transform('any')
-        via_domain = flag.groupby(domain_component).transform('any')
-        via_name = flag.groupby(name_component).transform('any')
-        return via_hierarchy | via_domain | via_name
+
+        # Domain/Name propagation: Corroboration-gated
+        # Build mapping: for each account, find which accounts in its
+        # domain/name cluster have the flag
+        via_domain_gated = pd.Series(False, index=universe.index)
+        via_name_gated = pd.Series(False, index=universe.index)
+
+        # For efficiency, only check accounts that are in a cluster with
+        # at least one flagged account
+        flagged_domain_clusters = domain_component[flag].unique()
+        flagged_name_clusters = name_component[flag].unique()
+
+        # Domain cluster corroboration
+        for cluster_id in flagged_domain_clusters:
+            in_cluster = domain_component == cluster_id
+            cluster_accounts = universe[in_cluster]
+            cluster_flags = flag[in_cluster]
+
+            # Find flagged accounts in this cluster
+            flagged_indices = cluster_flags[cluster_flags].index
+
+            # For each unflagged account, check corroboration with any flagged account
+            unflagged_indices = cluster_flags[~cluster_flags].index
+            for unflagged_idx in unflagged_indices:
+                unflagged_name = universe.loc[unflagged_idx, 'Account Name']
+                unflagged_phone = universe.loc[unflagged_idx, 'Phone'] if 'Phone' in universe.columns else ''
+
+                # Check corroboration with ANY flagged account in cluster
+                for flagged_idx in flagged_indices:
+                    flagged_name = universe.loc[flagged_idx, 'Account Name']
+                    flagged_phone = universe.loc[flagged_idx, 'Phone'] if 'Phone' in universe.columns else ''
+
+                    if _accounts_corroborate(unflagged_name, unflagged_phone, flagged_name, flagged_phone):
+                        via_domain_gated.loc[unflagged_idx] = True
+                        break  # Found corroboration, no need to check other flagged accounts
+
+        # Name cluster corroboration (same logic)
+        for cluster_id in flagged_name_clusters:
+            in_cluster = name_component == cluster_id
+            cluster_flags = flag[in_cluster]
+
+            flagged_indices = cluster_flags[cluster_flags].index
+            unflagged_indices = cluster_flags[~cluster_flags].index
+
+            for unflagged_idx in unflagged_indices:
+                unflagged_name = universe.loc[unflagged_idx, 'Account Name']
+                unflagged_phone = universe.loc[unflagged_idx, 'Phone'] if 'Phone' in universe.columns else ''
+
+                for flagged_idx in flagged_indices:
+                    flagged_name = universe.loc[flagged_idx, 'Account Name']
+                    flagged_phone = universe.loc[flagged_idx, 'Phone'] if 'Phone' in universe.columns else ''
+
+                    if _accounts_corroborate(unflagged_name, unflagged_phone, flagged_name, flagged_phone):
+                        via_name_gated.loc[unflagged_idx] = True
+                        break
+
+        # Combine: hierarchy (unconditional) + domain/name (gated)
+        # Also preserve the flag on the original account itself (self-flagged)
+        return flag | via_hierarchy | via_domain_gated | via_name_gated
 
     cluster_bad_status = _propagate(hierarchy_bad)
     cluster_name_marker = _propagate(name_marker_bool)
